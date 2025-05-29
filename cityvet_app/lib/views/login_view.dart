@@ -94,7 +94,7 @@ class _LoginViewState extends State<LoginView> {
                     : Config.secondaryColor,
                   enabledBorder: Config.enabledBorder,
                   focusedBorder: Config.focusedBorder,
-                  contentPadding: Config.paddingSmall, 
+                  contentPadding: Config.paddingTextfield, 
                 ),
               ),
               Config.heightMedium,
@@ -115,7 +115,7 @@ class _LoginViewState extends State<LoginView> {
                     : Config.secondaryColor,
                   enabledBorder: Config.enabledBorder, 
                   focusedBorder: Config.focusedBorder,
-                  contentPadding: Config.paddingSmall,
+                  contentPadding: Config.paddingTextfield,
                   suffixIcon: IconButton(
                     padding: const EdgeInsetsDirectional.only(end: 12),
                     onPressed: () {

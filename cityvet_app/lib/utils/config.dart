@@ -40,7 +40,7 @@ class Config {
     )
   );
 
-  static const paddingSmall = EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0);
+  static const paddingTextfield = EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0);
 
   // Colors  
   static const Color primaryColor = Color(0xFF8ED968);
