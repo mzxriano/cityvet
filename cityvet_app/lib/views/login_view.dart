@@ -1,5 +1,6 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
 
 class LoginView extends StatefulWidget {
@@ -56,124 +57,128 @@ class _LoginViewState extends State<LoginView> {
     Config().init(context);
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: Config.screenWidth! * 0.1),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Column(
-                  children: [
-                    Image.asset('assets/images/logo.png'),
-                    Config.heightSmall,
-                    Text(
-                      'Login',
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontBig,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Config.heightMedium,
-              Text(
-                'Email',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: Config.fontMedium,
-                ),
-              ),
-              TextField(
-                controller: _emailController,
-                focusNode: _emailNode,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: _isEmailFocused ? Colors.transparent 
-                    : Config.secondaryColor,
-                  enabledBorder: Config.enabledBorder,
-                  focusedBorder: Config.focusedBorder,
-                  contentPadding: Config.paddingTextfield, 
-                ),
-              ),
-              Config.heightMedium,
-              Text(
-                'Password',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: Config.fontMedium,
-                ),
-              ),
-              TextField(
-                controller: _passwordController,
-                focusNode: _passwordNode,
-                obscureText: _isObscured,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: _isPassFocused ? Colors.transparent 
-                    : Config.secondaryColor,
-                  enabledBorder: Config.enabledBorder, 
-                  focusedBorder: Config.focusedBorder,
-                  contentPadding: Config.paddingTextfield,
-                  suffixIcon: IconButton(
-                    padding: const EdgeInsetsDirectional.only(end: 12),
-                    onPressed: () {
-                      setState(() {
-                        _isObscured = !_isObscured;
-                      });
-                    }, 
-                    icon: _isObscured ? const Icon(Icons.visibility)
-                      : const Icon(Icons.visibility_off)
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: Config.screenWidth! * 0.1, vertical: Config.screenHeight! * 0.07),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Image.asset('assets/images/logo.png'),
+                      Config.heightSmall,
+                      Text(
+                        'Login',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontBig,
+                        ),
+                      )
+                    ],
                   ),
                 ),
-              ),
-              Config.heightSmall,
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: (){}, 
-                  child: Text(
-                    'Forgot Password',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
-                      color: Colors.red
-                    ),
-                  )
+                Config.heightMedium,
+                Text(
+                  'Email',
+                  style: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: Config.fontMedium,
+                  ),
                 ),
-              ),
-              Config.heightMedium,
-              Button(
-                width: double.infinity, 
-                title: 'Login', 
-                onPressed: (){}
-              ),
-              Config.heightMedium,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Don\'t have an account?',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
+                TextField(
+                  controller: _emailController,
+                  focusNode: _emailNode,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: _isEmailFocused ? Colors.transparent 
+                      : Config.secondaryColor,
+                    enabledBorder: Config.enabledBorder,
+                    focusedBorder: Config.focusedBorder,
+                    contentPadding: Config.paddingTextfield, 
+                  ),
+                ),
+                Config.heightMedium,
+                Text(
+                  'Password',
+                  style: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: Config.fontMedium,
+                  ),
+                ),
+                TextField(
+                  controller: _passwordController,
+                  focusNode: _passwordNode,
+                  obscureText: _isObscured,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: _isPassFocused ? Colors.transparent 
+                      : Config.secondaryColor,
+                    enabledBorder: Config.enabledBorder, 
+                    focusedBorder: Config.focusedBorder,
+                    contentPadding: Config.paddingTextfield,
+                    suffixIcon: IconButton(
+                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      onPressed: () {
+                        setState(() {
+                          _isObscured = !_isObscured;
+                        });
+                      }, 
+                      icon: _isObscured ? const Icon(Icons.visibility)
+                        : const Icon(Icons.visibility_off)
                     ),
                   ),
-                  TextButton(
+                ),
+                Config.heightSmall,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
                     onPressed: (){}, 
                     child: Text(
-                      'Sign up',
+                      'Forgot Password',
                       style: TextStyle(
                         fontFamily: Config.primaryFont,
                         fontSize: Config.fontSmall,
-                        color: Config.primaryColor
+                        color: Colors.red
                       ),
                     )
                   ),
-                ],
-              )
-            ],
+                ),
+                Config.heightMedium,
+                Button(
+                  width: double.infinity, 
+                  title: 'Login', 
+                  onPressed: (){}
+                ),
+                Config.heightMedium,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Don\'t have an account?',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontSmall,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: (){
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SignupView() ));
+                      }, 
+                      child: Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Config.primaryColor
+                        ),
+                      )
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
         )
       ),

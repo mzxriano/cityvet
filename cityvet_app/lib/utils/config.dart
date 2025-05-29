@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Config {
@@ -20,6 +19,10 @@ class Config {
 
   static const heightMedium = SizedBox(
     height: 20,
+  );
+
+    static const heightBig = SizedBox(
+    height: 35,
   );
 
   // Text field styles
