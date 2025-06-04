@@ -1,7 +1,9 @@
 class AppText {
 
   static final enText = {
-    'forgot_passwor' : 'Don\'t worry! Please enter your phone or email address to send verification code.',
+    'forgot_password' : 'Don\'t worry! Please enter your phone or email address to send verification code.',
+    'otp_verification' : 'Please enter the code we just sent to your email.',
+    'reset_password' : 'Set your new password.',
   };
 
 }
