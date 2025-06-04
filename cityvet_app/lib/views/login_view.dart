@@ -59,7 +59,7 @@ class _LoginViewState extends State<LoginView> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: Config.screenWidth! * 0.1, vertical: Config.screenHeight! * 0.07),
+            padding: Config.paddingScreen,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
