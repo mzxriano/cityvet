@@ -1,5 +1,6 @@
 import 'package:cityvet_app/views/forgot_pass_view.dart';
 import 'package:cityvet_app/views/login_view.dart';
+import 'package:cityvet_app/views/reset_pass_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,7 +15,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: ForgotPassView(),
+      home: ResetPassView(),
     );
   }
 }
