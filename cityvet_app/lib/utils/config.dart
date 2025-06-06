@@ -52,6 +52,8 @@ class Config {
 
   static const Color secondaryColor = Color(0xFFDADADA);
 
+  static const Color tertiaryColor = Color(0xFF858585);
+
   // Font
   static const primaryFont = 'Poppins';
 
@@ -60,5 +62,11 @@ class Config {
   static const double fontMedium = 18;
 
   static const double fontBig = 25;
+
+  // Image
+  static Image primaryLogo = Image.asset('assets/images/logo.png');
+
+  // IconButton
+  static const Icon backButtonIcon = Icon(Icons.arrow_back_ios_new_rounded);
 
 }

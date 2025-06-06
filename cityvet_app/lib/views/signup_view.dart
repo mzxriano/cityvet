@@ -112,7 +112,7 @@ class _SignupViewState extends State<SignupView> {
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      Image.asset('assets/images/logo.png'),
+                      Config.primaryLogo,
                       Config.heightSmall,
                       Text(
                         'Sign up',

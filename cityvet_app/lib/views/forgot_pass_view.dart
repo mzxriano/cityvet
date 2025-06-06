@@ -33,7 +33,7 @@ class _ForgotPassViewState extends State<ForgotPassView> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: (){}, 
-          icon: Icon(Icons.arrow_back_ios),
+          icon: Config.backButtonIcon,
         ),
       ),
       body: SafeArea(
@@ -63,6 +63,7 @@ class _ForgotPassViewState extends State<ForgotPassView> {
                   style: TextStyle(
                     fontFamily: Config.primaryFont,
                     fontSize: Config.fontSmall,
+                    color: Config.tertiaryColor,
                   ),
                 ),
                 Config.heightMedium,

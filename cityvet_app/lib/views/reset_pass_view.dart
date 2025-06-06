@@ -46,7 +46,7 @@ class _ResetPassViewState extends State<ResetPassView> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: (){}, 
-          icon: Icon(Icons.arrow_back_ios),
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
         ),
       ),
       body: SafeArea(
@@ -79,6 +79,7 @@ class _ResetPassViewState extends State<ResetPassView> {
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
+                          color: Config.tertiaryColor,
                         ),
                       ),
                     ],

@@ -67,7 +67,7 @@ class _LoginViewState extends State<LoginView> {
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      Image.asset('assets/images/logo.png'),
+                      Config.primaryLogo,
                       Config.heightSmall,
                       Text(
                         'Login',
