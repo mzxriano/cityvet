@@ -36,10 +36,10 @@ class CustomCardState extends State<CustomCard> {
             offset: const Offset(0, 0),
           ),
         ],
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(25),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
         child: GestureDetector(
           onTap: widget.function,
           child: widget.widget,

@@ -1,5 +1,4 @@
 import 'package:cityvet_app/main_layout.dart';
-import 'package:cityvet_app/views/otp_verification_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {

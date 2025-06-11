@@ -40,10 +40,29 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
         children: const <Widget>[
-          Center(child: Column(
-            children: [
-              CardVeterinarian()
-            ],
+          Center(child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CardVeterinarian(
+                  vetName: 'Dr. Sarah Cruz',
+                  vetEmail: 'cruz@gmail.com',
+                  vetPhone: '+639152623657',
+                  vetImageUrl: 'assets/images/default_avatar.png',
+                ),
+                CustomCard(
+                  width: double.infinity, 
+                  color: Colors.white, 
+                  widget: Column(
+                    children: [
+                      Text('afnjanjanwgawjngjang'),
+                      Text('ainfaingioawgnawigniawwgnawgnagnajg')
+                    ],
+                  )
+                ),
+              ],
+            ),
           )),
           Center(child: Text('Community')),
           Center(child: Text('QR Scanner')),

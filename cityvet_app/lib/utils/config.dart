@@ -57,6 +57,8 @@ class Config {
   // Font
   static const primaryFont = 'Poppins';
 
+    static const double fontXS = 13;
+
   static const double fontSmall = 15;
 
   static const double fontMedium = 18;

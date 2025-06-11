@@ -1,18 +1,33 @@
 import 'package:cityvet_app/components/card.dart';
+import 'package:cityvet_app/components/role.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
 class CardVeterinarian extends StatefulWidget {
-  const CardVeterinarian({super.key});
+  const CardVeterinarian({
+    super.key,
+    required this.vetName,
+    required this.vetEmail,
+    required this.vetPhone,
+    required this.vetImageUrl,
+    });
+
+  final String vetName;
+  final String vetEmail;
+  final String vetPhone;
+  final String vetImageUrl;
 
   @override
   State<CardVeterinarian> createState() => _CardVeterinarianState();
 }
 
 class _CardVeterinarianState extends State<CardVeterinarian> {
+
+  final roleWidget = RoleWidget();
+
   @override
   Widget build(BuildContext context) {
-    Config().init(context); // Ensure your Config utility is initialized
+    Config().init(context);
 
     return CustomCard(
       width: double.infinity,
@@ -20,9 +35,9 @@ class _CardVeterinarianState extends State<CardVeterinarian> {
       widget: Row(
         children: [
           CircleAvatar(
-            radius: 40,
+            radius: 35,
             backgroundColor: Colors.grey[200],
-            child: Image.asset('assets/images/default_avatar.png', width: 40, height: 40,),
+            child: Image.asset(widget.vetImageUrl, width: 35, height: 35,),
           ),
           const SizedBox(width: 25.0),
 
@@ -32,12 +47,15 @@ class _CardVeterinarianState extends State<CardVeterinarian> {
               children: [
                 // Name
                 Text(
-                  'Dr. Sarah Cruz',
+                  widget.vetName,
                   style: TextStyle(
                     fontFamily: Config.primaryFont,
-                    fontSize: Config.fontBig,
+                    fontSize: Config.fontMedium,
                   ),
                 ),
+
+                roleWidget['Veterinarian'],
+
                 const SizedBox(height: 10),
 
                 Row(
@@ -46,11 +64,11 @@ class _CardVeterinarianState extends State<CardVeterinarian> {
                     const SizedBox(width: 5),
                     Flexible(
                       child: Text(
-                        'cruz123@gmail.com',
+                        widget.vetEmail,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
-                          fontSize: Config.fontSmall,
+                          fontSize: Config.fontXS,
                           color: Config.tertiaryColor,
                           decoration: TextDecoration.underline,
                         ),
@@ -65,10 +83,10 @@ class _CardVeterinarianState extends State<CardVeterinarian> {
                     const Icon(Icons.phone, size: 18, color: Config.tertiaryColor),
                     const SizedBox(width: 5),
                     Text(
-                      '+639152623657',
+                      widget.vetPhone,
                       style: TextStyle(
                         fontFamily: Config.primaryFont,
-                        fontSize: Config.fontSmall,
+                        fontSize: Config.fontXS,
                         color: Config.tertiaryColor,
                       ),
                     ),
