@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/card.dart';
+import 'package:cityvet_app/components/card_veterinarian.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -39,18 +40,11 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
         children: const <Widget>[
-          Center(child: CustomCard(
-            width: double.infinity, 
-            color: Colors.white, 
-            widget: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('sabvajkvbaj'),
-                Text('anfiaknfaiwnfainwfaiwnfanbfaiowfbagfbagbagbawgbaiugbaiugbawilgbaw')
-              ],
-            ), 
-            function: null)),
+          Center(child: Column(
+            children: [
+              CardVeterinarian()
+            ],
+          )),
           Center(child: Text('Community')),
           Center(child: Text('QR Scanner')),
           Center(child: Text('Animals')),

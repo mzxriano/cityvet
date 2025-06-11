@@ -39,7 +39,7 @@ class CustomCardState extends State<CustomCard> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(20.0),
         child: GestureDetector(
           onTap: widget.function,
           child: widget.widget,
