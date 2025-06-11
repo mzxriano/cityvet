@@ -1,3 +1,4 @@
+import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -38,7 +39,18 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
         children: const <Widget>[
-          Center(child: Text('Home')),
+          Center(child: CustomCard(
+            width: double.infinity, 
+            color: Colors.white, 
+            widget: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('sabvajkvbaj'),
+                Text('anfiaknfaiwnfainwfaiwnfanbfaiowfbagfbagbagbawgbaiugbaiugbawilgbaw')
+              ],
+            ), 
+            function: null)),
           Center(child: Text('Community')),
           Center(child: Text('QR Scanner')),
           Center(child: Text('Animals')),
@@ -73,14 +85,14 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  // Navigation item widget
+  // Widget for navigation items
   Widget _buildNavItem({required IconData icon, required int index}) {
     final isSelected = _currentPage == index;
     return Expanded(
       child: GestureDetector(
         onTap: () => _onTabSelected(index),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

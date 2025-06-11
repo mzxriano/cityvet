@@ -1,0 +1,50 @@
+import 'package:flutter/material.dart';
+
+class CustomCard extends StatefulWidget {
+  final double width;
+  final Color color;
+  final Widget widget;
+  final GestureTapCallback? function;
+
+  const CustomCard({
+    super.key,
+    required this.width,
+    required this.color,
+    required this.widget,
+    this.function,
+  });
+
+  @override
+  State<CustomCard> createState() => CustomCardState();
+}
+
+class CustomCardState extends State<CustomCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: widget.width,
+      constraints: const BoxConstraints(
+        maxWidth: 700,
+      ),
+      decoration: BoxDecoration(
+        color: widget.color,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            spreadRadius: 0,
+            blurRadius: 5,
+            offset: const Offset(0, 0),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: GestureDetector(
+          onTap: widget.function,
+          child: widget.widget,
+        ),
+      ),
+    );
+  }
+}
