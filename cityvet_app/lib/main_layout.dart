@@ -1,6 +1,7 @@
 import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/components/card_veterinarian.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -30,6 +31,19 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     Config().init(context);
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: (){}, 
+          icon: Icon(Icons.menu),
+        ),
+        title: Text(
+          'Hello, Juan',
+          style: TextStyle(
+            fontFamily: Config.primaryFont,
+            fontSize: Config.fontMedium,
+          ),
+        ),
+      ),
       backgroundColor: Color(0xFFEEEEEE),
       body: PageView(
         controller: _pageController,
@@ -40,30 +54,7 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
         children: const <Widget>[
-          Center(child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CardVeterinarian(
-                  vetName: 'Dr. Sarah Cruz',
-                  vetEmail: 'cruz@gmail.com',
-                  vetPhone: '+639152623657',
-                  vetImageUrl: 'assets/images/default_avatar.png',
-                ),
-                CustomCard(
-                  width: double.infinity, 
-                  color: Colors.white, 
-                  widget: Column(
-                    children: [
-                      Text('afnjanjanwgawjngjang'),
-                      Text('ainfaingioawgnawigniawwgnawgnagnajg')
-                    ],
-                  )
-                ),
-              ],
-            ),
-          )),
+          HomeView(),
           Center(child: Text('Community')),
           Center(child: Text('QR Scanner')),
           Center(child: Text('Animals')),

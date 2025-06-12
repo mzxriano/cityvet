@@ -28,14 +28,6 @@ class CustomCardState extends State<CustomCard> {
       ),
       decoration: BoxDecoration(
         color: widget.color,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            spreadRadius: 0,
-            blurRadius: 5,
-            offset: const Offset(0, 0),
-          ),
-        ],
         borderRadius: BorderRadius.circular(25),
       ),
       child: Padding(

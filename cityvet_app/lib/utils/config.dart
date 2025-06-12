@@ -71,4 +71,7 @@ class Config {
   // IconButton
   static const Icon backButtonIcon = Icon(Icons.arrow_back_ios_new_rounded);
 
+  // Font Weight
+  static const FontWeight fontW600 = FontWeight.w600;
+
 }
