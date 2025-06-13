@@ -1,6 +1,5 @@
-import 'package:cityvet_app/components/card.dart';
-import 'package:cityvet_app/components/card_veterinarian.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/main_screens/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -45,21 +44,24 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
       backgroundColor: Color(0xFFEEEEEE),
-      body: PageView(
-        controller: _pageController,
-        physics: NeverScrollableScrollPhysics(),
-        onPageChanged: (value) {
-          setState(() {
-            _currentPage = value;
-          });
-        },
-        children: const <Widget>[
-          HomeView(),
-          Center(child: Text('Community')),
-          Center(child: Text('QR Scanner')),
-          Center(child: Text('Animals')),
-          Center(child: Text('Notifications')),
-        ],
+      body: Padding(
+        padding: Config.paddingScreen,
+        child: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(),
+          onPageChanged: (value) {
+            setState(() {
+              _currentPage = value;
+            });
+          },
+          children: const <Widget>[
+            HomeView(),
+            CommunityView(),
+            Center(child: Text('QR Scanner')),
+            Center(child: Text('Animals')),
+            Center(child: Text('Notifications')),
+          ],
+        ),
       ),
 
       floatingActionButton: FloatingActionButton(

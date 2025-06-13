@@ -25,140 +25,137 @@ class HomeViewState extends State<HomeView> {
 
     return SafeArea(
       child: SingleChildScrollView(
-        child: Padding(
-          padding: Config.paddingScreen,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: _searchBar()),
-              Config.heightBig,
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: _searchBar()),
+            Config.heightBig,
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Animals',
+                  style: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: Config.fontMedium,
+                    fontWeight: Config.fontW600,
+                  ),
+                ),
+                Icon(Icons.arrow_forward),
+              ],
+            ),
+            Config.heightSmall,
+        
+            SizedBox(
+              height: 160,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: animals.length,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemBuilder: (context, index) {
+                  return SizedBox(
+                    width: 150,
+                    child: _animalCard(
+                      animals[index]['image']!,
+                      animals[index]['label']!,
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => const SizedBox(width: 10),
+              ),
+            ),
+        
+            Config.heightBig,
+            const Text(
+              'Up Coming',
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontMedium,
+                fontWeight: Config.fontW600,
+              ),
+            ),
+            Config.heightSmall,
+            CustomCard(
+              width: double.infinity, 
+              color: Colors.white, 
+              widget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Animals',
+                    'Vaccination',
                     style: TextStyle(
                       fontFamily: Config.primaryFont,
                       fontSize: Config.fontMedium,
                       fontWeight: Config.fontW600,
+                      color: Color(0xFF524F4F),
                     ),
                   ),
-                  Icon(Icons.arrow_forward),
-                ],
-              ),
-              Config.heightSmall,
-
-              SizedBox(
-                height: 160,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: animals.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemBuilder: (context, index) {
-                    return SizedBox(
-                      width: 150,
-                      child: _animalCard(
-                        animals[index]['image']!,
-                        animals[index]['label']!,
-                      ),
-                    );
-                  },
-                  separatorBuilder: (context, index) => const SizedBox(width: 10),
-                ),
-              ),
-
-              Config.heightBig,
-              const Text(
-                'Up Coming',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: Config.fontMedium,
-                  fontWeight: Config.fontW600,
-                ),
-              ),
-              Config.heightSmall,
-              CustomCard(
-                width: double.infinity, 
-                color: Colors.white, 
-                widget: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Vaccination',
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontMedium,
-                        fontWeight: Config.fontW600,
-                        color: Color(0xFF524F4F),
-                      ),
-                    ),
-                    Config.heightSmall,
-                    SizedBox(
-                      width: double.infinity,
-                      child: Expanded(
-                        child: Text(
-                            'In the coming days of May 8th, there will be available vaccines for Dogs, Cats and Goats. This will be held at Brgy Catablan.',
-                          style: TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: Config.fontSmall,
-                            color: Config.tertiaryColor,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+                  Config.heightSmall,
+                  SizedBox(
+                    width: double.infinity,
+                    child: Expanded(
+                      child: Text(
+                          'In the coming days of May 8th, there will be available vaccines for Dogs, Cats and Goats. This will be held at Brgy Catablan.',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Config.tertiaryColor,
                         ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                )
-              ),
-
-              Config.heightBig,
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Available Vet',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                      fontWeight: Config.fontW600,
                     ),
                   ),
-                  TextButton(
-                    onPressed: null, 
-                    child: Text(
-                      'See all',
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontSmall,
-                        color: Config.tertiaryColor,
-                      ),
-                    )
+                ],
+              )
+            ),
+        
+            Config.heightBig,
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Available Vet',
+                  style: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: Config.fontMedium,
+                    fontWeight: Config.fontW600,
+                  ),
+                ),
+                TextButton(
+                  onPressed: null, 
+                  child: Text(
+                    'See all',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Config.tertiaryColor,
+                    ),
+                  )
+                ),
+              ],
+            ),
+            Config.heightSmall,
+            SizedBox(
+              child: Column(
+                children: [
+                  CardVeterinarian(
+                    vetName: 'Dr. Sarah Cruz', 
+                    vetEmail: 'cruz@gmail.com', 
+                    vetPhone: '+639152623657', 
+                    vetImageUrl: 'assets/images/default_avatar.png'
+                  ),
+                  Config.heightSmall,
+                  CardVeterinarian(
+                    vetName: 'Dr. Sarah Cruz', 
+                    vetEmail: 'cruz@gmail.com', 
+                    vetPhone: '+639152623657', 
+                    vetImageUrl: 'assets/images/default_avatar.png'
                   ),
                 ],
               ),
-              Config.heightSmall,
-              SizedBox(
-                child: Column(
-                  children: [
-                    CardVeterinarian(
-                      vetName: 'Dr. Sarah Cruz', 
-                      vetEmail: 'cruz@gmail.com', 
-                      vetPhone: '+639152623657', 
-                      vetImageUrl: 'assets/images/default_avatar.png'
-                    ),
-                    Config.heightSmall,
-                    CardVeterinarian(
-                      vetName: 'Dr. Sarah Cruz', 
-                      vetEmail: 'cruz@gmail.com', 
-                      vetPhone: '+639152623657', 
-                      vetImageUrl: 'assets/images/default_avatar.png'
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );
@@ -182,6 +179,10 @@ class HomeViewState extends State<HomeView> {
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+        ),
+        style: TextStyle(
+          fontFamily: Config.primaryFont,
+          fontSize: Config.fontSmall,
         ),
       ),
     );
