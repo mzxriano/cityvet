@@ -1,4 +1,5 @@
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/main_screens/community/community_post_widget.dart';
 import 'package:flutter/material.dart';
 
 class CommunityView extends StatelessWidget {
@@ -36,7 +37,9 @@ class CommunityView extends StatelessWidget {
               )
             ),
           ],
-        )
+        ),
+        Config.heightBig,
+        CommunityPostWidget(),
       ],
     );
   }
