@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/role.dart';
+import 'package:cityvet_app/modals/community_modals/post_comment_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/views/main_screens/community/community_photo_grid.dart';
 import 'package:flutter/material.dart';
@@ -123,6 +124,19 @@ class CommunityPostWidgetState extends State<CommunityPostWidget> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: (){
+                  showCommentsModal(
+                    context,
+                    comments: [
+                      'Nice post!',
+                      'I hope you find your pet.',
+                      'Shared with my friends!',
+                      'Shared with my friends! , Shared with my friends!,  Shared with my friends!, Shared with my friends!,',
+                    ],
+                    onSend: (text) {
+                      print("New comment: $text");
+                      // You could update your state here to add the comment
+                    },
+                  );
                 }, 
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.all(20),

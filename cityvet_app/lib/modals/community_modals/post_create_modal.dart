@@ -46,7 +46,7 @@ void showCreatePostModal(BuildContext context) {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Are you sure you want to close?',
+                                        'Are you sure you want to discard changes?',
                                         style: TextStyle(
                                           fontFamily: Config.primaryFont,
                                           fontSize: Config.fontSmall,
