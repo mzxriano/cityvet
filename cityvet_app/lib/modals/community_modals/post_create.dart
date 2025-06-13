@@ -1,4 +1,5 @@
 
+import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
@@ -40,7 +41,76 @@ void showCreatePostModal(BuildContext context) {
                           Row(
                             children: [
                               IconButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: isFieldNotEmpty ? () {
+                                  showConfirmationModal(context, 'Confirmation Dialog', Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Are you sure you want to close?',
+                                        style: TextStyle(
+                                          fontFamily: Config.primaryFont,
+                                          fontSize: Config.fontSmall,
+                                          color: Config.tertiaryColor
+                                        ),
+                                      ),
+                                      Config.heightMedium,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton(
+                                              onPressed: (){
+                                                Navigator.pop(context);
+                                              }, 
+                                              style: ElevatedButton.styleFrom(
+                                                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                                backgroundColor: Color(0xFF808080),
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                )
+                                              ),
+                                              child: Text(
+                                                'Cancel',
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: Config.fontSmall,
+                                                  fontWeight: Config.fontW600,
+                                                ),
+                                              )
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10,),
+                                          Expanded(
+                                            child: ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              Future.delayed(Duration(milliseconds: 100), () {
+                                                Navigator.pop(context); 
+                                              });
+                                            },
+                                              style: ElevatedButton.styleFrom(
+                                                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                                backgroundColor: Color(0xFFDD6454),
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                )
+                                              ),
+                                              child: Text(
+                                                'Discard',
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: Config.fontSmall,
+                                                  fontWeight: Config.fontW600,
+                                                ),
+                                              )
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ));
+                                } : () => Navigator.pop(context),
                                 icon: Icon(Icons.arrow_back_ios_rounded),
                               ),
                               SizedBox(width: 20),
