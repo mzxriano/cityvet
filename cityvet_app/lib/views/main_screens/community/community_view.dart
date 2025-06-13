@@ -1,3 +1,4 @@
+import 'package:cityvet_app/modals/community_modals/post_create.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/views/main_screens/community/community_post_widget.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,9 @@ class CommunityView extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: (){},
+              onPressed: (){
+                showCreatePostModal(context);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF30EF53),
                 padding: EdgeInsets.symmetric(vertical: 3, horizontal: 25)

@@ -122,7 +122,8 @@ class CommunityPostWidgetState extends State<CommunityPostWidget> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: (){}, 
+                onPressed: (){
+                }, 
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.all(20),
                   backgroundColor: Colors.white,
