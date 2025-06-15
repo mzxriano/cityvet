@@ -1,4 +1,5 @@
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/main_screens/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +32,15 @@ class _MainLayoutState extends State<MainLayout> {
     Config().init(context);
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: (){}, 
-          icon: Icon(Icons.menu),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              icon: Icon(Icons.menu),
+            );
+          },
         ),
         title: Text(
           'Hello, Juan',
@@ -44,6 +51,39 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
       backgroundColor: Color(0xFFEEEEEE),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Config.primaryColor,
+              ),
+              child: Text(
+                'Hello, Juan',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.pop(context); 
+                _onTabSelected(0);
+              },
+            ),
+            ListTile(
+              title: Text('Archives'),
+              onTap: () {
+                Navigator.pop(context); 
+                _onTabSelected(1); 
+              },
+            ),
+          ],
+        ),
+      ),
       body: Padding(
         padding: Config.paddingScreen,
         child: PageView(
@@ -58,21 +98,19 @@ class _MainLayoutState extends State<MainLayout> {
             HomeView(),
             CommunityView(),
             Center(child: Text('QR Scanner')),
-            Center(child: Text('Animals')),
+            UsersPage(),
             Center(child: Text('Notifications')),
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _onTabSelected(2), 
+        onPressed: () => _onTabSelected(2),
         backgroundColor: Colors.white,
         splashColor: Config.primaryColor,
         shape: CircleBorder(),
-        child: const FaIcon(FontAwesomeIcons.qrcode, color: Colors.grey,),
+        child: const FaIcon(FontAwesomeIcons.qrcode, color: Colors.grey),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         shape: const CircularNotchedRectangle(),
@@ -80,11 +118,11 @@ class _MainLayoutState extends State<MainLayout> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(icon: FontAwesomeIcons.house, index: 0,),
-            _buildNavItem(icon: FontAwesomeIcons.users, index: 1,),
+            _buildNavItem(icon: FontAwesomeIcons.house, index: 0),
+            _buildNavItem(icon: FontAwesomeIcons.users, index: 1),
             const SizedBox(width: 40),
-             _buildNavItem(icon: FontAwesomeIcons.paw, index: 3,),
-            _buildNavItem(icon: FontAwesomeIcons.bell, index: 4,),
+            _buildNavItem(icon: FontAwesomeIcons.paw, index: 3),
+            _buildNavItem(icon: FontAwesomeIcons.bell, index: 4),
           ],
         ),
       ),

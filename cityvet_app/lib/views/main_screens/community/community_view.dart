@@ -48,10 +48,11 @@ class CommunityView extends StatelessWidget {
               return CommunityPostWidget();
             }, 
             separatorBuilder: (context, index) => const SizedBox(height: 15,), 
-            itemCount: 3
+            itemCount: 3,
           ),
         ),
       ],
     );
   }
 }
+
