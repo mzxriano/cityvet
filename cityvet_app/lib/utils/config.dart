@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// This configuration is mainly for the ui struture
 class Config {
 
   static MediaQueryData? mediaQueryData;
