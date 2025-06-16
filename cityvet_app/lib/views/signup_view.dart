@@ -282,7 +282,9 @@ class _SignupViewState extends State<SignupView> {
                 Button(
                   width: double.infinity, 
                   title: 'Sign up', 
-                  onPressed: (){}
+                  onPressed: (){
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoginView() ));
+                  }
                 ),
                 Config.heightMedium,
                 Row(

@@ -20,8 +20,8 @@ class _ResetPassViewState extends State<ResetPassView> {
 
   bool _isnewPassFocused = false;
   bool _isconfirmNewPassFocused = false;
-  bool _isnewPassObscured = false;
-  bool _isconfirmNewPassObscured = false;
+  bool _isnewPassObscured = true;
+  bool _isconfirmNewPassObscured = true;
 
   @override
   void initState() {
@@ -45,7 +45,9 @@ class _ResetPassViewState extends State<ResetPassView> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: (){}, 
+          onPressed: (){
+            Navigator.pop(context);
+          }, 
           icon: Icon(Icons.arrow_back_ios_new_rounded),
         ),
       ),
@@ -147,8 +149,14 @@ class _ResetPassViewState extends State<ResetPassView> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 10,),
                 Text(
                   AppText.enText['reset_password_validation']!,
+                  style: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: Config.fontXS,
+                    color: Config.tertiaryColor,
+                  ),
                 ),
                 Config.heightMedium,
                 Button(

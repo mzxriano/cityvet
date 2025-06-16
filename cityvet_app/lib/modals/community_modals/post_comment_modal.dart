@@ -50,7 +50,7 @@ void showCommentsModal(BuildContext context, {
                                 Row(
                                   children: [
                                     Text(
-                                      'Sofia Smith',
+                                      'Sofia Doe',
                                       style: TextStyle(
                                         fontFamily: Config.primaryFont,
                                         fontSize: Config.fontMedium,
@@ -110,7 +110,7 @@ void showCommentsModal(BuildContext context, {
                     ),
                     SizedBox(width: 8),
                     IconButton(
-                      icon: Icon(Icons.send, color: Colors.blue),
+                      icon: Icon(Icons.send, color: Config.primaryColor),
                       onPressed: () {
                         if (commentController.text.trim().isNotEmpty) {
                           onSend(commentController.text.trim());

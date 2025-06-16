@@ -195,7 +195,7 @@ void showCreatePostModal(BuildContext context) {
                         color: Config.tertiaryColor,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Ano ang iyong nasa isip?',
+                        hintText: 'Start writing here',
                         hintStyle: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontMedium,

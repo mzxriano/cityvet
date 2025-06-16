@@ -67,7 +67,7 @@ class Config {
   static const double fontBig = 25;
 
   // Image
-  static Image primaryLogo = Image.asset('assets/images/logo.png');
+  static final Image primaryLogo = Image.asset('assets/images/logo.png');
 
   // IconButton
   static const Icon backButtonIcon = Icon(Icons.arrow_back_ios_new_rounded);

@@ -16,12 +16,12 @@ class CommunityPostWidgetState extends State<CommunityPostWidget> {
   var roleWidget = RoleWidget();
 
   var urls = <String>[
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
-  'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80',
+  'assets/images/logo.png',
+  'assets/images/default_avatar.png',
+  'assets/images/forgot_pass.png',
+  'assets/images/reset_pass.png',
+  'assets/images/logo.png',
+  'assets/images/logo.png',
 ];
 
   @override
@@ -97,7 +97,7 @@ class CommunityPostWidgetState extends State<CommunityPostWidget> {
                     width: double.infinity,
                     child: Expanded(
                       child: Text(
-                        'If ever you seen my baby, contact 09123456789',
+                        'Test post',
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
@@ -128,9 +128,9 @@ class CommunityPostWidgetState extends State<CommunityPostWidget> {
                     context,
                     comments: [
                       'Nice post!',
-                      'I hope you find your pet.',
-                      'Shared with my friends!',
-                      'Shared with my friends! , Shared with my friends!,  Shared with my friends!, Shared with my friends!,',
+                      'Test comment.',
+                      'Nice comment!',
+                      'Test comment! , Test comment!,  Test comment!, Test comment!, Test comment!, Test comment!, Test comment!',
                     ],
                     onSend: (text) {
                       print("New comment: $text");

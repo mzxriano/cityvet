@@ -1,6 +1,7 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/text.dart';
+import 'package:cityvet_app/views/reset_pass_view.dart';
 import 'package:flutter/material.dart';
 
 class OtpVerificationView extends StatefulWidget {
@@ -17,7 +18,9 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: (){}, 
+          onPressed: (){
+            Navigator.pop(context);
+          }, 
           icon: Config.backButtonIcon,
         ),
       ),
@@ -71,7 +74,8 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                     ),
                   ),
                   TextButton(
-                    onPressed: (){}, 
+                    onPressed: (){
+                    }, 
                     child: Text(
                       'Resend',
                       style: TextStyle(
@@ -87,7 +91,9 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
               Button(
                 width: double.infinity, 
                 title: 'Verify', 
-                onPressed: (){}
+                onPressed: (){
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ResetPassView() ));
+                }
               ),
             ],
           ),

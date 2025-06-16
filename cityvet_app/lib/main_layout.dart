@@ -1,4 +1,5 @@
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
@@ -12,19 +13,25 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
-  int _currentPage = 0;
-  final PageController _pageController = PageController();
+class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
+  int _currentIndex = 0;
+  int _previousIndex = 0;
+
+  final List<Widget> _pages = const [
+    HomeView(),
+    CommunityView(),
+    Center(child: Text('QR Scanner')),
+    UsersPage(),
+    Center(child: Text('Notifications')),
+  ];
 
   void _onTabSelected(int index) {
-    setState(() {
-      _currentPage = index;
-    });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (_currentIndex != index) {
+      setState(() {
+        _previousIndex = _currentIndex;
+        _currentIndex = index;
+      });
+    }
   }
 
   @override
@@ -59,26 +66,107 @@ class _MainLayoutState extends State<MainLayout> {
               decoration: BoxDecoration(
                 color: Config.primaryColor,
               ),
-              child: Text(
-                'Hello, Juan',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(''),
+                    radius: 30,
+                  ),
+                  const SizedBox(width: 20,),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Juan Dela Cruz',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontMedium,
+                          fontWeight: Config.fontW600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Text(
+                        '09123456789',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Config.tertiaryColor,
+                        ),
+                      ),
+                      Text(
+                        '@juandelacruz@gmail.com',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontXS,
+                          color: Config.tertiaryColor,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              )
             ),
             ListTile(
-              title: Text('Profile'),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profile',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                      color: Config.tertiaryColor,
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
+                ],
+              ),
               onTap: () {
                 Navigator.pop(context); 
                 _onTabSelected(0);
               },
             ),
             ListTile(
-              title: Text('Archives'),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Archives',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                      color: Config.tertiaryColor
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
+                ],
+              ),
               onTap: () {
                 Navigator.pop(context); 
                 _onTabSelected(1); 
+              },
+            ),
+            Divider(thickness: 0.5, color: Color(0xFFDDDDDD),),
+            ListTile(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                      color: Config.tertiaryColor,
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
+                ],
+              ),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginView())); 
               },
             ),
           ],
@@ -86,21 +174,32 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       body: Padding(
         padding: Config.paddingScreen,
-        child: PageView(
-          controller: _pageController,
-          physics: NeverScrollableScrollPhysics(),
-          onPageChanged: (value) {
-            setState(() {
-              _currentPage = value;
-            });
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+           
+            final bool slideLeft = _currentIndex > _previousIndex;
+            
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: slideLeft ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOutCubic,
+              )),
+              child: FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
+            );
           },
-          children: const <Widget>[
-            HomeView(),
-            CommunityView(),
-            Center(child: Text('QR Scanner')),
-            UsersPage(),
-            Center(child: Text('Notifications')),
-          ],
+          child: SizedBox(
+            key: ValueKey<int>(_currentIndex),
+            width: double.infinity,
+            height: double.infinity,
+            child: _pages[_currentIndex],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -129,9 +228,8 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  // Widget for navigation items
   Widget _buildNavItem({required IconData icon, required int index}) {
-    final isSelected = _currentPage == index;
+    final isSelected = _currentIndex == index;
     return Expanded(
       child: GestureDetector(
         onTap: () => _onTabSelected(index),
@@ -140,7 +238,14 @@ class _MainLayoutState extends State<MainLayout> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FaIcon(icon, color: isSelected ? Config.primaryColor : Colors.grey),
+              AnimatedScale(
+                scale: isSelected ? 1.1 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: FaIcon(
+                  icon, 
+                  color: isSelected ? Config.primaryColor : Colors.grey,
+                ),
+              ),
             ],
           ),
         ),

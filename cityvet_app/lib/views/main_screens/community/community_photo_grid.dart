@@ -27,6 +27,7 @@ class _CommunityPhotoGridState extends State<CommunityPhotoGrid> {
 
     return GridView(
       shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 200,
         crossAxisSpacing: 2,
@@ -41,28 +42,28 @@ class _CommunityPhotoGridState extends State<CommunityPhotoGrid> {
     return List<Widget>.generate(min(numImages, widget.maxImages), (index) {
       String imageUrl = widget.imageUrls[index];
 
-      // If its the last image
+      
       if (index == widget.maxImages - 1) {
         // Check how many more images are left
         int remaining = numImages - widget.maxImages;
 
-        // If no more are remaining return a simple image widget
+       
         if (remaining == 0) {
           return GestureDetector(
-            child: Image.network(
+            child: Image.asset(
               imageUrl,
               fit: BoxFit.cover,
             ),
             onTap: () => widget.onImageClicked(index),
           );
         } else {
-          // Create the facebook like effect for the last image with number of remaining  images
+         
           return GestureDetector(
             onTap: () => widget.onExpandClicked(),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(imageUrl, fit: BoxFit.cover),
+                Image.asset(imageUrl, fit: BoxFit.cover),
                 Positioned.fill(
                   child: Container(
                     alignment: Alignment.center,
@@ -82,7 +83,7 @@ class _CommunityPhotoGridState extends State<CommunityPhotoGrid> {
         }
       } else {
         return GestureDetector(
-          child: Image.network(
+          child: Image.asset(
             imageUrl,
             fit: BoxFit.cover,
           ),

@@ -1,5 +1,6 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/utils/text.dart';
+import 'package:cityvet_app/views/otp_verification_view.dart';
 import 'package:flutter/material.dart';
 import 'package:cityvet_app/utils/config.dart';
 
@@ -32,7 +33,9 @@ class _ForgotPassViewState extends State<ForgotPassView> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: (){}, 
+          onPressed: (){
+            Navigator.pop(context);
+          }, 
           icon: Config.backButtonIcon,
         ),
       ),
@@ -84,7 +87,9 @@ class _ForgotPassViewState extends State<ForgotPassView> {
                 Button(
                   width: double.infinity, 
                   title: 'Send Code', 
-                  onPressed: (){}
+                  onPressed: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => OtpVerificationView()));
+                  }
                 ),
               ],
             ),

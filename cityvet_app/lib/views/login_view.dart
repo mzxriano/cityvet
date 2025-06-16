@@ -1,5 +1,7 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/forgot_pass_view.dart';
 import 'package:cityvet_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
 
@@ -134,7 +136,9 @@ class _LoginViewState extends State<LoginView> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: (){}, 
+                    onPressed: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ForgotPassView()));
+                    }, 
                     child: Text(
                       'Forgot Password',
                       style: TextStyle(
@@ -149,7 +153,9 @@ class _LoginViewState extends State<LoginView> {
                 Button(
                   width: double.infinity, 
                   title: 'Login', 
-                  onPressed: (){}
+                  onPressed: (){
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MainLayout() ));
+                  }
                 ),
                 Config.heightMedium,
                 Row(
