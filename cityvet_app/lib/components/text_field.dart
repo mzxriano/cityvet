@@ -40,10 +40,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
             filled: true,
             fillColor: widget.isFocused ? Colors.transparent : Config.secondaryColor,
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: hasError ? Colors.red : Colors.grey),
+              borderSide: BorderSide(color: hasError ? Colors.red : Colors.transparent),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: hasError ? Colors.red : Config.primaryColor, width: 2),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
             contentPadding: Config.paddingTextfield,
             suffixIcon: widget.suffixIcon,

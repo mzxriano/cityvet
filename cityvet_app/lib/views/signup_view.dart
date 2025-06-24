@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/signup_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
@@ -103,6 +104,15 @@ class _SignupViewState extends State<SignupView> {
 
     final signup = SignupViewModel();
 
+    Map<String, String?> _fieldErrors = {
+    'firstName': null,
+    'lastName': null,
+    'phoneNumber': null,
+    'email': null,
+    'password': null,
+    'passwordConfirmation': null,
+  };
+
     Config().init(context);
     return Scaffold(
       body: SafeArea(
@@ -138,18 +148,23 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _firstNameController,
-                  focusNode: _firstNameNode,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isFirstNameFocused ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder,
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield, 
-                  ),
+                  node: _firstNameNode,
+                  isObscured: false,
+                  isFocused: _isFirstNameFocused,
+                  errorText: _fieldErrors['firstName'],
                 ),
+                if(_fieldErrors['firstName'] != null)
+                  Text(
+                    _fieldErrors['firstName'] ?? 'First Name must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
+
                 Config.heightMedium,
 
                 // Last Name text field
@@ -160,18 +175,23 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _lastNameController,
-                  focusNode: _lastNameNode,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isLastNameFocudes ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder,
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield, 
-                  ),
+                  node: _lastNameNode,
+                  isObscured: false,
+                  isFocused: _isLastNameFocudes,
+                  errorText: _fieldErrors['lastName'],
                 ),
+                if(_fieldErrors['lastName'] != null)
+                  Text(
+                    _fieldErrors['lastName'] ?? 'Last Name must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
+
                 Config.heightMedium,
 
                 // Phone Number text field
@@ -182,18 +202,22 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _phoneNumberController,
-                  focusNode: _phoneNumberNode,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isPhoneNumberFocused ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder,
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield, 
-                  ),
+                  node: _phoneNumberNode,
+                  isObscured: false,
+                  isFocused: _isPhoneNumberFocused,
+                  errorText: _fieldErrors['phoneNumber'],
                 ),
+                if(_fieldErrors['phoneNumber'] != null)
+                  Text(
+                    _fieldErrors['phoneNumber'] ?? 'Phone Number must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
                 Config.heightMedium,
 
                 // Email text field
@@ -204,18 +228,22 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _emailController,
-                  focusNode: _emailNode,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isEmailFocused ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder,
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield, 
-                  ),
+                  node: _emailNode,
+                  isObscured: false,
+                  isFocused: _isEmailFocused,
+                  errorText: _fieldErrors['email'],
                 ),
+                if(_fieldErrors['email'] != null)
+                  Text(
+                    _fieldErrors['email'] ?? 'Email must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
                 Config.heightMedium,
 
                 // Password text field
@@ -226,29 +254,31 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _passwordController,
-                  focusNode: _passwordNode,
-                  obscureText: _isPasswordObscured,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isPasswordFocused ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder, 
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield,
-                    suffixIcon: IconButton(
-                      padding: const EdgeInsetsDirectional.only(end: 12),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordObscured = !_isPasswordObscured;
-                        });
-                      }, 
-                      icon: _isPasswordObscured ? const Icon(Icons.visibility)
-                        : const Icon(Icons.visibility_off)
-                    ),
+                  node: _passwordNode,
+                  isObscured: _isPasswordObscured,
+                  isFocused: _isPasswordFocused,
+                  errorText: _fieldErrors['password'],
+                  suffixIcon: IconButton(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordObscured = !_isPasswordObscured;
+                      });
+                    },
+                    icon: Icon(_isPasswordObscured ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
+                if(_fieldErrors['password'] != null)
+                  Text(
+                    _fieldErrors['password'] ?? 'Password must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
                 Config.heightMedium,
 
                 // Confirm Password text field
@@ -259,29 +289,31 @@ class _SignupViewState extends State<SignupView> {
                     fontSize: Config.fontMedium,
                   ),
                 ),
-                TextField(
+                CustomTextField(
                   controller: _confirmPasswordController,
-                  focusNode: _confirmPasswordNode,
-                  obscureText: _isConfirmPasswordObscured,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: _isConfirmPasswordFocused ? Colors.transparent 
-                      : Config.secondaryColor,
-                    enabledBorder: Config.enabledBorder, 
-                    focusedBorder: Config.focusedBorder,
-                    contentPadding: Config.paddingTextfield,
-                    suffixIcon: IconButton(
-                      padding: const EdgeInsetsDirectional.only(end: 12),
-                      onPressed: () {
-                        setState(() {
-                          _isConfirmPasswordObscured = !_isConfirmPasswordObscured;
-                        });
-                      }, 
-                      icon: _isConfirmPasswordObscured ? const Icon(Icons.visibility)
-                        : const Icon(Icons.visibility_off)
-                    ),
+                  node: _confirmPasswordNode,
+                  isObscured: _isConfirmPasswordObscured,
+                  isFocused: _isConfirmPasswordFocused,
+                  errorText: _fieldErrors['passwordConfirmation'],
+                  suffixIcon: IconButton(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordObscured = !_isPasswordObscured;
+                      });
+                    },
+                    icon: Icon(_isPasswordObscured ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
+                if(_fieldErrors['passwordConfirmation'] != null)
+                  Text(
+                    _fieldErrors['passwordConfirmation'] ?? 'Confirm Password must not be empty',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontXS,
+                      color: Colors.red,
+                    ),
+                  ),
                 Config.heightBig,
                 Button(
                   width: double.infinity, 
