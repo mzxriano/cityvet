@@ -1,5 +1,6 @@
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Config().init(context);
     return const MaterialApp(
-      home: MainLayout(),
+      home: LoginView(),
     );
   }
 }

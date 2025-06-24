@@ -14,3 +14,5 @@ Route::get('/users', function () {
         ['id' => 'dict', 'name' => 'Test User 2'],
     ]);
 });
+
+Route::post('/register', [UserController::class,'store']);

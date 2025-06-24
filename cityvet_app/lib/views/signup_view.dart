@@ -1,5 +1,6 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/viewmodels/signup_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
 
@@ -99,6 +100,9 @@ class _SignupViewState extends State<SignupView> {
 
   @override
   Widget build(BuildContext context) {
+
+    final signup = SignupViewModel();
+
     Config().init(context);
     return Scaffold(
       body: SafeArea(
@@ -282,8 +286,14 @@ class _SignupViewState extends State<SignupView> {
                 Button(
                   width: double.infinity, 
                   title: 'Sign up', 
-                  onPressed: (){
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoginView() ));
+                  onPressed: () async {
+                    final message = await signup.register(
+                      firstName: _firstNameController.text, 
+                      lastName: _lastNameController.text, 
+                      phoneNumber: _phoneNumberController.text, 
+                      email: _emailController.text, 
+                      password: _passwordController.text, 
+                      passwordConfirmation: _confirmPasswordController.text);
                   }
                 ),
                 Config.heightMedium,
