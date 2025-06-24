@@ -1,8 +1,5 @@
-import 'package:cityvet_app/components/notification_card.dart';
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/views/login_view.dart';
-import 'package:cityvet_app/views/main_screens/notification_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
