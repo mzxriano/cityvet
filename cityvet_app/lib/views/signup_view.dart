@@ -299,10 +299,10 @@ class _SignupViewState extends State<SignupView> {
                     padding: const EdgeInsetsDirectional.only(end: 12),
                     onPressed: () {
                       setState(() {
-                        _isPasswordObscured = !_isPasswordObscured;
+                        _isConfirmPasswordObscured = !_isConfirmPasswordObscured;
                       });
                     },
-                    icon: Icon(_isPasswordObscured ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_isConfirmPasswordObscured ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
                 if(_fieldErrors['passwordConfirmation'] != null)
