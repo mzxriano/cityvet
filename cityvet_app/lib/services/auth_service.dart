@@ -9,56 +9,37 @@ class AuthService {
     },
   ));
 
-  Future<String?> register(
-    String firstName,
-    String lastName,
-    String phoneNumber,
-    String email,
-    String password,
-    String passwordConfirmation,
-  ) async {
+  Future<Map<String, dynamic>?> register(AuthModel authModel, String passwordConfirmation) async {
     try {
-      final user = AuthModel(
-          firstName: firstName,
-          lastName: lastName,
-          phoneNumber: phoneNumber,
-          email: email,
-          password: password);
+      final user = authModel;
 
       final response = await _dio.post('/register', data: {
         ...user.toJson(),
-        'password_confirmation': passwordConfirmation,  // note underscore, Laravel expects this
+        'password_confirmation': passwordConfirmation, 
       });
 
       print('This is the message ${response.data['message']}');
-      return response.data['message'];
+      return {'message' : response.data['message']};
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
-        // Laravel usually sends validation errors in 'errors' or 'message'
+     
         final data = e.response!.data;
 
         // If validation errors are present
         if (data['errors'] != null) {
-          // errors is usually a map of field -> [list of errors]
-          final errors = data['errors'] as Map<String, dynamic>;
-          // Extract the first error message from the errors map
-          final firstError = errors.values.first[0];
-          print('First error $firstError');
-          return firstError;
+          return {'errors': Map<String, dynamic>.from(data['errors'])};
         }
 
         // Fallback to a generic message from server if available
         if (data['message'] != null) {
-          print('Error message ${data['message']}');
-          return data['message'];
+          return {'message': data['message']};
         }
       }
 
       // Network or other errors fallback message
-      return 'An unexpected error occurred. Please try again.';
+      return {'message': 'Unexpected error occurred.'};
     } catch (e) {
       print('Error registering user: $e');
-      return 'An unexpected error occurred. Please try again.';
     }
   }
 }

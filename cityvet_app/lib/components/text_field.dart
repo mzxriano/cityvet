@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode node;
+  final TextInputType textInputType;
   final bool isObscured;
   final bool isFocused;
   final String? errorText;
@@ -13,6 +14,7 @@ class CustomTextField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.node,
+    required this.textInputType,
     required this.isObscured,
     this.isFocused = false,
     this.errorText,
@@ -36,6 +38,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           controller: widget.controller,
           focusNode: widget.node,
           obscureText: widget.isObscured,
+          keyboardType: widget.textInputType,
           decoration: InputDecoration(
             filled: true,
             fillColor: widget.isFocused ? Colors.transparent : Config.secondaryColor,

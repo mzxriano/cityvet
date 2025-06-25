@@ -7,4 +7,38 @@ class AppText {
     'reset_password_validation' : 'At least 1 number or a special character.',
   };
 
+  static final List<String> barangay = [
+    'Anonas',
+    'Bactad East',
+    'Bayaoas',
+    'Bolaoen',
+    'Cabaruan',
+    'Cabuloan',
+    'Camanang',
+    'Camantiles',
+    'Casantaan',
+    'Catablan',
+    'Cayambanan',
+    'Consolacion',
+    'Dilan-Paurido',
+    'Labit Proper',
+    'Labit West',
+    'Mabanogbog',
+    'Macalong',
+    'Nancalobasaan',
+    'Nancamaliran East',
+    'Nancamaliran West',
+    'Nancayasan',
+    'Palina East',
+    'Palina West',
+    'Pedro T. Orata',
+    'Pinmaludpod',
+    'Poblacion',
+    'San Jose',
+    'San Vicente',
+    'Santa Lucia',
+    'Santo Domingo',
+    'Tulong'
+  ];
+
 }
