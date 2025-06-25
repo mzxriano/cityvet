@@ -57,6 +57,8 @@ class SignupViewModel {
       this.fieldErrors.value = fieldErrors;
     }
 
+    return 'Something went wrong!';
+
   }
 
   void dispose() {

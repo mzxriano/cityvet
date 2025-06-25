@@ -25,21 +25,43 @@ class AuthService {
      
         final data = e.response!.data;
 
-        // If validation errors are present
         if (data['errors'] != null) {
           return {'errors': Map<String, dynamic>.from(data['errors'])};
         }
 
-        // Fallback to a generic message from server if available
         if (data['message'] != null) {
           return {'message': data['message']};
         }
       }
 
-      // Network or other errors fallback message
       return {'message': 'Unexpected error occurred.'};
     } catch (e) {
-      print('Error registering user: $e');
+      return null;
     }
+  }
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      var response = await _dio.post('/login', data: {
+        'email': email,
+        'password': password,
+      });
+
+
+      if(response.statusCode == 200 && response.data['user'] != null) {
+        return {'user' : response.data['user']};
+      }
+
+      throw Exception('Login error!');
+  
+    } on DioException catch (e)  {
+      
+      if(e.response?.statusCode == 401 && e.response?.data['message'] != null) {
+        return {'error' : e.response?.data['message']};
+      }
+
+      return {'error' : e.response?.data['errors']};
+    } 
+
   }
 }

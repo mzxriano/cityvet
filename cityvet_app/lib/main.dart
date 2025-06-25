@@ -1,11 +1,17 @@
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/viewmodels/login_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    const ProviderScope(child: MainApp(),)
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginViewModel())
+      ],
+      child: const MainApp(),
+    )
   );
 }
 
