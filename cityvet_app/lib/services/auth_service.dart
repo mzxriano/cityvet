@@ -18,7 +18,6 @@ class AuthService {
         'password_confirmation': passwordConfirmation, 
       });
 
-      print('This is the message ${response.data['message']}');
       return {'message' : response.data['message']};
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {

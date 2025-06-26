@@ -41,4 +41,13 @@ class AppText {
     'Tulong'
   ];
 
+  // Exception strings
+  static const String connectionTimeout = 'Connection timeout. Please check your internet connection.';
+  static const String requestTimeout = 'Request timeout. Unable to send data.';
+  static const String responseTimeout = 'Response timeout. The server took too long to repond.';
+  static const String requestCancelled = 'Request was cancelled';
+  static const String badCertificate = 'The certificate included for response is bad.';
+  static const String connectionError = 'Connection error. There was an error while connecting to server.';
+  static const String somethingWrong = 'Something went wrong. Please try again later';
+
 }
