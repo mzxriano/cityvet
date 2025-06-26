@@ -42,74 +42,7 @@ void showCreatePostModal(BuildContext context) {
                             children: [
                               IconButton(
                                 onPressed: isFieldNotEmpty ? () {
-                                  showConfirmationModal(context, 'Confirmation Dialog', Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Are you sure you want to discard changes?',
-                                        style: TextStyle(
-                                          fontFamily: Config.primaryFont,
-                                          fontSize: Config.fontSmall,
-                                          color: Config.tertiaryColor
-                                        ),
-                                      ),
-                                      Config.heightMedium,
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              onPressed: (){
-                                                Navigator.pop(context);
-                                              }, 
-                                              style: ElevatedButton.styleFrom(
-                                                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                                backgroundColor: Color(0xFF808080),
-                                                foregroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                )
-                                              ),
-                                              child: Text(
-                                                'Cancel',
-                                                style: TextStyle(
-                                                  fontFamily: Config.primaryFont,
-                                                  fontSize: Config.fontSmall,
-                                                  fontWeight: Config.fontW600,
-                                                ),
-                                              )
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10,),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                              Future.delayed(Duration(milliseconds: 100), () {
-                                                Navigator.pop(context); 
-                                              });
-                                            },
-                                              style: ElevatedButton.styleFrom(
-                                                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                                backgroundColor: Color(0xFFDD6454),
-                                                foregroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                )
-                                              ),
-                                              child: Text(
-                                                'Discard',
-                                                style: TextStyle(
-                                                  fontFamily: Config.primaryFont,
-                                                  fontSize: Config.fontSmall,
-                                                  fontWeight: Config.fontW600,
-                                                ),
-                                              )
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ));
+                                  showConfirmationModal(context);
                                 } : () => Navigator.pop(context),
                                 icon: Icon(Icons.arrow_back_ios_rounded),
                               ),

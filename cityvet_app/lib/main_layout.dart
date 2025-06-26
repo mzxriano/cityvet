@@ -1,5 +1,6 @@
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/views/login_view.dart';
+import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
@@ -22,7 +23,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     HomeView(),
     CommunityView(),
     Center(child: Text('QR Scanner')),
-    UsersPage(),
+    AnimalView(),
     NotificationView(),
   ];
 
