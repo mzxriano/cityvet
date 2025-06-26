@@ -10,57 +10,26 @@ class AuthService {
   ));
 
   Future<Map<String, dynamic>?> register(AuthModel authModel, String passwordConfirmation) async {
-    try {
-      final user = authModel;
+    final user = authModel;
 
-      final response = await _dio.post('/register', data: {
-        ...user.toJson(),
-        'password_confirmation': passwordConfirmation, 
-      });
+    final response = await _dio.post('/register', data: {
+      ...user.toJson(),
+      'password_confirmation': passwordConfirmation, 
+    });
 
-      return {'message' : response.data['message']};
-    } on DioException catch (e) {
-      if (e.response != null && e.response?.data != null) {
-     
-        final data = e.response!.data;
+    return response.data;
 
-        if (data['errors'] != null) {
-          return {'errors': Map<String, dynamic>.from(data['errors'])};
-        }
 
-        if (data['message'] != null) {
-          return {'message': data['message']};
-        }
-      }
-
-      return {'message': 'Unexpected error occurred.'};
-    } catch (e) {
-      return null;
-    }
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      var response = await _dio.post('/login', data: {
-        'email': email,
-        'password': password,
-      });
 
+    var response = await _dio.post('/login', data: {
+      'email': email,
+      'password': password,
+    });
 
-      if(response.statusCode == 200 && response.data['user'] != null) {
-        return {'user' : response.data['user']};
-      }
-
-      throw Exception('Login error!');
-  
-    } on DioException catch (e)  {
-      
-      if(e.response?.statusCode == 401 && e.response?.data['message'] != null) {
-        return {'error' : e.response?.data['message']};
-      }
-
-      return {'error' : e.response?.data['errors']};
-    } 
+    return {'user' : response.data['user']};
 
   }
 }
