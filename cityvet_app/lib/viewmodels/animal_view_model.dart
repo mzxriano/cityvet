@@ -4,27 +4,18 @@ import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-class AnimalFormViewModel extends ChangeNotifier {
+class AnimalViewModel extends ChangeNotifier{
 
   final AnimalService _animalService = AnimalService();
 
-  AnimalModel? _animalModel;
-  String? _message;
-  String? _errors;
   List<AnimalModel> _animals = [];
-  
-  AnimalModel get animalModel => _animalModel!;
-  String get message => _message!;
+  String? _errors;
   String get errors => _errors!;
+
   List<AnimalModel> get animals => _animals;
 
-  setAnimalModel(AnimalModel animalModel) {
-    _animalModel = animalModel;
-    notifyListeners();
-  }
-
-  setMessage(String message) {
-    _message = message;
+  setAnimals(List<AnimalModel> animals) {
+    _animals = animals;
     notifyListeners();
   }
 
@@ -33,41 +24,8 @@ class AnimalFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  setAnimals(List<AnimalModel> animals) {
-    _animals = animals;
-    notifyListeners();
-  }
 
-  Future<void> createAnimal(AnimalModel animalModel) async {
-    try {
-
-      final result = await _animalService.createAnimal(animalModel);
-
-      if(result.statusCode == 200) {
-        print(result.data['message']);
-        setMessage(result.data['message']);
-      }
-      
-    } on DioException catch(e) {
-      final data = e.response?.data;
-
-      print(data);
-
-      if(data != null && data['errors'] !=null) {
-        setErrors(data['errors'].toString());
-      }
-      else {
-        setErrors(DioExceptionHandler.handleException(e));
-      }
-    } 
-    catch (e) {
-
-      print('May error: $e');
-
-    }
-  }
-
-Future<void> fetchAnimals() async {
+  Future<void> fetchAnimals() async {
   try {
     final response = await _animalService.fetchAnimals();
 
@@ -93,7 +51,5 @@ Future<void> fetchAnimals() async {
     print('Unexpected error: $e');
   }
 }
-
-
 
 }

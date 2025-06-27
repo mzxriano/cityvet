@@ -4,7 +4,8 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
 class AnimalPreview extends StatefulWidget {
-  const AnimalPreview({super.key});
+  final AnimalModel animalModel;
+  const AnimalPreview({super.key, required this.animalModel});
 
   @override
   State<AnimalPreview> createState() => _AnimalPreviewState();
@@ -12,25 +13,22 @@ class AnimalPreview extends StatefulWidget {
 
 class _AnimalPreviewState extends State<AnimalPreview> {
 
-  var myAnimal = AnimalModel(
-    type: 'Dog', 
-    name: 'Mocha',
-    breed: 'Golden Retriever', 
-    birthDate: '2004/04/05', 
-    gender: 'Male', 
-    weight: 21.0, 
-    height: 21, 
-    color: 'Red'
-  );
+  AnimalModel? myAnimal;
 
   final _boxShadow = BoxShadow(
-      color: Colors.black.withValues(alpha: 0.25, red: 0, green: 0, blue: 0),
+      color: Color.fromRGBO(0, 0, 0, 0.25),
       blurRadius: 5,
       spreadRadius: 0,
       offset: Offset(0, 0),
   );
 
   Color _titleColor = Color(0xFF524F4F);
+
+  @override
+  void initState() {
+    myAnimal = widget.animalModel;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,15 +99,15 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                 padding: const EdgeInsets.all(10.0),
                                 child: Row(
                                   children: [
-                                    _buildAttributeBox('Type', myAnimal.type),
+                                    _buildAttributeBox('Type', myAnimal!.type),
                                     const SizedBox(width: 15,),
-                                    _buildAttributeBox('Gender', myAnimal.gender),
+                                    _buildAttributeBox('Gender', myAnimal!.gender),
                                     const SizedBox(width: 15,),
-                                    _buildAttributeBox('Weight', myAnimal.weight.toString()),
+                                    _buildAttributeBox('Weight', myAnimal!.weight.toString()),
                                     const SizedBox(width: 15,),
-                                    _buildAttributeBox('Height', myAnimal.height.toString()),
+                                    _buildAttributeBox('Height', myAnimal!.height.toString()),
                                     const SizedBox(width: 15,),
-                                    _buildAttributeBox('Color', myAnimal.color),
+                                    _buildAttributeBox('Color', myAnimal!.color),
                                   ],
                                 ),
                               ),
@@ -214,7 +212,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        myAnimal.name,
+                        myAnimal!.name,
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontMedium,
@@ -223,7 +221,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                       ),
                       const SizedBox(height: 5,),
                       Text(
-                        myAnimal.breed!,
+                        (myAnimal!.breed ?? 'No Breed'),
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
@@ -232,7 +230,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                       ),
                       const SizedBox(height: 5,),
                       Text(
-                        myAnimal.birthDate,
+                        myAnimal!.birthDate,
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
@@ -243,7 +241,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                       animalType['Pet'],
                     ],
                   ),
-                  AnimalGenderWidget()[myAnimal.gender],
+                  AnimalGenderWidget()[myAnimal!.gender],
                 ],
               ),
             ),

@@ -1,20 +1,15 @@
+import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_preview.dart';
 import 'package:flutter/material.dart';
 
-class AnimalCard extends StatefulWidget {
-  const AnimalCard({super.key, required this.type});
+class AnimalCard extends StatelessWidget {
+  final AnimalModel animalModel;
 
-  final String type;
+  const AnimalCard({super.key, required this.animalModel});
 
-  @override
-  State<AnimalCard> createState() => _AnimalCardState();
-}
-
-class _AnimalCardState extends State<AnimalCard> {
   @override
   Widget build(BuildContext context) {
-    String type = widget.type;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -22,7 +17,7 @@ class _AnimalCardState extends State<AnimalCard> {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalPreview()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalPreview(animalModel: animalModel,)));
         },
         borderRadius: BorderRadius.circular(15),
         child: ClipRRect(
@@ -55,7 +50,7 @@ class _AnimalCardState extends State<AnimalCard> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Mocha',
+                        animalModel.name,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -64,7 +59,7 @@ class _AnimalCardState extends State<AnimalCard> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        type,
+                        animalModel.type,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey,

@@ -38,11 +38,12 @@ return new class extends Migration
             $table->string('type');
             $table->string('name');
             $table->string('breed')->nullable();
-            $table->date('birth_date');
+            $table->date('birth_date')->nullable();
             $table->string('gender');
             $table->double('weight');
             $table->double('height');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('color');
+            //$table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
 

@@ -1,9 +1,11 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/modals/confirmation_modal.dart';
+import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/views/main_screens/animal/animal_card.dart';
+import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AnimalForm extends StatefulWidget {
   const AnimalForm({super.key});
@@ -53,6 +55,8 @@ class _AnimalFormState extends State<AnimalForm> {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
+    final formRef = context.watch<AnimalFormViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -291,11 +295,28 @@ class _AnimalFormState extends State<AnimalForm> {
               Button(
                 width: double.infinity, 
                 title: 'Submit', 
-                onPressed: (){
-                  if(selectedPetType != null) {
-                    print(selectedPetType);
-                    Navigator.pop(context, AnimalCard(type: selectedPetType!));
+                onPressed: () async {
+                  final animal = AnimalModel(
+                    type: selectedPetType!, 
+                    name: petNameController.text, 
+                    breed: selectedBreed!, 
+                    birthDate: '2002/01/03', 
+                    gender: selectedGender!, 
+                    weight: double.tryParse(weightController.text)!, 
+                    height: double.tryParse(weightController.text)!, 
+                    color: selectedColor!
+                  );
+
+                  await formRef.createAnimal(animal);
+
+                  if(formRef.message.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(formRef.message)));
+                    Navigator.pop(context, true);
+                  } 
+                  else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error')));
                   }
+
                 }
               ),
             ],

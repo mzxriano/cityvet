@@ -12,7 +12,10 @@ class AnimalController extends Controller
      */
     public function index()
     {
-        //
+        
+        $animal = DB::table("animals")->get();
+
+        return response()->json($animal);
     }
 
     /**

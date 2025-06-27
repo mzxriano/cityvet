@@ -12,11 +12,16 @@ class AnimalService {
 
   Future<Response> createAnimal(AnimalModel animalModel) async {
     final response = await _dio.post('/create-animal', data:  {
-      animalModel.toJson()
+      ...animalModel.toJson()
     });
 
     return response;
 
+  }
+
+  Future<Response> fetchAnimals() async {
+    final response = await _dio.get('/animals');
+    return response;
   }
 
 }
