@@ -33,6 +33,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('animals', function (Blueprint $table) {
+            $table->id();
+            $table->string('type');
+            $table->string('name');
+            $table->string('breed')->nullable();
+            $table->date('birth_date');
+            $table->string('gender');
+            $table->double('weight');
+            $table->double('height');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->timestamps();
+        });
+
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

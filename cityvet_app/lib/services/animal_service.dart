@@ -10,12 +10,12 @@ class AnimalService {
     },
   ));
 
-  Future<String> createAnimal(AnimalModel animalModel) async {
+  Future<Response> createAnimal(AnimalModel animalModel) async {
     final response = await _dio.post('/create-animal', data:  {
       animalModel.toJson()
     });
 
-    return response.data['message'];
+    return response;
 
   }
 
