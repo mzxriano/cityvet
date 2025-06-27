@@ -46,7 +46,7 @@ class _AnimalViewState extends State<AnimalView> {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.80,
             ),
             itemCount: animalCards.length + 1,
             itemBuilder: (context, index) {

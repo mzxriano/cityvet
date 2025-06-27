@@ -28,6 +28,8 @@ flutter:
     - assets/images/forgot_pass.png
     - assets/images/reset_pass.png
     - assets/images/default_avatar.png
+    - assets/images/sample_dog.png
+    - assets/images/qr_code.png
 
   fonts:
     - family: Poppins

@@ -1,5 +1,6 @@
 class AnimalModel {
   final String type;
+  final String name;
   final String? breed;
   final String birthDate;
   final String gender;
@@ -9,6 +10,7 @@ class AnimalModel {
 
   AnimalModel({
     required this.type,
+    required this.name,
     required this.breed,
     required this.birthDate,
     required this.gender,
@@ -19,7 +21,8 @@ class AnimalModel {
 
   factory AnimalModel.fromJson(Map<String, dynamic> json) {
     return AnimalModel(
-      type: json['type'], 
+      type: json['type'],
+      name: json['name'], 
       breed: json['breed'], 
       birthDate: json['birth_date'], 
       gender: json['gender'], 
@@ -31,6 +34,7 @@ class AnimalModel {
   
   Map<String, dynamic> toJson() => {
     'type': type,
+    'name': name,
     'breed': breed,
     'birth_date': birthDate,
     'gender': gender,
@@ -38,5 +42,5 @@ class AnimalModel {
     'height': height,
     'color': color,
   };
-  
+
 }

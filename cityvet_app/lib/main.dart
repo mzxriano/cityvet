@@ -15,6 +15,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Config().init(context);
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: MainLayout(),
     );
   }
