@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use DB;
 use Illuminate\Http\Request;
+use Validator;
 
 class AnimalController extends Controller
 {
@@ -32,9 +33,27 @@ class AnimalController extends Controller
     public function store(Request $request)
     {
         //
-        $animal = $request->all();
+        $validate = Validator::make($request->all(), [
+            'type' => 'required|string',
+            'name' => 'nullable|string',
+            'breed' => 'required|string',
+            'birth_date' => 'required|date',
+            'gender' => 'required|string',
+            'weight' => 'nullable|numeric',
+            'height' => 'nullable|numeric',
+            'color' => 'required|string',
+        ]);
 
-        DB::table("animals")->insert($animal);
+        if($validate->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validate->errors(),
+            ], 422);
+        }
+
+        $validated = $validate->validated();
+
+        DB::table("animals")->insert($validated);
 
         return response()->json(['message' => 'Animal successfully created.']);
     }

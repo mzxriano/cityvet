@@ -12,11 +12,13 @@ class AnimalFormViewModel extends ChangeNotifier {
   String? _message;
   String? _errors;
   List<AnimalModel> _animals = [];
+  bool _isLoading = false;
   
   AnimalModel get animalModel => _animalModel!;
   String get message => _message!;
   String get errors => _errors!;
   List<AnimalModel> get animals => _animals;
+  bool get isLoading => _isLoading;
 
   setAnimalModel(AnimalModel animalModel) {
     _animalModel = animalModel;
@@ -38,8 +40,13 @@ class AnimalFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  setLoading(bool isLoading) {
+    _isLoading = isLoading;
+  }
+
   Future<void> createAnimal(AnimalModel animalModel) async {
     try {
+      setLoading(true);
 
       final result = await _animalService.createAnimal(animalModel);
 
@@ -64,6 +71,8 @@ class AnimalFormViewModel extends ChangeNotifier {
 
       print('May error: $e');
 
+    }finally {
+      setLoading(false);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/text.dart';
@@ -149,7 +150,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // First Name
-                        Text('First Name', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'First Name ', isRequired: true),
                         CustomTextField(
                           controller: _firstNameController,
                           node: _firstNameNode,
@@ -161,7 +162,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Last Name
-                        Text('Last Name', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Last Name ', isRequired: true),
                         CustomTextField(
                           controller: _lastNameController,
                           node: _lastNameNode,
@@ -173,7 +174,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Birth Date
-                        Text('Birth Date', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Birth Date ', isRequired: true),
                         CustomTextField(
                           controller: _bDateController,
                           node: _bDateNode,
@@ -185,7 +186,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Phone Number
-                        Text('Phone Number', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Phone Number ', isRequired: true),
                         CustomTextField(
                           controller: _phoneNumberController,
                           node: _phoneNumberNode,
@@ -197,7 +198,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Email
-                        Text('Email', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Email ', isRequired: true),
                         CustomTextField(
                           controller: _emailController,
                           node: _emailNode,
@@ -209,7 +210,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Barangay Dropdown
-                        Text('Barangay', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Barangay ', isRequired: true),
                         DropdownButtonHideUnderline(
                           child: DropdownButtonFormField<String>(
                             decoration: InputDecoration(
@@ -256,7 +257,7 @@ class _SignupViewState extends State<SignupView> {
 
                         // Street (only if barangay selected)
                         if (signup.selectedBarangay != null && signup.selectedBarangay!.isNotEmpty) ...[
-                          Text('Street', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                          LabelText(label: 'Street ', isRequired: true),
                           CustomTextField(
                             controller: _streetController,
                             node: _streetNode,
@@ -269,7 +270,7 @@ class _SignupViewState extends State<SignupView> {
                         ],
 
                         // Password
-                        Text('Password', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Password ', isRequired: true),
                         CustomTextField(
                           controller: _passwordController,
                           node: _passwordNode,
@@ -288,7 +289,7 @@ class _SignupViewState extends State<SignupView> {
                         Config.heightMedium,
 
                         // Confirm Password
-                        Text('Confirm Password', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+                        LabelText(label: 'Confirm Password ', isRequired: true),
                         CustomTextField(
                           controller: _confirmPasswordController,
                           node: _confirmPasswordNode,

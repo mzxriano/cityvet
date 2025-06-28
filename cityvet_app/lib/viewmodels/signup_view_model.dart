@@ -99,6 +99,8 @@ class SignupViewModel extends ChangeNotifier {
 
       final data = e.response?.data;
 
+      print(data);
+
       if (data != null && data['errors'] != null) {
         setFieldErrors(Map<String, dynamic>.from(data['errors']));
       }else {

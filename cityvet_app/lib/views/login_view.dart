@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/login_view_model.dart';
@@ -88,12 +89,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                           ),
                           Config.heightMedium,
-                          Text('Email',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: Config.fontMedium,
-                            ),
-                          ),
+                          LabelText(label: 'Email ', isRequired: true),
                           TextField(
                             controller: _emailController,
                             focusNode: _emailNode,
@@ -118,12 +114,7 @@ class _LoginViewState extends State<LoginView> {
                               ),
                             ),
                           Config.heightMedium,
-                          Text('Password',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: Config.fontMedium,
-                            ),
-                          ),
+                          LabelText(label: 'Password ', isRequired: true),
                           TextField(
                             controller: _passwordController,
                             focusNode: _passwordNode,

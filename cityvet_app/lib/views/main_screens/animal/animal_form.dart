@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/models/animal_model.dart';
@@ -96,7 +97,7 @@ class _AnimalFormState extends State<AnimalForm> {
               ),
 
               /// Pet Type
-              Text('Pet Type', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Type ', isRequired: true),
               DropdownButtonFormField<String>(
                 value: selectedPetType,
                 decoration: InputDecoration(
@@ -133,7 +134,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Breed
-              Text('Pet Breed', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Breed ', isRequired: true),
               DropdownButtonFormField<String>(
                 value: selectedBreed,
                 decoration: InputDecoration(
@@ -171,7 +172,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Pet Name
-              Text('Pet Name', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Name ', isRequired: true),
               CustomTextField(
                 controller: petNameController,
                 node: petNameNode,
@@ -182,7 +183,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Date of Birth
-              Text('Pet Date of Birth', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Birthdate ', isRequired: false),
               InkWell(
                 onTap: () async {
                   final date = await showDatePicker(
@@ -198,7 +199,7 @@ class _AnimalFormState extends State<AnimalForm> {
                   }
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Date of Birth'),
+                  decoration: const InputDecoration(labelText: ''),
                   child: Text(
                     selectedDate != null
                         ? '${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}'
@@ -212,7 +213,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Gender
-             Text('Pet Gender', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+             LabelText(label: 'Pet Gender ', isRequired: true),
               Row(
                 children: ['Male', 'Female'].map((gender) {
                   return Row(
@@ -234,7 +235,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Weight
-              Text('Pet Weight', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Weight ', isRequired: false),
               CustomTextField(
                 controller: weightController,
                 node: weightNode,
@@ -245,7 +246,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Height
-              Text('Pet Height', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Height ', isRequired: false),
               CustomTextField(
                 controller: heightController,
                 node: heightNode,
@@ -256,7 +257,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Color
-              Text('Pet Color', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium)),
+              LabelText(label: 'Pet Color ', isRequired: true),
               DropdownButtonFormField<String>(
                 value: selectedColor,
                 decoration: InputDecoration(
@@ -296,11 +297,29 @@ class _AnimalFormState extends State<AnimalForm> {
                 width: double.infinity, 
                 title: 'Submit', 
                 onPressed: () async {
+                    if (selectedPetType == null ||
+                      selectedBreed == null ||
+                      selectedDate == null ||
+                      selectedGender == null ||
+                      selectedColor == null ||
+                      petNameController.text.trim().isEmpty ||
+                      double.tryParse(weightController.text) == null ||
+                      double.tryParse(heightController.text) == null) {
+                        
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please fill in all required fields.')),
+                    );
+                    return;
+                  }
+
+                  String formattedDate = 
+                  '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+
                   final animal = AnimalModel(
                     type: selectedPetType!, 
                     name: petNameController.text, 
                     breed: selectedBreed!, 
-                    birthDate: '2002/01/03', 
+                    birthDate: formattedDate, 
                     gender: selectedGender!, 
                     weight: double.tryParse(weightController.text)!, 
                     height: double.tryParse(weightController.text)!, 
