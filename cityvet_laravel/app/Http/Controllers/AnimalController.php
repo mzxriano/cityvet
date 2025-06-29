@@ -9,14 +9,24 @@ use Validator;
 class AnimalController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a list of animals through json response.
      */
     public function index()
     {
         
-        $animal = DB::table("animals")->get();
+        $animals = DB::table("animals")->get();
 
-        return response()->json($animal);
+        return response()->json($animals);
+    }
+
+    /**
+     * Display a list of animals in the animals view.
+     */
+    public function indexWeb() {
+
+        $animals = DB::table("animals")->get();
+
+        return view("animals", compact("animals"));
     }
 
     /**

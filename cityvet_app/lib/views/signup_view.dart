@@ -18,7 +18,6 @@ class SignupView extends StatefulWidget {
 class _SignupViewState extends State<SignupView> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _bDateController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
@@ -27,7 +26,6 @@ class _SignupViewState extends State<SignupView> {
 
   final FocusNode _firstNameNode = FocusNode();
   final FocusNode _lastNameNode = FocusNode();
-  final FocusNode _bDateNode = FocusNode();
   final FocusNode _phoneNumberNode = FocusNode();
   final FocusNode _emailNode = FocusNode();
   final FocusNode _streetNode = FocusNode();
@@ -36,7 +34,6 @@ class _SignupViewState extends State<SignupView> {
 
   bool _isFirstNameFocused = false;
   bool _isLastNameFocused = false;
-  bool _isbDateFocused = false;
   bool _isPhoneNumberFocused = false;
   bool _isEmailFocused = false;
   bool _isStreetFocused = false;
@@ -57,11 +54,6 @@ class _SignupViewState extends State<SignupView> {
     _lastNameNode.addListener(() {
       setState(() {
         _isLastNameFocused = _lastNameNode.hasFocus;
-      });
-    });
-    _bDateNode.addListener(() {
-      setState(() {
-        _isbDateFocused = _bDateNode.hasFocus;
       });
     });
     _phoneNumberNode.addListener(() {
@@ -95,7 +87,6 @@ class _SignupViewState extends State<SignupView> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _bDateController.dispose();
     _phoneNumberController.dispose();
     _emailController.dispose();
     _streetController.dispose();
@@ -104,7 +95,6 @@ class _SignupViewState extends State<SignupView> {
 
     _firstNameNode.dispose();
     _lastNameNode.dispose();
-    _bDateNode.dispose();
     _phoneNumberNode.dispose();
     _emailNode.dispose();
     _streetNode.dispose();
@@ -175,13 +165,29 @@ class _SignupViewState extends State<SignupView> {
 
                         // Birth Date
                         LabelText(label: 'Birth Date ', isRequired: true),
-                        CustomTextField(
-                          controller: _bDateController,
-                          node: _bDateNode,
-                          textInputType: TextInputType.datetime,
-                          isObscured: false,
-                          isFocused: _isbDateFocused,
-                          errorText: signup.getFieldError('birth_date'),
+                        InkWell(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1950),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) {    
+                              signup.setBirthDate(date);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(labelText: '', errorText: signup.getFieldError('birth_date')),
+                            child: Text(
+                              signup.selectedDate != null
+                                  ? '${signup.selectedDate!.month}/${signup.selectedDate!.day}/${signup.selectedDate!.year}'
+                                  : 'Select Date',
+                              style: TextStyle(
+                                color: signup.selectedDate != null ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ),
                         ),
                         Config.heightMedium,
 
@@ -312,28 +318,28 @@ class _SignupViewState extends State<SignupView> {
                           width: double.infinity,
                           title: 'Sign up',
                           onPressed: () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-
                             signup.clearErrors();
+
+                            if (signup.formattedBDate == null) {
+                              signup.setFieldErrors({'birth_date': ['Please select a birth date.']});
+                              return;
+                            }
+
+                            setState(() => _isLoading = true);
 
                             await signup.register(
                               firstName: _firstNameController.text,
                               lastName: _lastNameController.text,
-                              birthDate: _bDateController.text.trim(),
+                              birthDate: signup.formattedBDate!,
                               phoneNumber: _phoneNumberController.text.trim(),
                               email: _emailController.text.trim(),
                               password: _passwordController.text.trim(),
                               passwordConfirmation: _confirmPasswordController.text.trim(),
                             );
 
-                            setState(() {
-                              _isLoading = false;
-                            });
+                            setState(() => _isLoading = false);
 
                             if (signup.fieldErrors.isNotEmpty) return;
-                            print(signup.fieldErrors.isNotEmpty);
 
                             if (signup.error?.isNotEmpty ?? false) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -351,6 +357,7 @@ class _SignupViewState extends State<SignupView> {
                               );
                             }
                           },
+
                         ),
                         Config.heightMedium,
 

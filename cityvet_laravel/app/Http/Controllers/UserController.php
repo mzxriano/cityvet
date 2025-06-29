@@ -15,7 +15,13 @@ class UserController extends Controller
      */
     public function index()
     {
-        
+        $users = DB::table('users')
+            ->join('roles', 'users.role_id', '=', 'roles.id')
+            ->select('users.*', 'roles.name as role_name')
+            ->get();
+
+
+        return view("users", compact("users"));
     }
 
     /**

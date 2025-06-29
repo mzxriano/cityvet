@@ -14,6 +14,8 @@ class SignupViewModel extends ChangeNotifier {
   String? _successMessage;
   String? _selectedBarangay;
   String? _error;
+  DateTime? _selectedDate;
+  String? _formattedBDate;
 
   get fieldErrors => _fieldErrors;
   bool get isPasswordObscured => _isPasswordObscured;
@@ -22,6 +24,8 @@ class SignupViewModel extends ChangeNotifier {
   String? get successMessage => _successMessage;
   String? get selectedBarangay => _selectedBarangay;
   String? get error => _error;
+  DateTime? get selectedDate => _selectedDate;
+  String? get formattedBDate => _formattedBDate;
  
   setFieldErrors(Map<String, dynamic> fieldErrors) {
     _fieldErrors = fieldErrors;
@@ -55,11 +59,26 @@ class SignupViewModel extends ChangeNotifier {
 
   setError(String error) {
     _error = error;
+    notifyListeners();
   }
  
   void clearErrors() {
     _fieldErrors.clear();
     notifyListeners();
+  }
+
+  setBirthDate(DateTime? date) {
+    _selectedDate = date;
+    setFormatBirthDate();
+    notifyListeners();
+  }
+
+  setFormatBirthDate() {
+    if(_selectedDate != null) {
+      _formattedBDate = 
+        '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}'; 
+        notifyListeners();
+    }
   }
 
   String? getFieldError(String fieldName) {

@@ -188,8 +188,8 @@ class _AnimalFormState extends State<AnimalForm> {
                 onTap: () async {
                   final date = await showDatePicker(
                     context: context,
-                    initialDate: DateTime(2020),
-                    firstDate: DateTime(2000),
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(1950),
                     lastDate: DateTime.now(),
                   );
                   if (date != null) {
@@ -235,7 +235,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Weight
-              LabelText(label: 'Pet Weight ', isRequired: false),
+              LabelText(label: 'Pet Weight (kg) ', isRequired: false),
               CustomTextField(
                 controller: weightController,
                 node: weightNode,
@@ -246,7 +246,7 @@ class _AnimalFormState extends State<AnimalForm> {
               const SizedBox(height: 12),
 
               /// Height
-              LabelText(label: 'Pet Height ', isRequired: false),
+              LabelText(label: 'Pet Height (cm) ', isRequired: false),
               CustomTextField(
                 controller: heightController,
                 node: heightNode,
