@@ -55,6 +55,8 @@ class Config {
 
   static const Color tertiaryColor = Color(0xFF858585);
 
+  static const Color color524F4F = Color(0xFF524F4F);
+
   // Font
   static const primaryFont = 'Poppins';
 

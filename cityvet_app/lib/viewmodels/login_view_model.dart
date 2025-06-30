@@ -60,9 +60,22 @@ Future<void> login(String email, String password) async {
   } on DioException catch (e) {
     final data = e.response?.data;
 
+    // check if invalid credentials;
+      print('Ito ay data: $data');
+    if(e.response?.statusCode == 401 && data['errors'] != null) {
+      setError(data['errors']);
+    }
+
     if (data is Map<String, dynamic> && data['errors'] is Map<String, dynamic>) {
       setFieldErrors(Map<String, dynamic>.from(data['errors']));
-    } else {
+    } 
+    else if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if(message is String && message.isNotEmpty) {
+        setError(data['message']);
+      }
+    }
+    else {
       setError(DioExceptionHandler.handleException(e));
     }
 

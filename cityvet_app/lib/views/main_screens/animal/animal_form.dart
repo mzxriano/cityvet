@@ -299,12 +299,9 @@ class _AnimalFormState extends State<AnimalForm> {
                 onPressed: () async {
                     if (selectedPetType == null ||
                       selectedBreed == null ||
-                      selectedDate == null ||
                       selectedGender == null ||
                       selectedColor == null ||
-                      petNameController.text.trim().isEmpty ||
-                      double.tryParse(weightController.text) == null ||
-                      double.tryParse(heightController.text) == null) {
+                      petNameController.text.trim().isEmpty) {
                         
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please fill in all required fields.')),
@@ -312,8 +309,11 @@ class _AnimalFormState extends State<AnimalForm> {
                     return;
                   }
 
-                  String formattedDate = 
-                  '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+                  String? formattedDate;
+                  if(selectedDate != null) {
+                    formattedDate = 
+                      '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+                  }
 
                   final animal = AnimalModel(
                     type: selectedPetType!, 
@@ -321,8 +321,8 @@ class _AnimalFormState extends State<AnimalForm> {
                     breed: selectedBreed!, 
                     birthDate: formattedDate, 
                     gender: selectedGender!, 
-                    weight: double.tryParse(weightController.text)!, 
-                    height: double.tryParse(weightController.text)!, 
+                    weight: double.tryParse(weightController.text), 
+                    height: double.tryParse(heightController.text), 
                     color: selectedColor!
                   );
 

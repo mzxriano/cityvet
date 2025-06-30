@@ -17,7 +17,6 @@ class _AnimalViewState extends State<AnimalView> {
   void initState() {
     super.initState();
 
-    // Delay to ensure context is available
     Future.microtask(() {
       final animalViewModel = context.read<AnimalViewModel>();
       animalViewModel.fetchAnimals();
@@ -54,9 +53,7 @@ class _AnimalViewState extends State<AnimalView> {
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: animalCards.isEmpty
-              ? const Center(child: Text('No animals found.'))
-              : GridView.builder(
+          child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,

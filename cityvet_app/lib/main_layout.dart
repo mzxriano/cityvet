@@ -4,6 +4,7 @@ import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification_view.dart';
+import 'package:cityvet_app/views/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -126,8 +127,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 ],
               ),
               onTap: () {
-                Navigator.pop(context); 
-                _onTabSelected(0);
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileView()));
               },
             ),
             ListTile(

@@ -47,7 +47,7 @@ class AnimalController extends Controller
             'type' => 'required|string',
             'name' => 'nullable|string',
             'breed' => 'required|string',
-            'birth_date' => 'required|date',
+            'birth_date' => 'nullable|date',
             'gender' => 'required|string',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',

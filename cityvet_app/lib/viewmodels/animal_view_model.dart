@@ -10,7 +10,7 @@ class AnimalViewModel extends ChangeNotifier{
 
   List<AnimalModel> _animals = [];
   String? _errors;
-  String get errors => _errors!;
+  String? get errors => _errors;
 
   List<AnimalModel> get animals => _animals;
 

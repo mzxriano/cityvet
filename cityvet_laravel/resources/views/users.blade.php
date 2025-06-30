@@ -4,19 +4,30 @@
   <h1 class="title-style mb-[2rem]">Users</h1>
 
   <div class="flex justify-end gap-5 mb-[2rem]">
-    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">+ New user</button>
+    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">+ New user</button>
   </div>
 
   <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
     <div class="mb-4">
       <form method="GET" action="{{ route('users') }}" class="flex gap-4 items-center justify-end">
         <div>
+          <!-- Role Dropdown -->
           <select name="role" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Roles</option>
+            <option value="owner" {{ request('role') == 'owner' ? 'selected' : '' }}>Owner</option>
             <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
             <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Staff</option>
             <option value="vet" {{ request('role') == 'vet' ? 'selected' : '' }}>Veterinarian</option>
+            <option value="aew" {{ request('role') == 'aew' ? 'selected' : '' }}>AEW</option>
+            <option value="subadmin" {{ request('role') == 'subadmin' ? 'selected' : '' }}>Sub Admin</option>
           </select>
+
+           <!-- Gender Dropdown -->
+           <select name="gender" id="gender-select" class="border border-gray-300 px-3 py-2 rounded-md">
+              <option value="">All Genders</option>
+              <option value="male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
+              <option value="male" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
+           </select>
           <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">Filter</button>
         </div>
         <div>
@@ -31,7 +42,7 @@
         <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
         <th class="px-4 py-2 font-medium">First Name</th>
         <th class="px-4 py-2 font-medium">Last Name</th>
-        <th class="px-4 py-2 font-medium">User Type</th>
+        <th class="px-4 py-2 font-medium">Role</th>
         <th class="px-4 py-2 font-medium">Contact Number</th>
         <th class="px-4 py-2 font-medium">Email</th>
         <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>

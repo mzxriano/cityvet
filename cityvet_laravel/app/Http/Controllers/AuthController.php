@@ -21,7 +21,7 @@ class AuthController extends Controller
             'birth_date' => 'required|date',
             'phone_number' => 'required|string|size:11|unique:users,phone_number',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8'
+            'password' => 'required|min:8|confirmed'
         ]);
 
         // Return all validation errors as JSON

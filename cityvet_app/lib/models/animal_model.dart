@@ -2,20 +2,20 @@ class AnimalModel {
   final String type;
   final String name;
   final String? breed;
-  final String birthDate;
+  final String? birthDate;
   final String gender;
-  final double weight;
-  final double height;
+  final double? weight;
+  final double? height;
   final String color;
 
   AnimalModel({
     required this.type,
     required this.name,
     required this.breed,
-    required this.birthDate,
+    this.birthDate,
     required this.gender,
-    required this.weight,
-    required this.height,
+    this.weight,
+    this.height,
     required this.color,
   });
 
