@@ -23,9 +23,9 @@ class _AnimalViewState extends State<AnimalView> {
       animalViewModel.fetchAnimals();
 
       final message = animalViewModel.message;
+      print(message);
       if(message != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-        animalViewModel.setMessage('');
       }
     });
   }
