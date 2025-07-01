@@ -302,7 +302,7 @@ class _SignupViewState extends State<SignupView> {
                           textInputType: TextInputType.text,
                           isObscured: signup.isConfirmPasswordObscured,
                           isFocused: _isConfirmPasswordFocused,
-                          errorText: signup.getFieldError('confirm_password'),
+                          errorText: signup.getFieldError('confirmPassword'),
                           suffixIcon: IconButton(
                             padding: const EdgeInsetsDirectional.only(end: 12),
                             onPressed: () {

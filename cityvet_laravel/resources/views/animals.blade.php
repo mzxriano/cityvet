@@ -6,8 +6,8 @@
   @php
     // Breed options mapped to types
     $breedOptions = [
-      'Dog' => ['Labrador', 'Bulldog'],
-      'Cat' => ['Persian', 'Siamese'],
+      'Dog' => ['Aspin','Labrador', 'Poodle', 'Bulldog'],
+      'Cat' => ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
     ];
   @endphp
 

@@ -24,11 +24,12 @@ class _AnimalPreviewState extends State<AnimalPreview> {
       offset: Offset(0, 0),
   );
 
-  @override
-  void initState() {
-    myAnimal = widget.animalModel;
-    super.initState();
-  }
+@override
+void initState() {
+  super.initState();
+  myAnimal = widget.animalModel;
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +48,6 @@ class _AnimalPreviewState extends State<AnimalPreview> {
       create: (_) => AnimalPreviewViewModel(),
       child: Consumer<AnimalPreviewViewModel>(
         builder: (context, ref, child) {
-          if (myAnimal?.birthDate != null) {
-            ref.calculateAge(myAnimal!.birthDate!);
-          }
 
           return Scaffold(
             extendBodyBehindAppBar: true,
@@ -240,7 +238,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                             ),
                             const SizedBox(height: 5,),
                             Text(
-                              ref.ageString ?? 'No specified birthdate',
+                              myAnimal?.ageString ?? 'No specified birthdate',
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: isBdateNull ? Config.fontXS - 1 : Config.fontSmall,

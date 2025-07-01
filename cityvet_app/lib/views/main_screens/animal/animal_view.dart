@@ -1,4 +1,5 @@
 import 'package:cityvet_app/modals/animal_modals/select_category_modal.dart';
+import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_card.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_form.dart';
@@ -20,6 +21,12 @@ class _AnimalViewState extends State<AnimalView> {
     Future.microtask(() {
       final animalViewModel = context.read<AnimalViewModel>();
       animalViewModel.fetchAnimals();
+
+      final message = animalViewModel.message;
+      if(message != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        animalViewModel.setMessage('');
+      }
     });
   }
 
@@ -36,6 +43,13 @@ class _AnimalViewState extends State<AnimalView> {
   @override
   Widget build(BuildContext context) {
     final animalViewModel = context.watch<AnimalViewModel>();
+
+    if(animalViewModel.isLoading) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     final animalCards = animalViewModel.animals
         .map((animal) => AnimalCard(animalModel: animal))
         .toList();
@@ -46,7 +60,7 @@ class _AnimalViewState extends State<AnimalView> {
         const Text(
           'Owned Animals',
           style: TextStyle(
-            fontFamily: 'Roboto',
+            fontFamily: Config.primaryFont,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),

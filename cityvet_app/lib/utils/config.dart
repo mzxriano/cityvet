@@ -46,7 +46,7 @@ class Config {
 
   // Padding styles
   static const paddingTextfield = EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0);
-  static final paddingScreen = EdgeInsets.symmetric(horizontal: screenWidth! * 0.09, vertical: screenHeight! * 0.05);
+  static EdgeInsets get paddingScreen => EdgeInsets.symmetric(horizontal: screenWidth! * 0.09, vertical: screenHeight! * 0.05);
 
   // Colors  
   static const Color primaryColor = Color(0xFF8ED968);

@@ -10,9 +10,13 @@ class AnimalViewModel extends ChangeNotifier{
 
   List<AnimalModel> _animals = [];
   String? _errors;
-  String? get errors => _errors;
+  bool _isLoading = false;
+  String? _message;
 
+  String? get errors => _errors;
   List<AnimalModel> get animals => _animals;
+  bool get isLoading => _isLoading;
+  String? get message => _message;
 
   setAnimals(List<AnimalModel> animals) {
     _animals = animals;
@@ -24,9 +28,21 @@ class AnimalViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
+  setLoading(bool isLoading){
+    _isLoading = isLoading;
+    notifyListeners();
+  }
+
+  setMessage(String message) {
+    _message = message;
+    notifyListeners();
+  }
+
 
   Future<void> fetchAnimals() async {
   try {
+    setLoading(true);
+
     final response = await _animalService.fetchAnimals();
 
     if (response.statusCode == 200 && response.data is List) {
@@ -45,10 +61,12 @@ class AnimalViewModel extends ChangeNotifier{
     if (data is Map<String, dynamic> && data['errors'] != null) {
       print('Server-side errors: ${data['errors']}');
     } else {
-      setErrors(DioExceptionHandler.handleException(e));
+      setMessage(DioExceptionHandler.handleException(e));
     }
   } catch (e) {
     print('Unexpected error: $e');
+  }finally{
+    setLoading(false);
   }
 }
 

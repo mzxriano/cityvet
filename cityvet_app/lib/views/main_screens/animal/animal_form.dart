@@ -30,8 +30,8 @@ class _AnimalFormState extends State<AnimalForm> {
   String? selectedColor;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['Labrador', 'Poodle', 'Bulldog'],
-    'Cat': ['Persian', 'Siamese', 'Bengal'],
+    'Dog': ['Aspin','Labrador', 'Poodle', 'Bulldog'],
+    'Cat': ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
   };
 
   List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray'];
@@ -328,12 +328,14 @@ class _AnimalFormState extends State<AnimalForm> {
 
                   await formRef.createAnimal(animal);
 
-                  if(formRef.message.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(formRef.message)));
-                    Navigator.pop(context, true);
-                  } 
-                  else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error')));
+                  final updatedFormRef = context.read<AnimalFormViewModel>();
+                  final message = updatedFormRef.message;
+
+                  if (message != null && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(message)),
+                    );
+                    Navigator.pop(context);
                   }
 
                 }

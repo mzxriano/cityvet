@@ -14,9 +14,9 @@ class AnimalFormViewModel extends ChangeNotifier {
   List<AnimalModel> _animals = [];
   bool _isLoading = false;
   
-  AnimalModel get animalModel => _animalModel!;
-  String get message => _message!;
-  String get errors => _errors!;
+  AnimalModel? get animalModel => _animalModel;
+  String? get message => _message;
+  String? get errors => _errors;
   List<AnimalModel> get animals => _animals;
   bool get isLoading => _isLoading;
 
@@ -64,7 +64,7 @@ class AnimalFormViewModel extends ChangeNotifier {
         setErrors(data['errors'].toString());
       }
       else {
-        setErrors(DioExceptionHandler.handleException(e));
+        setMessage(DioExceptionHandler.handleException(e));
       }
     } 
     catch (e) {
