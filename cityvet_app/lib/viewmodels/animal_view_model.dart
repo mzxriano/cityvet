@@ -58,6 +58,7 @@ class AnimalViewModel extends ChangeNotifier{
   } on DioException catch (e) {
     final data = e.response?.data;
 
+    
     if (data is Map<String, dynamic> && data['errors'] != null) {
       print('Server-side errors: ${data['errors']}');
     } else {

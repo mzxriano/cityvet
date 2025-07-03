@@ -335,7 +335,7 @@ class _AnimalFormState extends State<AnimalForm> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(message)),
                     );
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
                   }
 
                 }

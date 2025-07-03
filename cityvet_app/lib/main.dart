@@ -1,7 +1,7 @@
-import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +25,7 @@ class MainApp extends StatelessWidget {
     Config().init(context);
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainLayout(),
+      home: LoginView(),
     );
   }
 }

@@ -1,9 +1,12 @@
 import 'package:cityvet_app/services/auth_service.dart';
+import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class LoginViewModel extends ChangeNotifier{
+
+  final AuthStorage storage = AuthStorage();
 
   var _isLoading = false;
   var _isLogin = false;
@@ -50,11 +53,12 @@ Future<void> login(String email, String password) async {
 
     final result = await AuthService().login(email, password);
 
-    if (result.containsKey('user') && result['user'] != null) {
-      setUser(result['user']);
+    print(result.data['token']);
+
+    final token = result.data['token'];
+    if(token != null){
+      await storage.saveToken(token);
       setLogin(true);
-    } else if (result.containsKey('error')) {
-      setError(result['error']);
     }
 
   } on DioException catch (e) {

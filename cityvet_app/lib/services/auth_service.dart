@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 
 class AuthService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api',
+    baseUrl: 'http://192.168.1.109:8000/api/auth',
     headers: {
       'Accept': 'application/json',
     },
@@ -19,17 +19,16 @@ class AuthService {
 
     return response.data;
 
-
   }
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Response> login(String email, String password) async {
 
     var response = await _dio.post('/login', data: {
       'email': email,
       'password': password,
     });
 
-    return {'user' : response.data['user']};
+    return response;
 
   }
 }

@@ -63,6 +63,10 @@ class AnimalFormViewModel extends ChangeNotifier {
       if(data != null && data['errors'] !=null) {
         setErrors(data['errors'].toString());
       }
+      else if(data != null && data['message'] != null) {
+        print(data['message']);
+        setMessage(data['messsage'].toString());
+      }
       else {
         setMessage(DioExceptionHandler.handleException(e));
       }
