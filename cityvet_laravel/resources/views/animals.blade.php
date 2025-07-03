@@ -1,30 +1,31 @@
 @extends('layouts.layout')
 
 @section('content')
-  <h1 class="title-style mb-[2rem]">Animals</h1>
+@php
+  $breedOptions = [
+    'Dog' => ['Aspin','Labrador', 'Poodle', 'Bulldog'],
+    'Cat' => ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
+  ];
+@endphp
 
-  @php
-    // Breed options mapped to types
-    $breedOptions = [
-      'Dog' => ['Aspin','Labrador', 'Poodle', 'Bulldog'],
-      'Cat' => ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
-    ];
-  @endphp
+<div x-data="{ showAddModal: false }">
+  <h1 class="title-style mb-[2rem]">Animals</h1>
 
   <!-- Top Bar -->
   <div class="flex justify-end gap-5 mb-[2rem]">
-    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">+ New animal</button>
+    <button @click="showAddModal = true" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+      + New animal
+    </button>
   </div>
 
-  <!-- Animal Table -->
+  <!-- Breed Data -->
+  <input type="hidden" id="breed-data" value='@json($breedOptions)' />
+
+  <!-- Animal Table Filter -->
   <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
     <div class="mb-4">
       <form method="GET" action="{{ route('animals') }}" class="flex gap-4 items-center justify-end">
         <div>
-          <!-- Breed data -->
-          <input type="hidden" id="breed-data" value='@json($breedOptions)' />
-
-          <!-- Type Dropdown -->
           <select name="type" id="type-select" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Types</option>
             @foreach(array_keys($breedOptions) as $type)
@@ -32,7 +33,6 @@
             @endforeach
           </select>
 
-          <!-- Breed Dropdown -->
           <select name="breed" id="breed-select" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Breeds</option>
             @if(request('type') && isset($breedOptions[request('type')]))
@@ -42,24 +42,24 @@
             @endif
           </select>
 
-          <!-- Gender Dropdown -->
-           <select name="gender" id="gender-select" class="border border-gray-300 px-3 py-2 rounded-md">
-              <option value="">All Genders</option>
-              <option value="male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-              <option value="male" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-           </select>
+          <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
+            <option value="">All Genders</option>
+            <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
+            <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
+          </select>
 
-          <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">Filter</button>
+          <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
+            Filter
+          </button>
         </div>
 
-        <!-- Search Field -->
         <div>
           <input type="text" name="search" value="{{ request('search') }}" placeholder="Search" class="border border-gray-300 px-3 py-2 rounded-md">
         </div>
       </form>
     </div>
 
-    <!-- Table -->
+    <!-- Animal Table -->
     <table class="table-auto w-full border-collapse">
       <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
         <tr>
@@ -96,36 +96,112 @@
     </table>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const typeSelect = document.getElementById('type-select');
-      const breedSelect = document.getElementById('breed-select');
-      const breedData = JSON.parse(document.getElementById('breed-data').value);
+  <!-- Add Animal Modal -->
+  <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+      <div class="relative bg-white rounded-lg max-w-xl w-full shadow-lg" @click.away="showAddModal = false">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold">Add New Animal</h2>
+          <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700">
+            ✕
+          </button>
+        </div>
+        <form method="POST" class="px-6 py-4 space-y-4">
+          @csrf
 
-      function updateBreedOptions(type) {
-        breedSelect.innerHTML = '<option value="">All Breeds</option>';
-        if (breedData[type]) {
-          breedData[type].forEach(breed => {
-            const option = document.createElement('option');
-            option.value = breed;
-            option.textContent = breed;
-            if (breed === "{{ request('breed') }}") {
-              option.selected = true;
-            }
-            breedSelect.appendChild(option);
-          });
-        }
-      }
+          <div>
+            <label class="block font-medium">Type</label>
+            <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md" required>
+              <option value="">Select Type</option>
+              @foreach(array_keys($breedOptions) as $type)
+                <option value="{{ $type }}">{{ $type }}</option>
+              @endforeach
+            </select>
+          </div>
 
-      // Initial load
-      if (typeSelect.value) {
-        updateBreedOptions(typeSelect.value);
-      }
+          <div>
+            <label class="block font-medium">Breed</label>
+            <select name="breed" id="modal-breed" class="w-full border-gray-300 rounded-md" required>
+              <option value="">Select Breed</option>
+            </select>
+          </div>
 
-      // On type change
-      typeSelect.addEventListener('change', (e) => {
-        updateBreedOptions(e.target.value);
+          <div>
+            <label class="block font-medium">Name</label>
+            <input type="text" name="name" class="w-full border-gray-300 rounded-md" required>
+          </div>
+
+          <div>
+            <label class="block font-medium">Birth Date</label>
+            <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md" required>
+          </div>
+
+          <div>
+            <label class="block font-medium">Gender</label>
+            <select name="gender" class="w-full border-gray-300 rounded-md" required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="w-1/2">
+              <label class="block font-medium">Weight (kg)</label>
+              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md" required>
+            </div>
+
+            <div class="w-1/2">
+              <label class="block font-medium">Height (cm)</label>
+              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md" required>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-medium">Color</label>
+            <input type="text" name="color" class="w-full border-gray-300 rounded-md" required>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t">
+            <button type="button" @click="showAddModal = false" class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100">
+              Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              Save Animal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS for dynamic breed selection -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const breedData = JSON.parse(document.getElementById('breed-data').value);
+
+    const filterType = document.getElementById('type-select');
+    const filterBreed = document.getElementById('breed-select');
+    const modalType = document.getElementById('modal-type');
+    const modalBreed = document.getElementById('modal-breed');
+
+    function updateBreed(selectElement, type) {
+      const breedList = breedData[type] || [];
+      selectElement.innerHTML = '<option value="">Select Breed</option>';
+      breedList.forEach(breed => {
+        const opt = document.createElement('option');
+        opt.value = breed;
+        opt.textContent = breed;
+        selectElement.appendChild(opt);
       });
-    });
-  </script>
+    }
+
+    if (filterType?.value) updateBreed(filterBreed, filterType.value);
+    filterType?.addEventListener('change', e => updateBreed(filterBreed, e.target.value));
+
+    modalType?.addEventListener('change', e => updateBreed(modalBreed, e.target.value));
+  });
+</script>
 @endsection

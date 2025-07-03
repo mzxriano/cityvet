@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -8,9 +9,7 @@ Route::get('/', function () {
     return view('dashboard');
 })->name('dashboard');
 
-Route::get('/activities', function () {
-    return view('activities');
-})->name('activities');
+Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
 
 Route::get('/users', [UserController::class, 'index'])->name('users');
 
@@ -31,3 +30,6 @@ Route::get('/reports', function () {
 Route::get('/archives', function () {
     return view('archives');
 })->name('archives');
+
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');

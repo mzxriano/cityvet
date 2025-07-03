@@ -8,6 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <title>CityVet</title>
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-screen m-0 p-0">
