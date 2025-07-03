@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
@@ -15,6 +17,7 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
@@ -32,23 +35,18 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $validated = $validator->validated();
+        $validated = $validator->validate();
 
-        $roleId = DB::table('roles')->where('name', 'Owner')->value('id');
+        $roleId = Role::where('name','Owner')->first()->id;
 
-        DB::table('users')->insert([
-            'first_name'=> $validated['first_name'],
-            'last_name'=> $validated['last_name'],
-            'birth_date'=> $validated['birth_date'],
-            'phone_number'=> $validated['phone_number'],
-            'email'=> $validated['email'],
-            'password'=> Hash::make($validated['password']),
-            'role_id'=> $roleId,
-            'created_at'=> now(),
-            'updated_at'=> now(),
+        User::create([
+            ...$validated, 
+            'role_id' => $roleId, 
+            'password' => Hash::make($validated['password'])
         ]);
 
         return response()->json(['message' => 'User successfully registered!']);
+
     }
 
     /**
@@ -56,34 +54,31 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+
+        $validator = validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required|string|min:6',
         ]);
 
-        // Return all validation errors as JSON
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validation failed.',
-                'errors' => $validator->errors() 
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Attempt to log in the user
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            // Authentication passed
-            $user = Auth::user();
-            return response()->json([
-                'message' => 'Login successful.',
-                'user' => $user,
-                //'token' => $user->createToken('YourAppName')->plainTextToken, 
-            ], 200);
+        $credentials = request(['email', 'password']);
+
+        try {
+            if (! $token = JWTAuth::attempt($credentials)) {
+                return response()->json(['message' => 'Invalid Credentials' ,'error' => 'invalid_validator'], 400);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'could_not_create_token'], 500);
         }
 
-        // Authentication failed
-        return response()->json([
-            'message' => 'Invalid credentials.',
-        ], 401);
+        return response()->json(compact('token'));
     }
+
 
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Animal;
 use DB;
 use Illuminate\Http\Request;
 use Validator;
@@ -13,8 +14,8 @@ class AnimalController extends Controller
      */
     public function index()
     {
-        
-        $animals = DB::table("animals")->get();
+                
+        $animals = Animal::where("user_id", auth()->id())->get();
 
         return response()->json($animals);
     }
@@ -63,7 +64,12 @@ class AnimalController extends Controller
 
         $validated = $validate->validated();
 
-        DB::table("animals")->insert($validated);
+        $user_id = auth()->user()->id;
+
+        Animal::create([
+            ...$validated,
+            'user_id' => $user_id,
+        ]);
 
         return response()->json(['message' => 'Animal successfully created.']);
     }

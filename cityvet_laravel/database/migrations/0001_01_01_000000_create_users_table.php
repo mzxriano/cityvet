@@ -35,6 +35,7 @@ return new class extends Migration
 
         Schema::create('animals', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
             $table->string('type');
             $table->string('name');
             $table->string('breed');
@@ -43,8 +44,9 @@ return new class extends Migration
             $table->double('weight')->nullable();
             $table->double('height')->nullable();
             $table->string('color');
-            //$table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
