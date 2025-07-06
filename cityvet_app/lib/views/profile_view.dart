@@ -89,7 +89,7 @@ class _ProfileView extends State<ProfileView> {
                             children: [
                               Text('Address', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.tertiaryColor)),
                               Config.heightSmall,
-                              Text('2428 Bugnay, San Vicente West, Urdaneta', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                              Text('${userRef.user?.barangay}, ${userRef.user?.street}', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
                             ],
                           ),
                         ),
