@@ -1,4 +1,6 @@
+import 'package:cityvet_app/models/user_model.dart';
 import 'package:cityvet_app/services/auth_service.dart';
+import 'package:cityvet_app/services/user_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
@@ -11,7 +13,7 @@ class LoginViewModel extends ChangeNotifier{
   var _isLoading = false;
   var _isLogin = false;
   String? _error;
-  Map<String, dynamic> _user = {};
+  UserModel? _user;
   Map<String, dynamic> _fieldErrors = {};
 
   get isLoading => _isLoading;
@@ -35,7 +37,7 @@ class LoginViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  setUser(Map<String, dynamic> user) {
+  setUser(UserModel user) {
     _user = user;
     notifyListeners();
   }
@@ -52,13 +54,22 @@ Future<void> login(String email, String password) async {
     setFieldErrors({});
 
     final result = await AuthService().login(email, password);
-
-    print(result.data['token']);
-
     final token = result.data['token'];
+
     if(token != null){
       await storage.saveToken(token);
-      setLogin(true);
+
+
+      final userResponse = await UserService().fetchUser(token);
+      
+      if(userResponse.containsKey('user')) {
+        final userData = userResponse['user'];
+        final user = UserModel.fromJson(userData);
+        print('user ${user.firstName}');
+        setUser(user);
+        setLogin(true);
+      }
+
     }
 
   } on DioException catch (e) {
@@ -84,6 +95,7 @@ Future<void> login(String email, String password) async {
     }
 
   } catch (e) {
+    print(user);
     print('Unexpected error: $e');
     setError('An unexpected error occurred. Please try again.');
   } finally {

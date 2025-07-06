@@ -14,7 +14,7 @@ class HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
-
+    
     final List<Map<String, String>> animals = [
       {'image': 'assets/images/logo.png', 'label': 'Dog'},
       {'image': 'assets/images/logo.png', 'label': 'Cat'},

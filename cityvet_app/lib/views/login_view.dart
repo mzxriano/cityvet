@@ -3,6 +3,7 @@ import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/login_view_model.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/forgot_pass_view.dart';
 import 'package:cityvet_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
@@ -184,6 +185,10 @@ class _LoginViewState extends State<LoginView> {
                                 }
 
                                 if (loginViewModel.isLogin) {
+
+                                  Provider.of<UserViewModel>(context, listen: false)
+                                  .setUser(loginViewModel.user);
+
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(builder: (_) => const MainLayout()),
                                   );

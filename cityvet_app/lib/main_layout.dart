@@ -1,4 +1,5 @@
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
@@ -6,6 +7,7 @@ import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification_view.dart';
 import 'package:cityvet_app/views/profile_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MainLayout extends StatefulWidget {
@@ -39,6 +41,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
+    final userRef = Provider.of<UserViewModel>(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
@@ -52,7 +56,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           },
         ),
         title: Text(
-          'Hello, Juan',
+          'Hello, ${userRef.user?.firstName ?? 'User'}',
           style: TextStyle(
             fontFamily: Config.primaryFont,
             fontSize: Config.fontMedium,
@@ -82,7 +86,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Juan Dela Cruz',
+                        '${userRef.user?.firstName ?? 'User'} ${userRef.user?.lastName ?? 'Lastname'}',
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontMedium,
@@ -91,7 +95,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         ),
                       ),
                       Text(
-                        '09123456789',
+                        userRef.user?.phoneNumber ?? '09xxxxxxxx',
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
@@ -99,7 +103,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         ),
                       ),
                       Text(
-                        '@juandelacruz@gmail.com',
+                        '@${userRef.user?.email ?? 'user@gmail.com'}',
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontXS,

@@ -1,6 +1,7 @@
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,8 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AnimalFormViewModel()),
-        ChangeNotifierProvider(create: (_) => AnimalViewModel())
+        ChangeNotifierProvider(create: (_) => AnimalViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel())
       ],
       child: const MainApp(),
     ),

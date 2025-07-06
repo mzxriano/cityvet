@@ -2,6 +2,7 @@ import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/components/role.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +27,7 @@ class _ProfileView extends State<ProfileView> {
   Widget build(BuildContext context) {
     Config().init(context);
     final animalViewModel = Provider.of<AnimalViewModel>(context);
+    final userRef = Provider.of<UserViewModel>(context);
     final animals = animalViewModel.animals;
     final role = RoleWidget();
 
@@ -67,7 +69,7 @@ class _ProfileView extends State<ProfileView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Juan Dela Cruz', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                                  Text(userRef.user?.firstName ?? 'User', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
                                   const SizedBox(height: 3),
                                   Text('Male', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Config.color524F4F)),
                                   const SizedBox(height: 3),
@@ -101,9 +103,9 @@ class _ProfileView extends State<ProfileView> {
                             children: [
                               Text('Contact Info', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.tertiaryColor)),
                               Config.heightSmall,
-                              Text('0912345678', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                              Text(userRef.user?.phoneNumber ?? '09xxxxxx', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
                               const SizedBox(height: 3),
-                              Text('juan@gmail.com', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                              Text(userRef.user?.email ?? 'user@gmail.com', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
                             ],
                           ),
                         ),
