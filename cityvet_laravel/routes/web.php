@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\ActivityController;
-use App\Http\Controllers\AnimalController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Web\ActivityController;
+use App\Http\Controllers\Web\AnimalController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,10 +10,11 @@ Route::get('/', function () {
 })->name('dashboard');
 
 Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
+Route::post('/activities', [ActivityController::class, 'create'])->name('activities.store');
 
 Route::get('/users', [UserController::class, 'index'])->name('users');
 
-Route::get('/animals', [AnimalController::class, 'indexWeb'])->name('animals');
+Route::get('/animals', [AnimalController::class, 'index'])->name('animals');
 
 Route::get('/barangay', function () {
     return view('barangay');

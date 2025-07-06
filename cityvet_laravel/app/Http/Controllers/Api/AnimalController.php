@@ -1,41 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Animal;
-use DB;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
-class AnimalController extends Controller
+class AnimalController
 {
     /**
-     * Display a list of animals through json response.
+     * Display a listing of the resource.
      */
     public function index()
     {
-                
         $animals = Animal::where("user_id", auth()->id())->get();
 
         return response()->json($animals);
-    }
-
-    /**
-     * Display a list of animals in the animals view.
-     */
-    public function indexWeb() {
-
-        $animals = DB::table("animals")->get();
-
-        return view("animals", compact("animals"));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -78,14 +58,6 @@ class AnimalController extends Controller
      * Display the specified resource.
      */
     public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
     {
         //
     }

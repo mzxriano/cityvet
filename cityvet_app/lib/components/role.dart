@@ -6,12 +6,13 @@ class RoleWidget {
     final Map<String, Color> roleColors = {
       'Owner': Color(0xFF36D221),
       'Veterinarian': Color(0xFFEDA726),
+      'AEW': Color(0xFFB90336),
     };
 
     final color = roleColors[role] ?? Colors.grey;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 3),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(100),
