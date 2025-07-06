@@ -22,6 +22,7 @@ class HomeViewModel extends ChangeNotifier{
     try {
       final String? token = await storage.getToken();
       if(token == null) return;
+      print(token);
  
       final response = await ActivityService().fetchActivity(token);
       print('response: $response');
@@ -32,7 +33,12 @@ class HomeViewModel extends ChangeNotifier{
     } on DioException catch (e) {
       final error = e.response?.data;
 
-      DioExceptionHandler.handleException(error);
+      if(error is Map || error is String){
+        print(e.response);
+      }else {
+        DioExceptionHandler.handleException(error);
+      }
+
     } catch (e) {
       print('Error fetching activity: $e');
     }

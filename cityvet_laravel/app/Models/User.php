@@ -24,6 +24,8 @@ class User extends Authenticatable implements JWTSubject
         'last_name',
         'birth_date',
         'phone_number',
+        'barangay_id',
+        'street',
         'email',
         'password',
         'role_id',
@@ -42,6 +44,10 @@ class User extends Authenticatable implements JWTSubject
     public function animals()
     {
         return $this->hasMany(Animal::class);
+    }
+
+    public function barangay() {
+        return $this->belongsTo(Barangay::class);
     }
 
     /**

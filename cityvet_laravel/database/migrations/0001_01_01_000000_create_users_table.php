@@ -19,6 +19,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('barangays', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            // $table->unsignedBigInteger('case_reports');
+            $table->timestamps();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('first_name');
@@ -26,11 +33,15 @@ return new class extends Migration
             $table->date('birth_date');
             $table->string('phone_number')->unique();
             $table->string('email')->unique();
+            $table->unsignedBigInteger('barangay_id');
+            $table->string('street');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
+
+            $table->foreign('barangay_id')->references('id')->on('barangays');
         });
 
         Schema::create('animals', function (Blueprint $table) {
@@ -75,5 +86,6 @@ return new class extends Migration
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('users');
         Schema::dropIfExists(table: 'roles');
+        Schema::dropIfExists(table: 'barangays');
     }
 };

@@ -3,12 +3,16 @@ class UserModel {
   final String lastName;
   final String email;
   final String phoneNumber;
+  final String barangay;
+  final String street;
 
   UserModel({
     required this.firstName,
     required this.lastName,
     required this.email,
     required this.phoneNumber,
+    required this.barangay,
+    required this.street
   });
 
   // Convert from JSON (after fetching user )
@@ -18,6 +22,8 @@ class UserModel {
       lastName: json['last_name'],
       email: json['email'],
       phoneNumber: json['phone_number'],
+      barangay: json['barangay'],
+      street: json['street'],
     );
   }
 
@@ -27,5 +33,7 @@ class UserModel {
     'last_name': lastName,
     'email': email,
     'phone_number': phoneNumber,
+    'barangay': barangay,
+    'street': street,
   };
 }

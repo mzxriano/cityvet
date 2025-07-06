@@ -31,4 +31,11 @@ class AuthService {
     return response;
 
   }
+
+  Future<Response> getBarangays() async {
+    var response = await _dio.get('/barangay');
+
+    return response;
+  }
+
 }

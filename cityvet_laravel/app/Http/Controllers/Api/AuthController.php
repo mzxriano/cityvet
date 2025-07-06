@@ -23,6 +23,8 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'birth_date' => 'required|date',
+            'barangay_id' => 'required|exists:barangays,id',
+            'street' => 'required|string|max:255',
             'phone_number' => 'required|string|size:11|unique:users,phone_number',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed'

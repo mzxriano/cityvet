@@ -3,12 +3,15 @@
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BarangayController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class,'register']);
+
+    Route::get('/barangay', [BarangayController::class,'index']);
 
 
     Route::middleware(['auth:api'])->group(function () {

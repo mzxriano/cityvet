@@ -6,6 +6,8 @@ class AuthModel {
   final String phoneNumber;
   final String email;
   final String password;
+  final int barangay_id;
+  final String street;
 
   AuthModel({
     required this.firstName,
@@ -14,6 +16,8 @@ class AuthModel {
     required this.phoneNumber,
     required this.email,
     required this.password,
+    required this.barangay_id,
+    required this.street,
   });
 
   factory AuthModel.fromJson(Map<String, dynamic> json) {
@@ -22,7 +26,9 @@ class AuthModel {
       lastName: json['last_name'], 
       birthDate: json['birth_date'],
       phoneNumber: json['phone_number'], 
-      email: json['email'], 
+      email: json['email'],
+      barangay_id: json['barangay_id'],
+      street: json['street'], 
       password: json['password']);
   }
 
@@ -33,6 +39,8 @@ class AuthModel {
     'birth_date' : birthDate,
     'phone_number' : phoneNumber,
     'email' : email,
+    'barangay_id': barangay_id,
+    'street': street,
     'password' : password
   };
 

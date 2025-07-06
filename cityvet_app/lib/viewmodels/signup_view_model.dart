@@ -1,4 +1,5 @@
 import 'package:cityvet_app/models/auth_model.dart';
+import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:cityvet_app/services/auth_service.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
@@ -16,6 +17,7 @@ class SignupViewModel extends ChangeNotifier {
   String? _error;
   DateTime? _selectedDate;
   String? _formattedBDate;
+  List<BarangayModel> _barangays = [];
 
   get fieldErrors => _fieldErrors;
   bool get isPasswordObscured => _isPasswordObscured;
@@ -26,6 +28,7 @@ class SignupViewModel extends ChangeNotifier {
   String? get error => _error;
   DateTime? get selectedDate => _selectedDate;
   String? get formattedBDate => _formattedBDate;
+  List<BarangayModel>? get barangays => _barangays; 
  
   setFieldErrors(Map<String, dynamic> fieldErrors) {
     _fieldErrors = fieldErrors;
@@ -81,6 +84,11 @@ class SignupViewModel extends ChangeNotifier {
     }
   }
 
+  setBarangays(List<BarangayModel> barangays) {
+    _barangays = barangays;
+    notifyListeners();
+  }
+
   String? getFieldError(String fieldName) {
     final error = _fieldErrors[fieldName];
     if (error == null) return null;
@@ -92,46 +100,67 @@ class SignupViewModel extends ChangeNotifier {
     return error.toString();
   }
 
-  Future<void> register({
-    required String firstName,
-    required String lastName,
-    required String birthDate,
-    required String phoneNumber,
-    required String email,
-    required String password,
-    required String passwordConfirmation,
-  }) async {
-    final AuthModel authModel = 
-      AuthModel(firstName: firstName, lastName: lastName, birthDate: birthDate, phoneNumber: phoneNumber, email: email, password: password);
+Future<void> register({
+  required String firstName,
+  required String lastName,
+  required String birthDate,
+  required String phoneNumber,
+  required int barangay_id,
+  required String street,
+  required String email,
+  required String password,
+  required String passwordConfirmation,
+}) async {
+  final AuthModel authModel = AuthModel(
+    firstName: firstName,
+    lastName: lastName,
+    birthDate: birthDate,
+    phoneNumber: phoneNumber,
+    email: email,
+    password: password,
+    barangay_id: barangay_id,
+    street: street,
+  );
 
-    try {
-      final data = await _authService.register(authModel, passwordConfirmation);
 
-      if(data == null) return null;
+  try {
+    final data = await _authService.register(authModel, passwordConfirmation);
 
-      if(data.containsKey('message')) {
-        setSuccess(true);
-        setSuccessMessage(data['message'].toString()); 
-      }
+    if (data == null) return;
 
-    } on DioException catch (e) {
-
-      final data = e.response?.data;
-
-      print(data);
-
-      if (data != null && data['errors'] != null) {
-        setFieldErrors(Map<String, dynamic>.from(data['errors']));
-      }else {
-        setError(DioExceptionHandler.handleException(e));
-      }
-
-    } catch (e) {
-
-      setError('An unexpected error occurred.');
-
+    if (data.containsKey('message')) {
+      setSuccess(true);
+      setSuccessMessage(data['message'].toString());
     }
 
+  } on DioException catch (e) {
+    final data = e.response?.data;
+    print(data);
+
+    if (data != null && data['errors'] != null) {
+      setFieldErrors(Map<String, dynamic>.from(data['errors']));
+    } else {
+      setError(DioExceptionHandler.handleException(e));
+    }
+
+  } catch (e) {
+    setError('An unexpected error occurred.');
   }
+}
+
+
+  Future<void> fetchBarangays() async {
+    try {
+      final response = await _authService.getBarangays(); 
+      final List<dynamic> barangayList = response.data;
+
+      final barangayModels = barangayList.map((json) => BarangayModel.fromJson(json)).toList();
+      setBarangays(barangayModels);
+    } catch (e) {
+      print('Error fetching barangays: $e');
+      setError('Failed to load barangays.');
+    }
+  }
+
 
 }

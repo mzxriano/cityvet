@@ -2,7 +2,6 @@ import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/utils/text.dart';
 import 'package:cityvet_app/viewmodels/signup_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
@@ -109,7 +108,7 @@ class _SignupViewState extends State<SignupView> {
     Config().init(context);
 
     return ChangeNotifierProvider<SignupViewModel>(
-      create: (_) => SignupViewModel(),
+      create: (_) => SignupViewModel()..fetchBarangays(),
       child: Consumer<SignupViewModel>(
         builder: (context, signup, _) {
           return Scaffold(
@@ -241,10 +240,10 @@ class _SignupViewState extends State<SignupView> {
                               ),
                             ),
                             value: signup.selectedBarangay,
-                            items: AppText.barangay.map((String barangay) {
+                            items: signup.barangays?.map((barangay) {
                               return DropdownMenuItem<String>(
-                                value: barangay,
-                                child: Text(barangay, style: TextStyle(fontFamily: Config.primaryFont)),
+                                value: barangay.id.toString(), 
+                                child: Text(barangay.name),    
                               );
                             }).toList(),
                             onChanged: (value) {
@@ -325,12 +324,21 @@ class _SignupViewState extends State<SignupView> {
                               return;
                             }
 
+                            if (signup.selectedBarangay == null || signup.selectedBarangay!.isEmpty) {
+                              signup.setFieldErrors({'barangay': ['Please select a barangay.']});
+                              return;
+                            }
+
+                            print(signup.selectedBarangay);
+
                             setState(() => _isLoading = true);
 
                             await signup.register(
                               firstName: _firstNameController.text,
                               lastName: _lastNameController.text,
                               birthDate: signup.formattedBDate!,
+                              barangay_id: int.parse(signup.selectedBarangay!),
+                              street: _streetController.text.trim(),
                               phoneNumber: _phoneNumberController.text.trim(),
                               email: _emailController.text.trim(),
                               password: _passwordController.text.trim(),

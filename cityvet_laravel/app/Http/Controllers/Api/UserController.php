@@ -44,10 +44,20 @@ class UserController extends Controller
      */
     public function show()
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('barangay');
 
-        return response()->json(["user" => $user]);
+        return response()->json([
+            "user" => [
+                "first_name" => $user->first_name,
+                "last_name" => $user->last_name,
+                "email" => $user->email,
+                "phone_number" => $user->phone_number,
+                "street" => $user->street,
+                "barangay" => $user->barangay->name ?? null,
+            ]
+        ]);
     }
+
 
     /**
      * Show the form for editing the specified resource.
