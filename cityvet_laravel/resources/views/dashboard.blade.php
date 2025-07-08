@@ -204,7 +204,6 @@
       document.getElementById('barangay').addEventListener('change', function () {
         const selectedBarangay = this.value;
         
-        // You can use the selectedBarangay to fetch filtered data from the server here.
         console.log('Selected Barangay:', selectedBarangay);
       });
     });

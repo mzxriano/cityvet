@@ -5,7 +5,7 @@ import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification_view.dart';
-import 'package:cityvet_app/views/profile_view.dart';
+import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -41,196 +41,201 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
-    final userRef = Provider.of<UserViewModel>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
+    return Consumer<UserViewModel>(
+      builder: (context, ref, _) {
+        print('user first name ${ref.user?.firstName}');
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: Builder(
+              builder: (BuildContext context) {
+                return IconButton(
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  icon: Icon(Icons.menu),
+                );
               },
-              icon: Icon(Icons.menu),
-            );
-          },
-        ),
-        title: Text(
-          'Hello, ${userRef.user?.firstName ?? 'User'}',
-          style: TextStyle(
-            fontFamily: Config.primaryFont,
-            fontSize: Config.fontMedium,
-          ),
-        ),
-      ),
-      backgroundColor: Color(0xFFEEEEEE),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Config.primaryColor,
+            ),
+            title: Text(
+              'Hello, ${ref.user?.firstName ?? 'User'}',
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontMedium,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(''),
-                    radius: 30,
+            ),
+          ),
+          backgroundColor: Color(0xFFEEEEEE),
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Config.primaryColor,
                   ),
-                  const SizedBox(width: 20,),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: AssetImage(''),
+                        radius: 30,
+                      ),
+                      const SizedBox(width: 20,),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${ref.user?.firstName ?? 'User'} ${ref.user?.lastName ?? 'Lastname'}',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontMedium,
+                              fontWeight: Config.fontW600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            ref.user?.phoneNumber ?? '09xxxxxxxx',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontSmall,
+                              color: Config.tertiaryColor,
+                            ),
+                          ),
+                          Text(
+                            '@${ref.user?.email ?? 'user@gmail.com'}',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontXS,
+                              color: Config.tertiaryColor,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  )
+                ),
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${userRef.user?.firstName ?? 'User'} ${userRef.user?.lastName ?? 'Lastname'}',
+                        'Profile',
                         style: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontMedium,
-                          fontWeight: Config.fontW600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        userRef.user?.phoneNumber ?? '09xxxxxxxx',
-                        style: TextStyle(
-                          fontFamily: Config.primaryFont,
-                          fontSize: Config.fontSmall,
                           color: Config.tertiaryColor,
                         ),
                       ),
-                      Text(
-                        '@${userRef.user?.email ?? 'user@gmail.com'}',
-                        style: TextStyle(
-                          fontFamily: Config.primaryFont,
-                          fontSize: Config.fontXS,
-                          color: Config.tertiaryColor,
-                        ),
-                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
                     ],
-                  )
-                ],
-              )
-            ),
-            ListTile(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Profile',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                      color: Config.tertiaryColor,
-                    ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
-                ],
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileView()));
-              },
-            ),
-            ListTile(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Archives',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                      color: Config.tertiaryColor
-                    ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileView()));
+                  },
+                ),
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Archives',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontMedium,
+                          color: Config.tertiaryColor
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
+                    ],
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
-                ],
-              ),
-              onTap: () {
-                Navigator.pop(context); 
-                _onTabSelected(1); 
-              },
-            ),
-            Divider(thickness: 0.5, color: Color(0xFFDDDDDD),),
-            ListTile(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Logout',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                      color: Config.tertiaryColor,
-                    ),
+                  onTap: () {
+                    Navigator.pop(context); 
+                    _onTabSelected(1); 
+                  },
+                ),
+                Divider(thickness: 0.5, color: Color(0xFFDDDDDD),),
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontMedium,
+                          color: Config.tertiaryColor,
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
+                    ],
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
-                ],
-              ),
-              onTap: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginView())); 
-              },
+                  onTap: () {
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginView())); 
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      body: Padding(
-        padding: Config.paddingScreen,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-           
-            final bool slideLeft = _currentIndex > _previousIndex;
-            
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: slideLeft ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOutCubic,
-              )),
-              child: FadeTransition(
-                opacity: animation,
-                child: child,
-              ),
-            );
-          },
-          child: SizedBox(
-            key: ValueKey<int>(_currentIndex),
-            width: double.infinity,
-            height: double.infinity,
-            child: _pages[_currentIndex],
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onTabSelected(2),
-        backgroundColor: Colors.white,
-        splashColor: Config.primaryColor,
-        shape: CircleBorder(),
-        child: const FaIcon(FontAwesomeIcons.qrcode, color: Colors.grey),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 10.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(icon: FontAwesomeIcons.house, index: 0),
-            _buildNavItem(icon: FontAwesomeIcons.users, index: 1),
-            const SizedBox(width: 40),
-            _buildNavItem(icon: FontAwesomeIcons.paw, index: 3),
-            _buildNavItem(icon: FontAwesomeIcons.bell, index: 4),
-          ],
-        ),
-      ),
+          body: Padding(
+            padding: Config.paddingScreen,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+              
+                final bool slideLeft = _currentIndex > _previousIndex;
+                
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: slideLeft ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOutCubic,
+                  )),
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: SizedBox(
+                key: ValueKey<int>(_currentIndex),
+                width: double.infinity,
+                height: double.infinity,
+                child: _pages[_currentIndex],
+              ),
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _onTabSelected(2),
+            backgroundColor: Colors.white,
+            splashColor: Config.primaryColor,
+            shape: CircleBorder(),
+            child: const FaIcon(FontAwesomeIcons.qrcode, color: Colors.grey),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          bottomNavigationBar: BottomAppBar(
+            color: Colors.white,
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 10.0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(icon: FontAwesomeIcons.house, index: 0),
+                _buildNavItem(icon: FontAwesomeIcons.users, index: 1),
+                const SizedBox(width: 40),
+                _buildNavItem(icon: FontAwesomeIcons.paw, index: 3),
+                _buildNavItem(icon: FontAwesomeIcons.bell, index: 4),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 

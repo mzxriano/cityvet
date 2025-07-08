@@ -186,8 +186,7 @@ class _LoginViewState extends State<LoginView> {
 
                                 if (loginViewModel.isLogin) {
 
-                                  Provider.of<UserViewModel>(context, listen: false)
-                                  .setUser(loginViewModel.user);
+                                  Provider.of<UserViewModel>(context, listen: false).setUser(loginViewModel.user!);
 
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(builder: (_) => const MainLayout()),

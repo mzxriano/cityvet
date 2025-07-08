@@ -1,10 +1,10 @@
 class UserModel {
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phoneNumber;
-  final String barangay;
-  final String street;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phoneNumber;
+  final String? barangay;
+  final String? street;
 
   UserModel({
     required this.firstName,
@@ -28,12 +28,14 @@ class UserModel {
   }
 
   // Convert to JSON (if needed, to update user )
-  Map<String, dynamic> toJson() => {
-    'first_name': firstName,
-    'last_name': lastName,
-    'email': email,
-    'phone_number': phoneNumber,
-    'barangay': barangay,
-    'street': street,
-  };
+  Map<String, dynamic> toJson() {
+    return {
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
+      if (email != null) 'email': email,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
+      //if (barangay != null) 'barangay': barangay,
+      if (street != null) 'street': street,
+    };
+  }
 }

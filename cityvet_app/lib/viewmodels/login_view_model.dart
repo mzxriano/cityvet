@@ -19,7 +19,7 @@ class LoginViewModel extends ChangeNotifier{
   get isLoading => _isLoading;
   get isLogin => _isLogin;
   get error => _error;
-  get user => _user;
+  UserModel? get user => _user;
   get fieldErrors => _fieldErrors;
 
   setLoading(bool isLoading) {
@@ -65,7 +65,7 @@ Future<void> login(String email, String password) async {
       if(userResponse.containsKey('user')) {
         final userData = userResponse['user'];
         final user = UserModel.fromJson(userData);
-        print('user ${user}');
+        print('user ${userData}');
         setUser(user);
         setLogin(true);
       }

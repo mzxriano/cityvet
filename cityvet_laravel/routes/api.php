@@ -17,6 +17,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:api'])->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class,'show']);
+            Route::post('/edit', [UserController::class,'edit']);
         });
 
         Route::prefix('activity')->group(function () {

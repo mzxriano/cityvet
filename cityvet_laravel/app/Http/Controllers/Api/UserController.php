@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends Controller
@@ -62,9 +63,32 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request)
     {
-        //
+        $user = auth()->user();
+
+        $validated = $request->validate(rules: [
+            'first_name'   => 'sometimes|string|max:255',
+            'last_name'    => 'sometimes|string|max:255',
+            'email'        => 'sometimes|email|unique:users,email,' . $user->id,
+            'phone_number' => 'sometimes|string',
+            'barangay'     => 'sometimes|integer|exists:barangays,id',
+            'street'       => 'sometimes|nullable|string',
+            'birth_date'   => 'sometimes|date',
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user'    => [
+                'first_name'=> $user->first_name,
+                'last_name'=> $user->last_name,
+                'email'=> $user->email,
+                'phone_number'=> $user->phone_number,
+                'street'=> $user->street,
+            ]
+        ], 200);
     }
 
     /**

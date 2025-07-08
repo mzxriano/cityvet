@@ -2,7 +2,9 @@ import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/components/role.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/viewmodels/profile_edit_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
+import 'package:cityvet_app/views/profile/profile_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,13 +32,25 @@ class _ProfileView extends State<ProfileView> {
     final userRef = Provider.of<UserViewModel>(context);
     final animals = animalViewModel.animals;
     final role = RoleWidget();
+    print('user from profile ${userRef.user}');
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(onPressed: () => Navigator.pop(context), icon: Config.backButtonIcon),
         title: Text('Profile', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium,),),
         actions: [
-          IconButton(onPressed: (){}, icon: Icon(Icons.edit))
+          IconButton(onPressed: () async {
+            await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChangeNotifierProvider(
+                create: (_) => ProfileEditViewModel(userRef.user),
+                child: const ProfileEdit(),
+              ),
+            ),
+          );
+
+          }, icon: Icon(Icons.edit))
         ],
       ),
       body: SafeArea(
