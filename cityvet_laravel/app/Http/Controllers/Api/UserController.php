@@ -53,8 +53,9 @@ class UserController extends Controller
                 "last_name" => $user->last_name,
                 "email" => $user->email,
                 "phone_number" => $user->phone_number,
+                "birth_date" => $user->birth_date,
                 "street" => $user->street,
-                "barangay" => $user->barangay->name ?? null,
+                "barangay" => $user->barangay ?? null,
             ]
         ]);
     }
@@ -71,10 +72,10 @@ class UserController extends Controller
             'first_name'   => 'sometimes|string|max:255',
             'last_name'    => 'sometimes|string|max:255',
             'email'        => 'sometimes|email|unique:users,email,' . $user->id,
-            'phone_number' => 'sometimes|string|unique:users,phone_number',
-            'barangay'     => 'sometimes|integer|exists:barangays,id',
-            'street'       => 'sometimes|nullable|string',
+            'phone_number' => 'sometimes|string|unique:users,phone_number,' . $user->id,
             'birth_date'   => 'sometimes|date',
+            'barangay_id'  => 'sometimes|integer|exists:barangays,id',
+            'street'       => 'sometimes|nullable|string',
         ]);
 
         $user->update($validated);
@@ -86,6 +87,11 @@ class UserController extends Controller
                 'last_name'=> $user->last_name,
                 'email'=> $user->email,
                 'phone_number'=> $user->phone_number,
+                'birth_date' => $user->birth_date,
+                'barangay' => [
+                    'id' => $user->barangay->id,
+                    'name' => $user->barangay->name,
+                ],
                 'street'=> $user->street,
             ]
         ], 200);

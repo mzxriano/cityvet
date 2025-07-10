@@ -79,16 +79,21 @@ class _ProfileView extends State<ProfileView> {
                             children: [
                               CircleAvatar(radius: 40),
                               const SizedBox(width: 15.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(userRef.user?.firstName ?? 'User', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
-                                  const SizedBox(height: 3),
-                                  Text('Male', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Config.color524F4F)),
-                                  const SizedBox(height: 3),
-                                  Text('24 years old', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(userRef.user?.firstName ?? 'User', 
+                                      style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                                    const SizedBox(height: 3),
+                                    Text('Male', 
+                                      style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Config.color524F4F)),
+                                    const SizedBox(height: 3),
+                                    Text(userRef.user?.ageString ?? 'No Birthdate Specified', 
+                                      style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F), maxLines: 3, softWrap: true,),
+                                  ],
+                                ),
                               )
                             ],
                           ),
@@ -103,7 +108,7 @@ class _ProfileView extends State<ProfileView> {
                             children: [
                               Text('Address', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.tertiaryColor)),
                               Config.heightSmall,
-                              Text('${userRef.user?.barangay}, ${userRef.user?.street}', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
+                              Text('${userRef.user?.barangay?.name}, ${userRef.user?.street}', style: TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, color: Config.color524F4F)),
                             ],
                           ),
                         ),

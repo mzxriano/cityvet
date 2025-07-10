@@ -1,6 +1,7 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
+import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:cityvet_app/models/user_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/profile_edit_view_model.dart';
@@ -265,7 +266,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                     ),
                   ),
                   DropdownButtonHideUnderline(
-                    child: DropdownButtonFormField<String>(
+                    child: DropdownButtonFormField<BarangayModel>(
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Config.secondaryColor,
@@ -287,18 +288,14 @@ class _ProfileEditState extends State<ProfileEdit> {
                           borderRadius: const BorderRadius.all(Radius.circular(10)),
                         ),
                       ),
-                      value: profileViewModel.barangays != null && 
-                            profileViewModel.barangays!.isNotEmpty && 
-                            profileViewModel.selectedBarangay != null
-                          ? profileViewModel.selectedBarangay
-                          : null,
-                      hint: Text(
+                      value: profileViewModel.selectedBarangay,
+                        hint: Text(
                         profileViewModel.isLoading ? 'Loading barangays...' : 'Select Barangay',
                         style: TextStyle(color: Colors.grey),
                       ),
                       items: profileViewModel.barangays?.map((barangay) {
-                        return DropdownMenuItem<String>(
-                          value: barangay.id.toString(),
+                        return DropdownMenuItem<BarangayModel>(
+                          value: barangay,
                           child: Text(barangay.name),
                         );
                       }).toList(),
@@ -329,6 +326,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                         _lastNameController.text,
                         _emailController.text,
                         _phoneNumberController.text,
+                        profileViewModel.formattedBDate,
                         profileViewModel.selectedBarangay,
                         _streetController.text,
                       );

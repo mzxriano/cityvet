@@ -5,7 +5,7 @@ class UserService {
 
 Future<Map<String, dynamic>> fetchUser(String token) async {
 
-  final Dio _dio = Dio(BaseOptions(
+  final Dio dio = Dio(BaseOptions(
     baseUrl: 'http://192.168.1.109:8000/api/auth',
     headers: {
       'Accept': 'application/json',
@@ -13,14 +13,14 @@ Future<Map<String, dynamic>> fetchUser(String token) async {
     },
   ));
 
-  final user = await _dio.get('/user');
+  final user = await dio.get('/user');
 
   return user.data;
 
 }
 
 Future<Response> editProfile(String token, UserModel user) async {
-  final Dio _dio = Dio(BaseOptions(
+  final Dio dio = Dio(BaseOptions(
     baseUrl: 'http://192.168.1.109:8000/api/auth',
     headers: {
       'Accept': 'application/json',
@@ -28,7 +28,7 @@ Future<Response> editProfile(String token, UserModel user) async {
     },
   ));
 
-  final userData = await _dio.post('/user/edit', data: user.toJson());
+  final userData = await dio.post('/user/edit', data: user.toJson());
 
   return userData;
 }

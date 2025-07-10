@@ -14,7 +14,7 @@ class ProfileEditViewModel extends ChangeNotifier {
   final _authService = AuthService();
   final AuthStorage _storage = AuthStorage();
 
-  String? _selectedBarangay;
+  BarangayModel? _selectedBarangay;
   String? _error;
   DateTime? _selectedDate;
   String? _formattedBDate;
@@ -35,7 +35,7 @@ class ProfileEditViewModel extends ChangeNotifier {
   }
 
   // Getters
-  String? get selectedBarangay => _selectedBarangay;
+  BarangayModel? get selectedBarangay => _selectedBarangay;
   String? get error => _error;
   DateTime? get selectedDate => _selectedDate;
   String? get formattedBDate => _formattedBDate;
@@ -46,7 +46,7 @@ class ProfileEditViewModel extends ChangeNotifier {
   bool get isSuccessful => _isSuccessful;
   File? get profile => _profile;
 
-  setBarangay(String? barangay) {
+  setBarangay(BarangayModel? barangay) {
     _selectedBarangay = barangay;
     notifyListeners();
   }
@@ -98,33 +98,27 @@ class ProfileEditViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // First fetch barangays
       await fetchBarangays();
       
-      // Then set the selected barangay - make sure it exists in the list
-      // if (user.barangay != null && user.barangay!.isNotEmpty) {
-      //   // Check if the user's barangay exists in the fetched barangays
-      //   final barangayExists = _barangays.any((barangay) => 
-      //     barangay.id.toString() == user.barangay);
-        
-      //   if (barangayExists) {
-      //     _selectedBarangay = user.barangay;
-      //   } else {
-      //     // If user's barangay doesn't exist in the list, set to null
-      //     _selectedBarangay = null;
-      //     print('User barangay ${user.barangay} not found in barangay list');
-      //   }
-      // }
-      
-      // Set birth date if available
-      // if (user.birthDate != null && user.birthDate!.isNotEmpty) {
-      //   try {
-      //     _selectedDate = DateTime.parse(user.birthDate!);
-      //     setFormatBirthDate();
-      //   } catch (e) {
-      //     print('Error parsing birth date: $e');
-      //   }
-      // }
+      if (user.barangay != null) {
+        final match = _barangays.where((b) => b.id == user.barangay?.id).toList();
+        if (match.isNotEmpty) {
+          _selectedBarangay = match.first;
+        } else {
+          print('Barangay ID ${user.barangay} not found in barangay list');
+          _selectedBarangay = null;
+        }
+      }
+
+      //Set birth date if available
+      if (user.birthDate != null ) {
+        try {
+          _selectedDate = DateTime.parse(user.birthDate!);
+          setFormatBirthDate();
+        } catch (e) {
+          print('Error parsing birth date: $e');
+        }
+      }
       
       _isInitialized = true;
     } catch (e) {
@@ -158,7 +152,8 @@ class ProfileEditViewModel extends ChangeNotifier {
     String? lastName,
     String? email,
     String? phoneNumber,
-    String? barangay,
+    String? birthDate,
+    BarangayModel? barangay,
     String? street,
   ) async {
     try {
@@ -176,6 +171,7 @@ class ProfileEditViewModel extends ChangeNotifier {
         lastName: lastName,
         email: email,
         phoneNumber: phoneNumber,
+        birthDate: birthDate,
         barangay: barangay,
         street: street,
       );
@@ -183,21 +179,17 @@ class ProfileEditViewModel extends ChangeNotifier {
       final response = await UserService().editProfile(token, user);
 
       final UserModel updatedUser = UserModel.fromJson(response.data['user']);
-      print(response.data);
+      print('response here: ${response.data}');
 
       setUser(updatedUser);
       setSuccessful(true);
 
     }on DioException catch (e) {
-      final error = e.response?.data;
-      print(error['errors']['email']);
-      if(error['errors'] != null) {
-        setError(error['errors'].toString());
-      }else if(error is DioException) {
-        setError(DioExceptionHandler.handleException(e));
-      }
-      
       setSuccessful(false);
+
+      if(e.response is DioException) {
+        setError(DioExceptionHandler.handleException(e.response?.data));
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
