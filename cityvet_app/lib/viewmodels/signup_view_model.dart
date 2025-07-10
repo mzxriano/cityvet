@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cityvet_app/models/auth_model.dart';
 import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:cityvet_app/services/auth_service.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
+import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +21,7 @@ class SignupViewModel extends ChangeNotifier {
   DateTime? _selectedDate;
   String? _formattedBDate;
   List<BarangayModel> _barangays = [];
+  File? _profileImage;
 
   get fieldErrors => _fieldErrors;
   bool get isPasswordObscured => _isPasswordObscured;
@@ -29,6 +33,7 @@ class SignupViewModel extends ChangeNotifier {
   DateTime? get selectedDate => _selectedDate;
   String? get formattedBDate => _formattedBDate;
   List<BarangayModel>? get barangays => _barangays; 
+  File? get profileImage => _profileImage;
  
   setFieldErrors(Map<String, dynamic> fieldErrors) {
     _fieldErrors = fieldErrors;
@@ -86,6 +91,11 @@ class SignupViewModel extends ChangeNotifier {
 
   setBarangays(List<BarangayModel> barangays) {
     _barangays = barangays;
+    notifyListeners();
+  }
+
+  setProfile(File image) {
+    _profileImage = image;
     notifyListeners();
   }
 
@@ -160,6 +170,12 @@ Future<void> register({
       print('Error fetching barangays: $e');
       setError('Failed to load barangays.');
     }
+  }
+
+  Future<void> pickImageFromGallery() async {
+    final pickedImage = await CustomImagePicker().pickFromGallery();
+    if(pickedImage == null) return;
+    setProfile(pickedImage);
   }
 
 

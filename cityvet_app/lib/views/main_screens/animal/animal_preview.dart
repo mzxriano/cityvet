@@ -2,6 +2,8 @@ import 'package:cityvet_app/components/anima_type.dart';
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_preview_view_model.dart';
+import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/views/main_screens/animal/animal_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +17,6 @@ class AnimalPreview extends StatefulWidget {
 
 class _AnimalPreviewState extends State<AnimalPreview> {
 
-  AnimalModel? myAnimal;
-
   final _boxShadow = BoxShadow(
       color: Color.fromRGBO(0, 0, 0, 0.25),
       blurRadius: 5,
@@ -24,15 +24,15 @@ class _AnimalPreviewState extends State<AnimalPreview> {
       offset: Offset(0, 0),
   );
 
-@override
-void initState() {
-  super.initState();
-  myAnimal = widget.animalModel;
-}
-
-
   @override
   Widget build(BuildContext context) {
+    final animalViewModel = Provider.of<AnimalViewModel>(context);
+    final myAnimal = animalViewModel.animals.firstWhere(
+      (a) => a.id == widget.animalModel.id,
+      orElse: () => widget.animalModel, // fallback in case not found
+    );
+
+
     final double getScreenHeight = MediaQuery.of(context).size.height;
     final double getScreenWidth = MediaQuery.of(context).size.width;
     final double imageHeight = getScreenHeight * 0.55;
@@ -41,12 +41,12 @@ void initState() {
 
     var animalType = AnimalTypeWidget();
 
-    bool isBdateNull = myAnimal!.birthDate == null;
+    bool isBdateNull = myAnimal.birthDate == null;
 
     Config().init(context);
     return ChangeNotifierProvider<AnimalPreviewViewModel>(
       create: (_) => AnimalPreviewViewModel(),
-      child: Consumer<AnimalPreviewViewModel>(
+      child: Consumer<AnimalViewModel>(
         builder: (context, ref, child) {
 
           return Scaffold(
@@ -62,7 +62,9 @@ void initState() {
               ),
               actions: [
                 IconButton(
-                  onPressed: () {}, 
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalEdit(animalModel: myAnimal,)));
+                  }, 
                   padding: EdgeInsets.only(right: 20.0),
                   icon: const Icon(Icons.edit_square, color: Colors.white,),
                 ),
@@ -107,15 +109,15 @@ void initState() {
                                       padding: const EdgeInsets.all(10.0),
                                       child: Row(
                                         children: [
-                                          _buildAttributeBox('Type', myAnimal!.type),
+                                          _buildAttributeBox('Type', myAnimal.type),
                                           const SizedBox(width: 15,),
-                                          _buildAttributeBox('Gender', myAnimal!.gender),
+                                          _buildAttributeBox('Gender', myAnimal.gender),
                                           const SizedBox(width: 15,),
-                                          _buildAttributeBox('Weight', myAnimal?.weight?.toString() ?? 'No specified weight'),
+                                          _buildAttributeBox('Weight', myAnimal.weight?.toString() ?? 'No specified weight'),
                                           const SizedBox(width: 15,),
-                                          _buildAttributeBox('Height', myAnimal?.height?.toString() ?? 'No specified height'),
+                                          _buildAttributeBox('Height', myAnimal.height?.toString() ?? 'No specified height'),
                                           const SizedBox(width: 15,),
-                                          _buildAttributeBox('Color', myAnimal!.color),
+                                          _buildAttributeBox('Color', myAnimal.color),
                                         ],
                                       ),
                                     ),
@@ -220,7 +222,7 @@ void initState() {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              myAnimal!.name,
+                              myAnimal.name,
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: Config.fontMedium,
@@ -229,7 +231,7 @@ void initState() {
                             ),
                             const SizedBox(height: 5,),
                             Text(
-                              (myAnimal!.breed!),
+                              (myAnimal.breed!),
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: Config.fontSmall,
@@ -238,7 +240,7 @@ void initState() {
                             ),
                             const SizedBox(height: 5,),
                             Text(
-                              myAnimal?.ageString ?? 'No specified birthdate',
+                              myAnimal.ageString,
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: isBdateNull ? Config.fontXS - 1 : Config.fontSmall,
@@ -250,7 +252,7 @@ void initState() {
                             animalType['Pet'],
                           ],
                         ),
-                        AnimalGenderWidget()[myAnimal!.gender],
+                        AnimalGenderWidget()[myAnimal.gender],
                       ],
                     ),
                   ),

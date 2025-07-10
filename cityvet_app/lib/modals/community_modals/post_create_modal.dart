@@ -1,11 +1,19 @@
+import 'dart:io';
 
 import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+
 
 void showCreatePostModal(BuildContext context) {
-  TextEditingController textEditingController = TextEditingController();
   Config().init(context);
+  FocusNode focusNode = FocusNode();
+  TextEditingController textEditingController = TextEditingController();
+  bool isFieldNotEmpty = false;
 
   showModalBottomSheet(
     context: context,
@@ -13,16 +21,26 @@ void showCreatePostModal(BuildContext context) {
     enableDrag: false,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     builder: (context) {
-      bool isFieldNotEmpty = false;
+      final user = Provider.of<UserViewModel>(context).user;
+      List<File?> images = [];
 
-      return DraggableScrollableSheet(
-        initialChildSize: 1.0,
-        expand: true,
-        maxChildSize: 1.0,
-        minChildSize: 1.0,
-        builder: (context, scrollController) {
-          return StatefulBuilder(
-            builder: (context, setState) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          // Image picker
+          void pickImagesFromGallery() async {
+            final pickedImages = await ImagePicker().pickMultiImage();
+            if(pickedImages.isEmpty) return;
+            setState((){
+              images = pickedImages.map((image)=> File(image.path)).toList();
+            });
+          }
+
+          return DraggableScrollableSheet(
+            initialChildSize: 1.0,
+            expand: true,
+            maxChildSize: 1.0,
+            minChildSize: 1.0,
+            builder: (context, scrollController) {
               return Padding(
                 padding: EdgeInsets.all(20),
                 child: Column(
@@ -41,9 +59,19 @@ void showCreatePostModal(BuildContext context) {
                           Row(
                             children: [
                               IconButton(
-                                onPressed: isFieldNotEmpty ? () {
-                                  showConfirmationModal(context);
-                                } : () => Navigator.pop(context),
+                                onPressed: () async {
+                                  if (textEditingController.text.trim().isNotEmpty) {
+                                    final discard = await showConfirmationModal(context);
+
+                                    if(discard == true) {
+                                      textEditingController.dispose();
+                                      Navigator.pop(context);
+                                    }
+
+                                  } else {
+                                    Navigator.pop(context);
+                                  }
+                                },
                                 icon: Icon(Icons.arrow_back_ios_rounded),
                               ),
                               SizedBox(width: 20),
@@ -60,7 +88,6 @@ void showCreatePostModal(BuildContext context) {
                           TextButton(
                             onPressed: isFieldNotEmpty
                                 ? () {
-                                    print('Posting: ${textEditingController.text}');
                                     Navigator.pop(context);
                                   }
                                 : null,
@@ -69,7 +96,7 @@ void showCreatePostModal(BuildContext context) {
                                 if (states.contains(WidgetState.disabled)) {
                                   return Config.secondaryColor; 
                                 }
-                                return Colors.grey;
+                                return Colors.blueAccent;
                               }),
                             ),
                             child: Text(
@@ -81,7 +108,6 @@ void showCreatePostModal(BuildContext context) {
                               ),
                             ),
                           ),
-
                         ],
                       ),
                     ),
@@ -95,19 +121,19 @@ void showCreatePostModal(BuildContext context) {
                           radius: 30,
                         ),
                         SizedBox(width: 20),
-
-                        // Post details
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Francisco Mejia',
+                              '${user?.firstName} ${user?.lastName}' ,
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: Config.fontBig,
                                 fontWeight: Config.fontW600,
                                 color: Config.tertiaryColor,
                               ),
+                              softWrap: true,
+                              maxLines: 3,
                             ),
                           ],
                         )
@@ -116,9 +142,9 @@ void showCreatePostModal(BuildContext context) {
 
                     Config.heightMedium,
 
-                    // Post body
                     TextField(
                       controller: textEditingController,
+                      focusNode: focusNode,
                       keyboardType: TextInputType.text,
                       maxLines: null,
                       minLines: 1,
@@ -139,10 +165,47 @@ void showCreatePostModal(BuildContext context) {
                       ),
                       onChanged: (value) {
                         setState(() {
-                          isFieldNotEmpty = value.trim().isNotEmpty;
-                        });
+                          isFieldNotEmpty = textEditingController.text.isNotEmpty;
+                        }); 
                       },
                     ),
+
+                    Config.heightMedium,
+
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1,
+                          color: Colors.blueAccent,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: IconButton(
+                        onPressed: () => pickImagesFromGallery(), 
+                        icon: Icon(Icons.photo, size: 40, color: Colors.blueAccent,)
+                      ),
+                    ),
+
+                    Config.heightMedium,
+
+                      // Display selected images
+                      if (images.isNotEmpty)
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: images.map((file) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                file!,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }).toList(),
+                        ),
                   ],
                 ),
               );
@@ -153,4 +216,3 @@ void showCreatePostModal(BuildContext context) {
     },
   );
 }
-

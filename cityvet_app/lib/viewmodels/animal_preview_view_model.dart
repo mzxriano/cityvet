@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AnimalPreviewViewModel extends ChangeNotifier {
+
   String? _ageString;
 
   String? get ageString => _ageString;
@@ -35,4 +36,6 @@ class AnimalPreviewViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+
 }

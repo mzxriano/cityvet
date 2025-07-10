@@ -23,6 +23,10 @@ Route::get('/vaccines', function () {
     return view('vaccines');
 })->name('vaccines');
 
+Route::get('/community', function () {
+    return view('community');
+})->name('community');
+
 Route::get('/reports', function () {
     return view('reports');
 })->name('reports');

@@ -138,6 +138,22 @@ class _SignupViewState extends State<SignupView> {
                         ),
                         Config.heightMedium,
 
+                        Center(
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: signup.profileImage != null 
+                            ? FileImage(signup.profileImage!)
+                            : null,
+                            child: Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: IconButton(onPressed: (){
+                                signup.pickImageFromGallery();
+                              }, icon: Icon(Icons.camera_alt_rounded, size: 50, color: Color.fromARGB(255, 163, 163, 163),))
+                            ),
+                          ),
+                        ),
+
                         // First Name
                         LabelText(label: 'First Name ', isRequired: true),
                         CustomTextField(

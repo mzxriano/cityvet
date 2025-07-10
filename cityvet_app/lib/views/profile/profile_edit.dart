@@ -38,6 +38,12 @@ class _ProfileEditState extends State<ProfileEdit> {
   void initState() {
     super.initState();
 
+    final user = Provider.of<UserViewModel>(context, listen: false).user!;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileViewModel = Provider.of<ProfileEditViewModel>(context, listen: false);
+      profileViewModel.initializeUserData(user);
+    });
+
     _firstNameNode.addListener(() {
       setState(() {
         _isFirstNameFocused = _firstNameNode.hasFocus;
@@ -87,7 +93,6 @@ class _ProfileEditState extends State<ProfileEdit> {
     Config().init(context);
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     final profileViewModel = context.watch<ProfileEditViewModel>();
-    profileViewModel.initializeUserData(userViewModel.user!);
     _initializeControllers(userViewModel.user!);
 
     return Scaffold(
@@ -114,18 +119,16 @@ class _ProfileEditState extends State<ProfileEdit> {
                 children: [
                   Align(
                     alignment: Alignment.center,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(radius: 50),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: IconButton(
-                            onPressed: () {},
-                            icon: Icon(Icons.camera_alt_rounded, size: 30),
-                          ),
-                        )
-                      ],
+                    child: CircleAvatar(
+                      backgroundImage: profileViewModel.profile != null ?
+                      FileImage(profileViewModel.profile!)
+                      : null,
+                      radius: 70, 
+                      child: IconButton(
+                        onPressed: (){
+                        profileViewModel.pickImageFromGallery();
+                      }, icon: Icon(Icons.camera_alt_rounded,size: 50, color: Colors.grey,)
+                      ),
                     ),
                   ),
                   Config.heightMedium,
@@ -334,6 +337,9 @@ class _ProfileEditState extends State<ProfileEdit> {
                         Provider.of<UserViewModel>(context, listen: false).setUser(profileViewModel.user!);
                         
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile successfully updated.')));
+                        Navigator.pop(context);
+                      }else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(profileViewModel.error.toString())));
                         Navigator.pop(context);
                       }
                     },

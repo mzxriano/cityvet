@@ -47,4 +47,18 @@ class AnimalService {
     return response;
   }
 
+  Future<Response> editAnimal(String token, AnimalModel animalModel) async {
+    print(animalModel.id);
+    final response = await _dio.put(
+      '/animals/${animalModel.id}',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+        }
+      ), 
+      data: animalModel.toJson());
+      
+    return response;
+  }
+
 }

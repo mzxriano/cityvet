@@ -18,6 +18,7 @@
                 ],],
             'barangay' => ['label' => 'Barangay'],
             'vaccines' => ['label' => 'Vaccines'],
+            'community' => ['label' => 'Community'],
             'reports' => ['label' => 'Reports'],
             'archives' => ['label' => 'Archives'],
         ];

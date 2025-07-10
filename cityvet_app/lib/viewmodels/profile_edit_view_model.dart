@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:cityvet_app/models/user_model.dart';
 import 'package:cityvet_app/services/auth_service.dart';
 import 'package:cityvet_app/services/user_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
+import 'package:cityvet_app/utils/dio_exception_handler.dart';
+import 'package:cityvet_app/utils/image_picker.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class ProfileEditViewModel extends ChangeNotifier {
@@ -18,6 +23,7 @@ class ProfileEditViewModel extends ChangeNotifier {
   bool _isInitialized = false;
   UserModel? _user;
   bool _isSuccessful = false;
+  File? _profile;
 
 
   // Constructor that accepts user data
@@ -38,8 +44,53 @@ class ProfileEditViewModel extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   UserModel? get user => _user;
   bool get isSuccessful => _isSuccessful;
+  File? get profile => _profile;
 
-  // Private method to initialize with user data
+  setBarangay(String? barangay) {
+    _selectedBarangay = barangay;
+    notifyListeners();
+  }
+
+  setError(String error) {
+    _error = error;
+    notifyListeners();
+  }
+
+  setBirthDate(DateTime? date) {
+    _selectedDate = date;
+    setFormatBirthDate();
+    notifyListeners();
+  }
+
+  setFormatBirthDate() {
+    if (_selectedDate != null) {
+      _formattedBDate =
+          '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+      notifyListeners();
+    }
+  }
+
+  setBarangays(List<BarangayModel> barangays) {
+    _barangays = barangays;
+    notifyListeners();
+  }
+
+  setUser(UserModel user){
+    _user = user;
+    notifyListeners();
+  }
+
+  setSuccessful(bool isSuccessful) {
+    _isSuccessful = isSuccessful;
+    notifyListeners();
+  }
+
+  setProfile(File image) {
+    _profile = image;
+    notifyListeners();
+  }
+
+    // Private method to initialize with user data
   Future<void> _initializeWithUser(UserModel user) async {
     if (_isInitialized) return;
     
@@ -85,48 +136,8 @@ class ProfileEditViewModel extends ChangeNotifier {
     }
   }
 
-  // Public method for manual initialization (kept for backward compatibility)
   Future<void> initializeUserData(UserModel user) async {
     await _initializeWithUser(user);
-  }
-
-  setBarangay(String? barangay) {
-    _selectedBarangay = barangay;
-    notifyListeners();
-  }
-
-  setError(String error) {
-    _error = error;
-    notifyListeners();
-  }
-
-  setBirthDate(DateTime? date) {
-    _selectedDate = date;
-    setFormatBirthDate();
-    notifyListeners();
-  }
-
-  setFormatBirthDate() {
-    if (_selectedDate != null) {
-      _formattedBDate =
-          '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
-      notifyListeners();
-    }
-  }
-
-  setBarangays(List<BarangayModel> barangays) {
-    _barangays = barangays;
-    notifyListeners();
-  }
-
-  setUser(UserModel user){
-    _user = user;
-    notifyListeners();
-  }
-
-  setSuccessful(bool isSuccessful) {
-    _isSuccessful = isSuccessful;
-    notifyListeners();
   }
 
   Future<void> fetchBarangays() async {
@@ -177,14 +188,26 @@ class ProfileEditViewModel extends ChangeNotifier {
       setUser(updatedUser);
       setSuccessful(true);
 
-    } catch (e) {
-      setError("Failed to edit profile: $e");
+    }on DioException catch (e) {
+      final error = e.response?.data;
+      print(error['errors']['email']);
+      if(error['errors'] != null) {
+        setError(error['errors'].toString());
+      }else if(error is DioException) {
+        setError(DioExceptionHandler.handleException(e));
+      }
+      
       setSuccessful(false);
-      throw Exception("Failed to edit profile: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> pickImageFromGallery() async {
+    final pickedFile = await CustomImagePicker().pickFromGallery();
+    if(pickedFile == null) return;
+    setProfile(File(pickedFile.path));
   }
 
   // Method to clear any errors

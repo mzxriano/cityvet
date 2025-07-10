@@ -62,6 +62,45 @@ class AnimalController
         //
     }
 
+        /**
+     * Edit the specified resource.
+     */
+    public function edit(Request $request,$id)
+    {
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $animal = $user->animals()->find($id);
+
+        if (!$animal) {
+            return response()->json([
+                'message' => 'No animal found for the authenticated user.'
+            ], 404);
+        }
+
+        $validate = $request->validate([
+            'type' => 'sometimes|string',
+            'name' => 'sometimes|string',
+            'breed' => 'sometimes|string',
+            'birth_date' => 'sometimes|date',
+            'gender' => 'sometimes|string',
+            'weight' => 'sometimes|numeric',
+            'height' => 'sometimes|numeric',
+            'color' => 'sometimes|string',
+        ]);
+
+        $animal->update($validate);
+
+        return response()->json([
+            'message' => 'Animal details, successfully changed.',
+            'animal' => $animal,
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

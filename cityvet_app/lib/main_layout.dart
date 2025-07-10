@@ -44,8 +44,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
     return Consumer<UserViewModel>(
       builder: (context, ref, _) {
-        print('user first name ${ref.user?.firstName}');
-
         return Scaffold(
           appBar: AppBar(
             leading: Builder(
@@ -84,36 +82,43 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         radius: 30,
                       ),
                       const SizedBox(width: 20,),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${ref.user?.firstName ?? 'User'} ${ref.user?.lastName ?? 'Lastname'}',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: Config.fontMedium,
-                              fontWeight: Config.fontW600,
-                              color: Colors.black,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${ref.user?.firstName ?? 'User'} ${ref.user?.lastName ?? 'Lastname'}',
+                              maxLines: 3,
+                              softWrap: true,
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontMedium,
+                                fontWeight: Config.fontW600,
+                                color: Config.color524F4F,
+                              ),
                             ),
-                          ),
-                          Text(
-                            ref.user?.phoneNumber ?? '09xxxxxxxx',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: Config.fontSmall,
-                              color: Config.tertiaryColor,
+                            SizedBox(height: 4),
+                            Text(
+                              ref.user?.phoneNumber ?? '09xxxxxxxx',
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontSmall,
+                                color: Config.tertiaryColor,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '@${ref.user?.email ?? 'user@gmail.com'}',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: Config.fontXS,
-                              color: Config.tertiaryColor,
+                            Text(
+                              ref.user?.email ?? 'user@gmail.com',
+                              softWrap: true,
+                              maxLines: 2,
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontXS,
+                                color: Config.tertiaryColor,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       )
                     ],
                   )

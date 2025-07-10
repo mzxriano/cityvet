@@ -71,7 +71,7 @@ class UserController extends Controller
             'first_name'   => 'sometimes|string|max:255',
             'last_name'    => 'sometimes|string|max:255',
             'email'        => 'sometimes|email|unique:users,email,' . $user->id,
-            'phone_number' => 'sometimes|string',
+            'phone_number' => 'sometimes|string|unique:users,phone_number',
             'barangay'     => 'sometimes|integer|exists:barangays,id',
             'street'       => 'sometimes|nullable|string',
             'birth_date'   => 'sometimes|date',

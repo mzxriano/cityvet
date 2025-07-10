@@ -71,4 +71,12 @@ class AnimalViewModel extends ChangeNotifier{
   }
 }
 
+  void updateAnimal(AnimalModel updatedAnimal) {
+    final index = animals.indexWhere((a) => a.id == updatedAnimal.id);
+    if (index != -1) {
+      animals[index] = updatedAnimal;
+      notifyListeners();
+    }
+  }
+
 }

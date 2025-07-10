@@ -1,4 +1,5 @@
 class AnimalModel {
+  final int? id;
   final String type;
   final String name;
   final String? breed;
@@ -9,6 +10,7 @@ class AnimalModel {
   final String color;
 
   AnimalModel({
+    this.id, 
     required this.type,
     required this.name,
     required this.breed,
@@ -21,27 +23,36 @@ class AnimalModel {
 
   factory AnimalModel.fromJson(Map<String, dynamic> json) {
     return AnimalModel(
+      id: json['id'],
       type: json['type'],
-      name: json['name'], 
-      breed: json['breed'], 
-      birthDate: json['birth_date'], 
-      gender: json['gender'], 
-      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null, 
-      height: json['height'] != null ? (json['height'] as num).toDouble() : null, 
+      name: json['name'],
+      breed: json['breed'],
+      birthDate: json['birth_date'],
+      gender: json['gender'],
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      height: json['height'] != null ? (json['height'] as num).toDouble() : null,
       color: json['color'],
     );
   }
-  
-  Map<String, dynamic> toJson() => {
-    'type': type,
-    'name': name,
-    'breed': breed,
-    'birth_date': birthDate,
-    'gender': gender,
-    'weight': weight,
-    'height': height,
-    'color': color,
-  };
+
+  Map<String, dynamic> toJson({bool includeId = false}) {
+    final data = {
+      'type': type,
+      'name': name,
+      'breed': breed,
+      'birth_date': birthDate,
+      'gender': gender,
+      'weight': weight,
+      'height': height,
+      'color': color,
+    };
+
+    if (includeId && id != null) {
+      data['id'] = id;
+    }
+
+    return data;
+  }
 
   /// Calculates age as a human-readable string based on birthDate.
   String get ageString {

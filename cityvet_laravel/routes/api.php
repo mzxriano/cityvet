@@ -26,6 +26,7 @@ Route::prefix('auth')->group(function () {
 
         Route::prefix('animals')->group(function () {
             Route::post('/', [AnimalController::class,'store']);
+            Route::put('/{id}', [AnimalController::class,'edit']);
             Route::get('/', [AnimalController::class,'index']);
         });
     }); 
