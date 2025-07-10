@@ -86,10 +86,10 @@ class AnimalController
             'type' => 'sometimes|string',
             'name' => 'sometimes|string',
             'breed' => 'sometimes|string',
-            'birth_date' => 'sometimes|date',
+            'birth_date' => 'sometimes|nullable|date',
             'gender' => 'sometimes|string',
-            'weight' => 'sometimes|numeric',
-            'height' => 'sometimes|numeric',
+            'weight' => 'sometimes|nullable|numeric',
+            'height' => 'sometimes|nullable|numeric',
             'color' => 'sometimes|string',
         ]);
 

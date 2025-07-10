@@ -49,6 +49,7 @@ class AnimalService {
 
   Future<Response> editAnimal(String token, AnimalModel animalModel) async {
     print(animalModel.id);
+    print(animalModel.birthDate == null);
     final response = await _dio.put(
       '/animals/${animalModel.id}',
       options: Options(

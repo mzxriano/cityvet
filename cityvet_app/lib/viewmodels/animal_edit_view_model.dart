@@ -47,6 +47,7 @@ class AnimalEditViewModel extends ChangeNotifier {
       if(token == null) return;
 
       print('anmimal model ${animalModel.name}');
+      print('animal bdate: ${animalModel.birthDate}');
 
       final response = await AnimalService().editAnimal(token, animalModel);
 

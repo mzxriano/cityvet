@@ -1,12 +1,11 @@
 import 'package:cityvet_app/components/button.dart';
-import 'package:cityvet_app/components/text_field.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_edit_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class AnimalEdit extends StatefulWidget {
   final AnimalModel animalModel;
@@ -17,6 +16,8 @@ class AnimalEdit extends StatefulWidget {
 }
 
 class _AnimalEditState extends State<AnimalEdit> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -30,51 +31,76 @@ class _AnimalEditState extends State<AnimalEdit> {
   DateTime? selectedDate;
   String? selectedColor;
 
-  AnimalModel? animalModel;
+  String? petTypeError;
+  String? breedError;
+  String? genderError;
+  String? colorError;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['Aspin','Labrador', 'Poodle', 'Bulldog'],
+    'Dog': ['Aspin', 'Labrador', 'Poodle', 'Bulldog'],
     'Cat': ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
   };
 
   List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray'];
 
   Future<bool> _onWillPop() async {
-  final isFormDirty = petNameController.text.isNotEmpty ||
-                      weightController.text.isNotEmpty ||
-                      heightController.text.isNotEmpty ||
-                      selectedPetType != null ||
-                      selectedBreed != null ||
-                      selectedGender != null ||
-                      selectedDate != null ||
-                      selectedColor != null;
+    final isFormDirty = petNameController.text.isNotEmpty ||
+        weightController.text.isNotEmpty ||
+        heightController.text.isNotEmpty ||
+        selectedPetType != null ||
+        selectedBreed != null ||
+        selectedGender != null ||
+        selectedDate != null ||
+        selectedColor != null;
 
-  if (!isFormDirty) return true;
+    if (!isFormDirty) return true;
 
-  final shouldLeave = await showConfirmationModal(context);
+    final shouldLeave = await showConfirmationModal(context);
 
-  return shouldLeave ?? false;
-}
+    return shouldLeave ?? false;
+  }
 
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-  final animal = widget.animalModel;
+    final animal = widget.animalModel;
 
-  petNameController.text = animal.name;
-  
-  weightController.text = animal.weight?.toString() ?? '';
-  heightController.text = animal.height?.toString() ?? '';
+    petNameController.text = animal.name;
 
-  selectedPetType = animal.type;
-  selectedBreed = animal.breed;
-  selectedDate = animal.birthDate != null
-      ? DateTime.tryParse(animal.birthDate!)
-      : null;
-  selectedGender = animal.gender;
-  selectedColor = animal.color;
-}
+    weightController.text = animal.weight?.toString() ?? '';
+    heightController.text = animal.height?.toString() ?? '';
+
+    selectedPetType = animal.type;
+    selectedBreed = animal.breed;
+    selectedDate =
+        animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
+    selectedGender = animal.gender;
+    selectedColor = animal.color;
+  }
+
+  // Helper method for consistent InputDecoration
+  InputDecoration _buildInputDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: Config.secondaryColor,
+      contentPadding: Config.paddingTextfield,
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.transparent),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(
+          color: Config.primaryColor,
+          width: 2,
+        ),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +112,10 @@ void initState() {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              onPressed:() async {
+              onPressed: () async {
                 final shouldPop = await _onWillPop();
-                if(shouldPop) {
-                Navigator.pop(context);
+                if (shouldPop) {
+                  Navigator.pop(context);
                 }
               },
               icon: Config.backButtonIcon,
@@ -99,304 +125,335 @@ void initState() {
           body: Padding(
             padding: Config.paddingScreen,
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  
-                  // Pet Profile
-                  SizedBox(
-                    child: Center(
-                      child: 
-                        CircleAvatar(
-                          backgroundImage: ref.animalProfile != null ?
-                            FileImage(ref.animalProfile!) : 
-                            null,
+              child: Form(
+                key: _formKey, // << The form key here
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Pet Profile
+                    SizedBox(
+                      child: Center(
+                        child: CircleAvatar(
+                          backgroundImage: ref.animalProfile != null
+                              ? FileImage(ref.animalProfile!)
+                              : null,
                           radius: 70,
-                          child: IconButton(onPressed: (){
-                            ref.pickImageFromGallery();
-                          }, icon: Icon(Icons.camera_alt_rounded, size: 50,)),
-                        ),
-                    ),
-                  ),
-
-                  /// Pet Type
-                  Text(
-                    'Pet Type',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: selectedPetType,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Config.secondaryColor,
-                      contentPadding: Config.paddingTextfield,
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Colors.transparent,
-                        ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Config.primaryColor,
-                          width: 2,
-                        ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    items: petBreeds.keys.map((type) {
-                      return DropdownMenuItem(value: type, child: Text(type));
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPetType = value;
-                        selectedBreed = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Breed
-                  Text(
-                    'Pet Breed',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: selectedBreed,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Config.secondaryColor,
-                      contentPadding: Config.paddingTextfield,
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Colors.transparent,
-                        ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Config.primaryColor,
-                          width: 2,
-                        ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    items: (selectedPetType != null
-                            ? petBreeds[selectedPetType]!
-                            : <String>[])
-                        .map((breed) => DropdownMenuItem(value: breed, child: Text(breed)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedBreed = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Pet Name
-                  Text(
-                    'Pet Name',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  CustomTextField(
-                    controller: petNameController,
-                    node: petNameNode,
-                    textInputType: TextInputType.name,
-                    isObscured: false,
-                    isFocused: petNameNode.hasFocus,
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Date of Birth
-                  Text(
-                    'Pet Birthdate',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(1950),
-                        lastDate: DateTime.now(),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(labelText: ''),
-                      child: Text(
-                        selectedDate != null
-                            ? '${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}'
-                            : 'Select Date',
-                        style: TextStyle(
-                          color: selectedDate != null ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Gender
-                  Text(
-                    'Pet Gender',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  Row(
-                    children: ['Male', 'Female'].map((gender) {
-                      return Row(
-                        children: [
-                          Radio<String>(
-                            value: gender,
-                            groupValue: selectedGender,
-                            onChanged: (value) {
-                              setState(() {
-                                selectedGender = value;
-                              });
+                          child: IconButton(
+                            onPressed: () {
+                              ref.pickImageFromGallery();
                             },
+                            icon: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 50,
+                            ),
                           ),
-                          Text(gender),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Weight
-                  Text(
-                    'Pet Weight (kg)',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  CustomTextField(
-                    controller: weightController,
-                    node: weightNode,
-                    textInputType: TextInputType.number,
-                    isObscured: false,
-                    isFocused: weightNode.hasFocus,
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Height
-                  Text(
-                    'Pet Height (cm)',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  CustomTextField(
-                    controller: heightController,
-                    node: heightNode,
-                    textInputType: TextInputType.number,
-                    isObscured: false,
-                    isFocused: heightNode.hasFocus,
-                  ),
-                  const SizedBox(height: 12),
-
-                  /// Color
-                  Text(
-                    'Pet Color',
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                    ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: selectedColor,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Config.secondaryColor,
-                      contentPadding: Config.paddingTextfield,
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Colors.transparent,
                         ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color:Config.primaryColor,
-                          width: 2,
-                        ),
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
                       ),
                     ),
-                    items: colors
-                        .map((color) => DropdownMenuItem(value: color, child: Text(color)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedColor = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 24),
 
-                  /// Submit Button
-                  Button(
-                    width: double.infinity, 
-                    title: 'Save', 
-                    onPressed: () async {
+                    /// Pet Type
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Type',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedPetType,
+                      decoration: _buildInputDecoration(),
+                      items: petBreeds.keys
+                          .map((type) => DropdownMenuItem(
+                                value: type,
+                                child: Text(type),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedPetType = value;
+                          selectedBreed = null;
+                          petTypeError = null; // clear error on change
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a pet type';
+                        }
+                        return null;
+                      },
+                    ),
 
-                      final updatedAnimal = AnimalModel(
-                        id: widget.animalModel.id,
-                        type: selectedPetType!,
-                        breed: selectedBreed,
-                        name: petNameController.text,
-                        birthDate: selectedDate.toString(),
-                        gender: selectedGender!,
-                        weight: double.tryParse(weightController.text.trim()),
-                        height: double.tryParse(heightController.text.trim()),
-                        color: selectedColor!,
-                      );
+                    /// Breed
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Breed',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedBreed,
+                      decoration: _buildInputDecoration(),
+                      items: (selectedPetType != null
+                              ? petBreeds[selectedPetType]!
+                              : <String>[])
+                          .map((breed) => DropdownMenuItem(
+                                value: breed,
+                                child: Text(breed),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedBreed = value;
+                          breedError = null; // clear error
+                        });
+                      },
+                      validator: (value) {
+                        if (selectedPetType != null && value == null) {
+                          return 'Please select a breed';
+                        }
+                        return null;
+                      },
+                    ),
 
-                      await ref.editAnimal(updatedAnimal);
+                    /// Pet Name
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Name',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    TextFormField(
+                      controller: petNameController,
+                      focusNode: petNameNode,
+                      keyboardType: TextInputType.name,
+                      decoration: _buildInputDecoration(),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter pet name';
+                        }
+                        return null;
+                      },
+                    ),
 
-                      if(ref.isSucess) {
-                        Provider.of<AnimalViewModel>(context, listen: false).updateAnimal(updatedAnimal);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ref.message!)));
-                        Navigator.pop(context);                  
-                      }
-                    }
-                  ),
-                ],
+                    /// Date of Birth
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Birthdate',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate ?? DateTime.now(),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime.now(),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedDate = date;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(labelText: ''),
+                        child: Text(
+                          selectedDate != null
+                              ? '${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}'
+                              : 'Select Date',
+                          style: TextStyle(
+                            color: selectedDate != null
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    /// Gender
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Gender',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    Row(
+                      children: ['Male', 'Female'].map((gender) {
+                        return Row(
+                          children: [
+                            Radio<String>(
+                              value: gender,
+                              groupValue: selectedGender,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedGender = value;
+                                  genderError = null; // clear error on change
+                                });
+                              },
+                            ),
+                            Text(gender),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                    if (genderError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Text(
+                          genderError!,
+                          style: const TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+
+                    /// Weight
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Weight (kg)',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    TextFormField(
+                      controller: weightController,
+                      focusNode: weightNode,
+                      keyboardType: TextInputType.number,
+                      decoration: _buildInputDecoration(),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return null; // optional field
+                        }
+                        final parsed = double.tryParse(value);
+                        if (parsed == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    /// Height
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Height (cm)',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    TextFormField(
+                      controller: heightController,
+                      focusNode: heightNode,
+                      keyboardType: TextInputType.number,
+                      decoration: _buildInputDecoration(),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return null; // optional field
+                        }
+                        final parsed = double.tryParse(value);
+                        if (parsed == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    /// Color
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pet Color',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontMedium,
+                      ),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedColor,
+                      decoration: _buildInputDecoration(),
+                      items: colors
+                          .map((color) =>
+                              DropdownMenuItem(value: color, child: Text(color)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColor = value;
+                          colorError = null; // clear error
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a color';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    /// Submit Button
+                    Button(
+                      width: double.infinity,
+                      title: 'Save',
+                      onPressed: () async {
+                        final isValid = _formKey.currentState!.validate();
+
+                        // Manually validate fields without validator property
+                        bool manualValid = true;
+
+                        if (selectedGender == null) {
+                          setState(() {
+                            genderError = 'Please select a gender';
+                          });
+                          manualValid = false;
+                        }
+
+                        if (!manualValid || !isValid) {
+                          // Don't proceed if form is invalid
+                          return;
+                        }
+
+                        final updatedAnimal = AnimalModel(
+                          id: widget.animalModel.id,
+                          type: selectedPetType!,
+                          breed: selectedBreed,
+                          name: petNameController.text.trim(),
+                          birthDate: selectedDate?.toIso8601String(),
+                          gender: selectedGender!,
+                          weight: double.tryParse(weightController.text.trim()),
+                          height: double.tryParse(heightController.text.trim()),
+                          color: selectedColor!,
+                        );
+
+                        await ref.editAnimal(updatedAnimal);
+
+                        if (ref.isSucess) {
+                          Provider.of<AnimalViewModel>(context, listen: false)
+                              .updateAnimal(updatedAnimal);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(ref.message!)));
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(ref.message!)));
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         );
-      })
+      }),
     );
   }
 }
-
