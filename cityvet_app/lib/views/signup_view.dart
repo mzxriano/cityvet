@@ -120,39 +120,24 @@ class _SignupViewState extends State<SignupView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: Column(
+                        RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,  
+                            ),
                             children: [
-                              Config.primaryLogo,
-                              Config.heightSmall,
-                              Text(
-                                'Sign up',
-                                style: TextStyle(
-                                  fontFamily: Config.primaryFont,
-                                  fontSize: Config.fontBig,
-                                ),
+                              TextSpan(text: 'Getting started\nwith '),
+                              TextSpan(
+                                text: 'CityVet',
+                                style: TextStyle(color: Config.primaryColor),
                               ),
                             ],
                           ),
                         ),
-                        Config.heightMedium,
-
-                        Center(
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: signup.profileImage != null 
-                            ? FileImage(signup.profileImage!)
-                            : null,
-                            child: Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: IconButton(onPressed: (){
-                                signup.pickImageFromGallery();
-                              }, icon: Icon(Icons.camera_alt_rounded, size: 50, color: Color.fromARGB(255, 163, 163, 163),))
-                            ),
-                          ),
-                        ),
+                        Config.heightBig,
 
                         // First Name
                         LabelText(label: 'First Name ', isRequired: true),

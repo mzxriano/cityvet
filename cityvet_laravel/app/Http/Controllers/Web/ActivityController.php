@@ -11,7 +11,7 @@ class ActivityController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Activity::with('barangay'); // Load barangay relationship
+        $query = Activity::with('barangay'); 
 
         // Apply status filter if provided
         if ($request->filled('status')) {
@@ -42,7 +42,7 @@ class ActivityController extends Controller
         $validatedData = $request->validate([
             'reason' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
-            'details' => 'required|string|max:1000', // Changed to 'remarks' and made required
+            'details' => 'required|string|max:1000',
             'time' => 'required|date_format:H:i',
             'date' => 'required|date',
             'status' => 'required|in:pending,approved,rejected'
@@ -53,7 +53,7 @@ class ActivityController extends Controller
             Activity::create([
                 'reason' => $validatedData['reason'],
                 'barangay_id' => $validatedData['barangay_id'],
-                'details' => $validatedData['details'], // Map 'remarks' to 'details' column
+                'details' => $validatedData['details'], 
                 'time' => $validatedData['time'],
                 'date' => $validatedData['date'],
                 'status' => $validatedData['status']
@@ -70,7 +70,6 @@ class ActivityController extends Controller
 
     public function store(Request $request)
     {
-        // Alternative method name if you prefer RESTful convention
         return $this->create($request);
     }
 
@@ -90,7 +89,7 @@ class ActivityController extends Controller
         $validatedData = $request->validate([
             'reason' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
-            'details' => 'required|string|max:1000', // Changed to 'remarks' and made required
+            'details' => 'required|string|max:1000', 
             'time' => 'required|date_format:H:i',
             'date' => 'required|date',
             'status' => 'required|in:pending,approved,rejected'
@@ -101,7 +100,7 @@ class ActivityController extends Controller
             $activity->update([
                 'reason' => $validatedData['reason'],
                 'barangay_id' => $validatedData['barangay_id'],
-                'details' => $validatedData['details'], // Map 'remarks' to 'details' column
+                'details' => $validatedData['details'], 
                 'time' => $validatedData['time'],
                 'date' => $validatedData['date'],
                 'status' => $validatedData['status']

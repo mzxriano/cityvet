@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->date('birth_date');
+            $table->enum('gender', ['male', 'female', 'other']);
             $table->string('phone_number')->unique();
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id');
@@ -51,10 +52,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('breed');
             $table->date('birth_date')->nullable();
-            $table->string('gender');
+            $table->enum('gender', ['male', 'female']);
             $table->double('weight')->nullable();
             $table->double('height')->nullable();
             $table->string('color');
+            $table->string('code')->unique();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

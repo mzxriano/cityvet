@@ -1,46 +1,99 @@
 @extends('layouts.layout')
 
 @section('content')
-  <h1 class="title-style mb-6">Barangay</h1>
+<!-- Success/Error Messages -->
+@if(session('success'))
+<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+  {{ session('success') }}
+</div>
+@endif
 
-  <!-- Top Bar -->
-  <div class="flex justify-end mb-4">
-    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">+ New Activity</button>
-  </div>
+@if(session('error'))
+<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+  {{ session('error') }}
+</div>
+@endif
 
-  <!-- Activities Table -->
-  <div class="bg-white p-6 rounded-xl shadow-md overflow-x-auto">
-    <table class="table-auto w-full text-left border-collapse">
-      <thead class="bg-gray-200 text-gray-800">
-        <tr>
-          <th class="px-4 py-2 rounded-tl-xl">No.</th>
-          <th class="px-4 py-2">Barangay</th>
-          <th class="px-4 py-2">Time</th>
-          <th class="px-4 py-2">Date</th>
-          <th class="px-4 py-2">Status</th>
-          <th class="px-4 py-2 rounded-tr-xl">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($activities as $index => $activity)
-          <tr class="border-t hover:bg-gray-50 text-gray-700">
-            <td class="px-4 py-2">{{ $index + 1 }}</td>
-            <td class="px-4 py-2">{{ $activity->barangay->name ?? 'N/A' }}</td>
-            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</td>
-            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}</td>
-            <td class="px-4 py-2">{{ ucfirst($activity->status) }}</td>
-            <td class="px-4 py-2 text-center">
-              <button class="text-blue-600 hover:underline">Edit</button>
-            </td>
-          </tr>
-        @endforeach
+@if($errors->any())
+<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+  <ul class="list-disc list-inside">
+    @foreach($errors->all() as $error)
+      <li>{{ $error }}</li>
+    @endforeach
+  </ul>
+</div>
+@endif
 
-        @if($activities->isEmpty())
-          <tr>
-            <td colspan="6" class="px-4 py-4 text-center text-gray-500">No activities found.</td>
-          </tr>
-        @endif
-      </tbody>
-    </table>
-  </div>
+<div x-data="{
+    showAddModal: false,
+    showEditModal: false,
+    currentUser: null
+}">
+    <h1 class="title-style mb-[2rem]">Barangay</h1>
+
+    <!-- Add User Button -->
+    <!-- <div class="flex justify-end gap-5 mb-[2rem]">
+        <button type="button"
+                x-on:click="showAddModal = true"
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+            + New user
+        </button>
+    </div> -->
+
+    <!-- Barangay Table Card -->
+    <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
+        <!-- Filter Form -->
+        <div class="mb-4">
+            <form method="GET" action="{{ route('barangay') }}" class="flex gap-4 items-center justify-end">
+                <div>
+                    <button type="submit" 
+                            class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
+                        Filter
+                    </button>
+                </div>
+                <div>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}" 
+                           placeholder="Search" 
+                           class="border border-gray-300 px-3 py-2 rounded-md">
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <table class="table-auto w-full border-collapse">
+            <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                <tr>
+                    <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
+                    <th class="px-4 py-2 font-medium">Name</th>
+                    <th class="px-4 py-2 font-medium">Activities</th>
+                    <th class="px-4 py-2 font-medium">Vaccinated Animals</th>
+                    <th class="px-4 py-2 font-medium">Bite Case Reports</th>
+                    <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($barangays as $index => $barangay)
+                    <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
+                        <td class="px-4 py-2">{{ $index + 1 }}</td>
+                        <td class="px-4 py-2">{{ $barangay->name }}</td>
+                        <td class="px-4 py-2">{{ $barangay->activities->count() }}</td>
+                        <td class="px-4 py-2">{{ 0 }}</td>
+                        <td class="px-4 py-2">{{ 0 }}</td>
+                        <td class="px-4 py-2 text-center">
+                            <button type="button"
+                                    class="text-blue-600 hover:underline">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+
+
+</div>
 @endsection

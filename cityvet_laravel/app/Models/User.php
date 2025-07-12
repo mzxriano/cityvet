@@ -50,6 +50,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Barangay::class);
     }
 
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

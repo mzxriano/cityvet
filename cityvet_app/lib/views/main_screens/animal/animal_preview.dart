@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:cityvet_app/components/anima_type.dart';
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_preview_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +30,10 @@ class _AnimalPreviewState extends State<AnimalPreview> {
   @override
   Widget build(BuildContext context) {
     final animalViewModel = Provider.of<AnimalViewModel>(context);
+    final user = Provider.of<UserViewModel>(context).user;
     final myAnimal = animalViewModel.animals.firstWhere(
       (a) => a.id == widget.animalModel.id,
-      orElse: () => widget.animalModel, // fallback in case not found
+      orElse: () => widget.animalModel,
     );
 
 
@@ -141,20 +145,20 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'Juan Dela Cruz',
-                                      style: TextStyle(
-                                        fontFamily: Config.primaryFont,
-                                        fontSize: Config.fontMedium,
-                                        color: Color(0xFF524F4F),
-                                      ),
-                                    ),
-                                    Config.heightSmall,
-                                    Text(
                                       'Owner',
                                       style: TextStyle(
                                         fontFamily: Config.primaryFont,
                                         fontSize: Config.fontSmall,
                                         color: Config.tertiaryColor,
+                                      ),
+                                    ),
+                                    Config.heightSmall,
+                                    Text(
+                                      '${user?.firstName} ${user?.lastName}',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: Config.fontMedium,
+                                        color: Color(0xFF524F4F),
                                       ),
                                     ),
                                   ],
@@ -171,18 +175,34 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               Config.heightBig,
 
                               Center(
-                                child: Container(
-                                  width: 180,
-                                  height: 180,
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: [
-                                      _boxShadow,
-                                    ]
-                                  ),
-                                  child: Image.asset('assets/images/qr_code.png', fit: BoxFit.cover,),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 200,
+                                      height: 200,
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(15),
+                                        boxShadow: [
+                                          _boxShadow,
+                                        ]
+                                      ),
+                                      child: Image.memory(
+                                        base64Decode(myAnimal.qrCode!),
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5,),
+                                    Text(
+                                      myAnimal.code ?? 'No code',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: Config.fontSmall,
+                                        color: Config.color524F4F
+                                      ),
+                                    )
+                                  ],
                                 ),
                               )
 
@@ -333,10 +353,10 @@ Widget _buildAttributeBox(String title, String value) {
               style: TextStyle(
                 fontFamily: Config.primaryFont,
                 fontSize: Config.fontMedium,
-                color: Config.color524F4F,
+                color: Config.tertiaryColor,
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, color: Config.color524F4F,),
+            Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
           ],
         ),
       ),

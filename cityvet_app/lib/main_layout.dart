@@ -1,3 +1,4 @@
+import 'package:cityvet_app/components/qr_scanner.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
@@ -24,7 +25,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<Widget> _pages = const [
     HomeView(),
     CommunityView(),
-    Center(child: Text('QR Scanner')),
+    QrScannerPage(),
     AnimalView(),
     NotificationView(),
   ];

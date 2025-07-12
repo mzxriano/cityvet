@@ -69,163 +69,212 @@ class _LoginViewState extends State<LoginView> {
               children: [
                 SafeArea(
                   child: SingleChildScrollView(
-                    child: Padding(
-                      padding: Config.paddingScreen,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Align(
-                            alignment: Alignment.center,
-                            child: Column(
-                              children: [
-                                Config.primaryLogo,
-                                Config.heightSmall,
-                                Text('Login',
-                                  style: TextStyle(
-                                    fontFamily: Config.primaryFont,
-                                    fontSize: Config.fontBig,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Config.heightMedium,
-                          LabelText(label: 'Email ', isRequired: true),
-                          TextField(
-                            controller: _emailController,
-                            focusNode: _emailNode,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: _isEmailFocused ? Colors.transparent : Config.secondaryColor,
-                              enabledBorder: _getBorder(
-                                loginViewModel.fieldErrors['email'] != null ? Colors.red : Colors.transparent,
-                              ),
-                              focusedBorder: _getBorder(
-                                loginViewModel.fieldErrors['email'] != null ? Colors.red : Config.primaryColor,
-                              ),
-                              contentPadding: Config.paddingTextfield,
-                            ),
-                          ),
-                          if (loginViewModel.fieldErrors['email'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                loginViewModel.fieldErrors['email'].join(', '),
-                                style: const TextStyle(color: Colors.red, fontSize: 12),
-                              ),
-                            ),
-                          Config.heightMedium,
-                          LabelText(label: 'Password ', isRequired: true),
-                          TextField(
-                            controller: _passwordController,
-                            focusNode: _passwordNode,
-                            obscureText: _isObscured,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: _isPassFocused ? Colors.transparent : Config.secondaryColor,
-                              enabledBorder: _getBorder(
-                                loginViewModel.fieldErrors['password'] != null ? Colors.red : Colors.transparent,
-                              ),
-                              focusedBorder: _getBorder(
-                                loginViewModel.fieldErrors['password'] != null ? Colors.red : Config.primaryColor,
-                              ),
-                              contentPadding: Config.paddingTextfield,
-                              suffixIcon: IconButton(
-                                padding: const EdgeInsetsDirectional.only(end: 12),
-                                onPressed: () => setState(() => _isObscured = !_isObscured),
-                                icon: _isObscured
-                                    ? const Icon(Icons.visibility)
-                                    : const Icon(Icons.visibility_off),
-                              ),
-                            ),
-                          ),
-                          if (loginViewModel.fieldErrors['password'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                loginViewModel.fieldErrors['password'].join(', '),
-                                style: const TextStyle(color: Colors.red, fontSize: 12),
-                              ),
-                            ),
-                          Config.heightSmall,
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const ForgotPassView()),
-                                );
-                              },
-                              child: Text('Forgot Password',
-                                style: TextStyle(
-                                  fontFamily: Config.primaryFont,
-                                  fontSize: Config.fontSmall,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Config.heightMedium,
-                          Button(
-                            width: double.infinity,
-                            title: 'Login',
-                            onPressed: () async {
-                              if (!loginViewModel.isLoading) {
-                                loginViewModel.fieldErrors.clear();
-
-                                await loginViewModel.login(
-                                  _emailController.text.trim(),
-                                  _passwordController.text.trim(),
-                                );
-
-                                if (loginViewModel.error?.isNotEmpty ?? false) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(loginViewModel.error!)),
-                                  );
-                                }
-
-                                if (loginViewModel.isLogin) {
-
-                                  Provider.of<UserViewModel>(context, listen: false).setUser(loginViewModel.user!);
-
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(builder: (_) => const MainLayout()),
-                                  );
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Login failed, Please try again!')),
-                                );
-                              }
-                            },
-                          ),
-                          Config.heightMedium,
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            MediaQuery.of(context).padding.bottom,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: Config.paddingScreen,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Don\'t have an account?',
-                                style: TextStyle(
-                                  fontFamily: Config.primaryFont,
-                                  fontSize: Config.fontSmall,
+                              Row(
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,  
+                                      ),
+                                      children: [
+                                        TextSpan(text: 'Login\nto '),
+                                        TextSpan(
+                                          text: 'CityVet',
+                                          style: TextStyle(color: Config.primaryColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Config.primaryLogo
+                                ],
+                              ),
+                              Config.heightMedium,
+                              LabelText(label: 'Email ', isRequired: true),
+                              TextField(
+                                controller: _emailController,
+                                focusNode: _emailNode,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: _isEmailFocused
+                                      ? Colors.transparent
+                                      : Config.secondaryColor,
+                                  enabledBorder: _getBorder(
+                                    loginViewModel.fieldErrors['email'] != null
+                                        ? Colors.red
+                                        : Colors.transparent,
+                                  ),
+                                  focusedBorder: _getBorder(
+                                    loginViewModel.fieldErrors['email'] != null
+                                        ? Colors.red
+                                        : Config.primaryColor,
+                                  ),
+                                  contentPadding: Config.paddingTextfield,
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(builder: (_) => const SignupView()),
-                                  );
-                                },
-                                child: Text('Sign up',
-                                  style: TextStyle(
-                                    fontFamily: Config.primaryFont,
-                                    fontSize: Config.fontSmall,
-                                    color: Config.primaryColor,
+                              if (loginViewModel.fieldErrors['email'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    loginViewModel.fieldErrors['email']
+                                        .join(', '),
+                                    style: const TextStyle(
+                                        color: Colors.red, fontSize: 12),
                                   ),
                                 ),
+                              Config.heightMedium,
+                              LabelText(label: 'Password ', isRequired: true),
+                              TextField(
+                                controller: _passwordController,
+                                focusNode: _passwordNode,
+                                obscureText: _isObscured,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: _isPassFocused
+                                      ? Colors.transparent
+                                      : Config.secondaryColor,
+                                  enabledBorder: _getBorder(
+                                    loginViewModel.fieldErrors['password'] !=
+                                            null
+                                        ? Colors.red
+                                        : Colors.transparent,
+                                  ),
+                                  focusedBorder: _getBorder(
+                                    loginViewModel.fieldErrors['password'] !=
+                                            null
+                                        ? Colors.red
+                                        : Config.primaryColor,
+                                  ),
+                                  contentPadding: Config.paddingTextfield,
+                                  suffixIcon: IconButton(
+                                    padding:
+                                        const EdgeInsetsDirectional.only(end: 12),
+                                    onPressed: () => setState(
+                                        () => _isObscured = !_isObscured),
+                                    icon: _isObscured
+                                        ? const Icon(Icons.visibility)
+                                        : const Icon(Icons.visibility_off),
+                                  ),
+                                ),
+                              ),
+                              if (loginViewModel.fieldErrors['password'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    loginViewModel.fieldErrors['password']
+                                        .join(', '),
+                                    style: const TextStyle(
+                                        color: Colors.red, fontSize: 12),
+                                  ),
+                                ),
+                              Config.heightSmall,
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ForgotPassView()),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Forgot Password',
+                                    style: TextStyle(
+                                      fontFamily: Config.primaryFont,
+                                      fontSize: Config.fontSmall,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Config.heightMedium,
+                              Button(
+                                width: double.infinity,
+                                title: 'Login',
+                                onPressed: () async {
+                                  if (!loginViewModel.isLoading) {
+                                    loginViewModel.fieldErrors.clear();
+
+                                    await loginViewModel.login(
+                                      _emailController.text.trim(),
+                                      _passwordController.text.trim(),
+                                    );
+
+                                    if (loginViewModel.error?.isNotEmpty ??
+                                        false) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  loginViewModel.error!)));
+                                    }
+
+                                    if (loginViewModel.isLogin) {
+                                      Provider.of<UserViewModel>(context,
+                                              listen: false)
+                                          .setUser(loginViewModel.user!);
+
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                            builder: (_) => const MainLayout()),
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Login failed, Please try again!')),
+                                    );
+                                  }
+                                },
+                              ),
+                              Config.heightMedium,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Don\'t have an account?',
+                                    style: TextStyle(
+                                      fontFamily: Config.primaryFont,
+                                      fontSize: Config.fontSmall,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                            builder: (_) => const SignupView()),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Sign up',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: Config.fontSmall,
+                                        color: Config.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -238,7 +287,7 @@ class _LoginViewState extends State<LoginView> {
                     child: const Center(
                       child: CircularProgressIndicator(color: Color(0xFFDDDDDD)),
                     ),
-                  )
+                  ),
               ],
             ),
           );

@@ -27,7 +27,10 @@
 <div x-data="{ 
   showCalendarModal: false, 
   showAddModal: false,
+  showEditModal: false,
   selectedDate: '',
+  currentActivity: null,
+  calendarMode: '',
   currentDate: new Date(),
   currentMonth: new Date().getMonth(),
   currentYear: new Date().getFullYear(),
@@ -65,11 +68,21 @@
   },
   
   selectDate(day) {
-    this.selectedDate = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    this.showCalendarModal = false;
-    this.showAddModal = true;
+    const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    this.selectedDate = dateStr;
+
+    if (this.calendarMode === 'add') {
+      this.showCalendarModal = false;
+      this.showAddModal = true;
+    } else if (this.calendarMode === 'edit') {
+      if (this.currentActivity) {
+        this.currentActivity.date = dateStr;
+      }
+      this.showCalendarModal = false;
+      this.showEditModal = true;
+    }
   },
-  
+
   formatSelectedDate() {
     if (!this.selectedDate) return '';
     const date = new Date(this.selectedDate);
@@ -98,9 +111,9 @@
       <form method="GET" action="{{ route('activities') }}" class="flex gap-4 items-center justify-end">
         <select name="status" class="border border-gray-300 px-3 py-2 rounded-md">
           <option value="">All Statuses</option>
-          <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-          <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-          <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+          <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+          <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
+          <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
         </select>
 
         <input type="text"
@@ -149,7 +162,9 @@
               @endif
             </td>
             <td class="px-4 py-2 text-center">
-              <button class="text-blue-600 hover:underline">Edit</button>
+              <button 
+                @click="calendarMode = 'edit'; showEditModal = true; currentActivity = @js($activity)" 
+                class="text-blue-600 hover:underline">Edit</button>
             </td>
           </tr>
         @empty
@@ -167,10 +182,10 @@
   </div>
 
   <!-- Calendar Modal -->
-  <div x-show="showCalendarModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+  <div x-show="showCalendarModal" x-transition x-cloak class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showCalendarModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-md w-full shadow-lg" @click.away="showCalendarModal = false">
+      <div class="relative bg-white rounded-lg max-w-md w-full shadow-lg">
         <div class="flex justify-between items-center px-6 py-4 border-b">
           <h2 class="text-xl font-semibold">Select Date for Activity</h2>
           <button @click="showCalendarModal = false" class="text-gray-500 hover:text-gray-700">✕</button>
@@ -211,7 +226,7 @@
             <!-- Days of the month -->
             <template x-for="day in daysInMonth" :key="day">
               <button 
-                @click="selectDate(day)"
+                @click="selectDate(day);"
                 class="h-10 w-10 flex items-center justify-center rounded hover:bg-blue-100 hover:text-blue-600 transition-colors"
                 :class="{ 
                   'bg-blue-500 text-white': new Date(currentYear, currentMonth, day).toDateString() === new Date().toDateString(),
@@ -227,10 +242,10 @@
   </div>
 
   <!-- Add Activity Modal -->
-  <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+  <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg" @click.away="showAddModal = false">
+      <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg">
         <div class="flex justify-between items-center px-6 py-4 border-b">
           <h2 class="text-xl font-semibold">Add New Activity</h2>
           <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700">✕</button>
@@ -276,9 +291,9 @@
           <div>
             <label class="block font-medium mb-2">Status</label>
             <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="completed">Completed</option>
+              <option value="on_going">On Going</option>
+              <option value="failed">Failed</option>
             </select>
           </div>
 
@@ -308,5 +323,112 @@
       </div>
     </div>
   </div>
+
+    <!-- Edit Activity Modal -->
+  <div x-show="showEditModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+      <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold">Edit Activity</h2>
+          <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <!-- Selected Date Display -->
+        <div class="px-6 py-3 bg-blue-50 border-b" x-show="selectedDate">
+          <p class="text-sm text-blue-600">
+            <strong>Selected Date:</strong> <span x-text="formatSelectedDate()"></span>
+          </p>
+        </div>
+
+        <form method="POST" action="{{ route('activities.store') }}" class="px-6 py-4 space-y-4">
+          @csrf
+
+          <div>
+            <label class="block font-medium mb-2">Reason</label>
+            <input 
+              type="text" 
+              name="reason"
+              x-model="currentActivity.reason" 
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              required>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2">Barangay</label>
+            <select 
+              name="barangay_id" 
+              x-model="currentActivity.barangay_id"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              required>
+              <option value="" selected disabled>Select Barangay</option>
+              @foreach($barangays as $barangay)
+                <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="w-1/2">
+              <label class="block font-medium mb-2">Time</label>
+              <input 
+                type="time" 
+                name="time" 
+                x-model="currentActivity.time"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                required>
+            </div>
+            <div class="w-1/2">
+              <label class="block font-medium mb-2">Date</label>
+              <input 
+                type="date" 
+                name="date" 
+                x-model="currentActivity.date"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                required>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2">Status</label>
+            <select 
+              name="status" 
+              x-model="currentActivity.status"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              required>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2">Details</label>
+            <textarea name="details" 
+                      rows="3" 
+                      placeholder="Enter additional details or remarks about this activity..."
+                      x-model="currentActivity.details"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"></textarea>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t">
+            <button type="button" @click="showEditModal = false; selectedDate = ''"
+                    class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100">
+              Cancel
+            </button>
+            <button type="button" @click="showEditModal = false; showCalendarModal = true"
+                    class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+              Change Date
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              Save Activity
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>
 @endsection

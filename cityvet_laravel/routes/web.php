@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Web\ActivityController;
 use App\Http\Controllers\Web\AnimalController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Web\BarangayController;
+use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -14,10 +17,10 @@ Route::post('/activities', [ActivityController::class, 'create'])->name('activit
 Route::get('/users', [UserController::class, 'index'])->name('users');
 
 Route::get('/animals', [AnimalController::class, 'index'])->name('animals');
+Route::post('/animals', [AnimalController::class, 'store'])->name('animals.store');
+Route::put('/animals/{id}', [AnimalController::class, 'update'])->name('animals.update');
 
-Route::get('/barangay', function () {
-    return view('barangay');
-})->name('barangay');
+Route::get('/barangay', [BarangayController::class, 'index'])->name('barangay');
 
 Route::get('/vaccines', function () {
     return view('vaccines');
@@ -36,4 +39,5 @@ Route::get('/archives', function () {
 })->name('archives');
 
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
-Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+Route::put('/users/{id}', [UserController::class, 'edit'])->name('users.edit');
+Route::get('/users/search', [AnimalController::class,'searchOwner'])->name('search.owner');

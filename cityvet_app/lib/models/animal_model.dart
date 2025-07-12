@@ -8,17 +8,23 @@ class AnimalModel {
   final double? weight;
   final double? height;
   final String color;
+  final String? code;
+  final String? qrCode;
+  final String? qrCodeUrl;
 
   AnimalModel({
     this.id, 
     required this.type,
     required this.name,
     required this.breed,
-    this.birthDate,
+    required this.color,
     required this.gender,
+    this.code,
+    this.qrCode,
+    this.birthDate,
     this.weight,
     this.height,
-    required this.color,
+    this.qrCodeUrl,
   });
 
   factory AnimalModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +38,9 @@ class AnimalModel {
       weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
       height: json['height'] != null ? (json['height'] as num).toDouble() : null,
       color: json['color'],
+      code: json['code'],
+      qrCode: json['qr_code_base64'],
+      qrCodeUrl: json['qr_code_url']
     );
   }
 

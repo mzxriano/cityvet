@@ -37,7 +37,7 @@
     <div class="bg-white shadow-md rounded-[1rem] p-[2rem]">
       <div class="flex justify-between items-center"> 
         <div class="text-[25px] text-[#524F4F]">
-          Case Report
+          Bite Case Report
         </div>
 
         <!-- Filter Section -->
@@ -52,7 +52,7 @@
           </div>
 
           <!-- Filter by Date Range (Daily or Monthly) -->
-          <div class="flex items-center gap-2]">
+          <div class="flex items-center gap-2">
             <select id="date-range" class="px-2 py-1 border-2 bg-transparent rounded-full text-[#4D4D4D]">
               <option value="daily">Daily</option>
               <option value="monthly">Monthly</option>
@@ -76,8 +76,8 @@
     <div class="flex gap-[2rem]">
       <!-- Vaccinated per barangay -->
       <div class="flex flex-col w-2/5 bg-white rounded-xl shadow-md p-[2rem]">
-        <div class="text-[25px] text-[#524F4F] mb-5">
-          Vaccinated Per Barangay
+        <div class="text-[20px] text-[#524F4F] mb-5">
+          Vaccinated Animal Per Barangay
         </div>
         <div class="flex justify-between">
           <div class="text-[#858585]">
@@ -100,7 +100,7 @@
       </div>
       <!-- Animal per category -->
       <div class="flex flex-col flex-1 bg-white rounded-xl shadow-md p-[2rem]">
-        <div class="text-[25px] text-[#524F4F]">
+        <div class="text-[20px] text-[#524F4F]">
           Animal per Category
         </div>
         <!-- Pie chart -->

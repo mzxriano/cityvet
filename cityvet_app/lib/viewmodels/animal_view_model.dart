@@ -39,26 +39,30 @@ class AnimalViewModel extends ChangeNotifier{
   }
 
 
-  Future<void> fetchAnimals() async {
+Future<void> fetchAnimals() async {
   try {
     setLoading(true);
 
     final response = await _animalService.fetchAnimals();
 
-    if (response.statusCode == 200 && response.data is List) {
-      final List<dynamic> jsonList = response.data;
+    if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+      final responseData = response.data as Map<String, dynamic>;
+      final List<dynamic> jsonList = responseData['data'];
 
-      // Map each JSON item to an AnimalModel
-      final animalsList = jsonList.map((json) => AnimalModel.fromJson(json)).toList();
+      print(responseData);
+
+      final animalsList = jsonList
+          .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
+          .toList();
 
       setAnimals(animalsList);
     } else {
-      print('Unexpected response: ${response.statusCode}');
+      print('Unexpected response format: ${response.data}');
     }
   } on DioException catch (e) {
     final data = e.response?.data;
 
-    
+    print(data);
     if (data is Map<String, dynamic> && data['errors'] != null) {
       print('Server-side errors: ${data['errors']}');
     } else {
@@ -66,10 +70,11 @@ class AnimalViewModel extends ChangeNotifier{
     }
   } catch (e) {
     print('Unexpected error: $e');
-  }finally{
+  } finally {
     setLoading(false);
   }
 }
+
 
   void updateAnimal(AnimalModel updatedAnimal) {
     final index = animals.indexWhere((a) => a.id == updatedAnimal.id);

@@ -320,11 +320,13 @@ class _AnimalFormState extends State<AnimalForm> {
                     name: petNameController.text, 
                     breed: selectedBreed!, 
                     birthDate: formattedDate, 
-                    gender: selectedGender!, 
+                    gender: selectedGender!.toLowerCase(), 
                     weight: double.tryParse(weightController.text), 
                     height: double.tryParse(heightController.text), 
                     color: selectedColor!
                   );
+
+                  print(selectedGender);
 
                   await formRef.createAnimal(animal);
 
