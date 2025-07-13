@@ -26,9 +26,10 @@ Route::prefix('auth')->group(function () {
 
         Route::prefix('animals')->group(function () {
             Route::post('/', [AnimalController::class,'store']);
-            Route::put('/{id}', [AnimalController::class,'edit']);
             Route::get('/', [AnimalController::class,'index']);
             Route::get('/{qrCode}', [AnimalController::class,'showByQrCode']);
+            Route::put('/{id}', [AnimalController::class,'update']);
+            Route::delete('/{id}', [AnimalController::class,'destroy']);
         });
         
     }); 

@@ -334,6 +334,7 @@ class _AnimalFormState extends State<AnimalForm> {
                   final message = updatedFormRef.message;
 
                   if (message != null && context.mounted) {
+                    print('na create ba');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(message)),
                     );

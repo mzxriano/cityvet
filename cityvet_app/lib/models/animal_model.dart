@@ -2,6 +2,7 @@ class AnimalModel {
   final int? id;
   final String type;
   final String name;
+  final String? owner;
   final String? breed;
   final String? birthDate;
   final String gender;
@@ -19,6 +20,7 @@ class AnimalModel {
     required this.breed,
     required this.color,
     required this.gender,
+    this.owner,
     this.code,
     this.qrCode,
     this.birthDate,
@@ -40,7 +42,8 @@ class AnimalModel {
       color: json['color'],
       code: json['code'],
       qrCode: json['qr_code_base64'],
-      qrCodeUrl: json['qr_code_url']
+      qrCodeUrl: json['qr_code_url'],
+      owner: json['owner'],
     );
   }
 
@@ -54,6 +57,10 @@ class AnimalModel {
       'weight': weight,
       'height': height,
       'color': color,
+      'owner': owner,
+      'code': code,
+      'qr_code_base64': qrCode,
+      'qr_code_url': qrCodeUrl,
     };
 
     if (includeId && id != null) {

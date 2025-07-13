@@ -288,7 +288,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       ),
                     ),
                     Row(
-                      children: ['Male', 'Female'].map((gender) {
+                      children: ['male', 'female'].map((gender) {
                         return Row(
                           children: [
                             Radio<String>(
@@ -404,7 +404,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       width: double.infinity,
                       title: 'Save',
                       onPressed: () async {
-                        final isValid = _formKey.currentState!.validate();
+                        final isValid = _formKey.currentState?.validate() ?? false;
 
                         // Manually validate fields without validator property
                         bool manualValid = true;
@@ -431,6 +431,10 @@ class _AnimalEditState extends State<AnimalEdit> {
                           weight: double.tryParse(weightController.text.trim()),
                           height: double.tryParse(heightController.text.trim()),
                           color: selectedColor!,
+                          owner: widget.animalModel.owner,
+                          code: widget.animalModel.code,
+                          qrCode: widget.animalModel.qrCode,
+                          qrCodeUrl: widget.animalModel.qrCodeUrl,
                         );
 
                         await ref.editAnimal(updatedAnimal);
@@ -439,11 +443,11 @@ class _AnimalEditState extends State<AnimalEdit> {
                           Provider.of<AnimalViewModel>(context, listen: false)
                               .updateAnimal(updatedAnimal);
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(ref.message!)));
-                          Navigator.pop(context);
+                              SnackBar(content: Text(ref.message ?? 'No Message')));
+                          Navigator.pop(context, true);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(ref.message!)));
+                              SnackBar(content: Text(ref.message ?? 'No message')));
                         }
                       },
                     ),

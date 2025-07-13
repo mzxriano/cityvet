@@ -28,6 +28,7 @@ class AnimalController
                 'height' => $animal->height,
                 'color' => $animal->color,
                 'code' => $animal->code,
+                'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
                 'qr_code_base64' => $this->generateQrCodeBase64($animal), 
                 'qr_code_url' => $animal->getQrCodeUrl(), 
             ];
@@ -109,7 +110,7 @@ class AnimalController
     public function showByQrCode(string $qrCode)
     {
         $animal = Animal::where('code', $qrCode)
-            ->with('user:id,first_name,email')
+            ->with('user:id,first_name,last_name,email')
             ->first();
 
         if (!$animal) {
@@ -128,12 +129,10 @@ class AnimalController
                 'breed' => $animal->breed,
                 'color' => $animal->color,
                 'gender' => $animal->gender,
-                'owner' => [
-                    'first_name' => $animal->user->first_name,
-                    'email' => $animal->user->email,
-                ]
-            ]
-        ]);
+                'age' => $animal->birth_date,
+                'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
+            ],
+        ]); 
     }
 
     /**
@@ -173,7 +172,21 @@ class AnimalController
 
         return response()->json([
             'message' => 'Animal updated successfully.',
-            'data' => $animal->fresh(),
+            'data' => [
+                'id' => $animal->id,
+                'type' => $animal->type,
+                'name' => $animal->name,
+                'breed' => $animal->breed,
+                'birth_date' => $animal->birth_date,
+                'gender' => $animal->gender,
+                'weight' => $animal->weight,
+                'height' => $animal->height,
+                'color' => $animal->color,
+                'code' => $animal->code,
+                'owner' => "{$animal->user->first_name} {$animal->user->last_name}" ?? null,
+                'qr_code_url' => $animal->getQrCodeUrl(),
+                'qr_code_base64' => $this->generateQrCodeBase64($animal),
+            ],
         ]);
     }
 

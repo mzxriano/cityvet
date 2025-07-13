@@ -34,7 +34,7 @@ class AnimalController extends Controller
             });
         }
 
-        $animals = $query->get();
+        $animals = $query->paginate(10)->appends(key: request()->query());
 
         return view("animals", compact("animals"));
     }
@@ -56,26 +56,15 @@ class AnimalController extends Controller
             'type'       => 'required|string',
             'breed'      => 'required|string',
             'name'       => 'required|string',
-            'birth_date' => 'required|date',
-            'gender'     => 'required|string',
-            'weight'     => 'required|numeric',
-            'height'     => 'required|numeric',
+            'birth_date' => 'nullable|date',
+            'gender'     => 'required|in:male,female',
+            'weight'     => 'nullable|numeric',
+            'height'     => 'nullable|numeric',
             'color'      => 'required|string',
             'user_id'   => 'required|exists:users,id',
         ]);
-
-        $animal = new Animal();
-        $animal->type = $validated['type'];
-        $animal->breed = $validated['breed'];
-        $animal->name = $validated['name'];
-        $animal->birth_date = $validated['birth_date'];
-        $animal->gender = $validated['gender'];
-        $animal->weight = $validated['weight'];
-        $animal->height = $validated['height'];
-        $animal->color = $validated['color'];
-        $animal->user_id = $validated['user_id'];
-
-        $animal->save();
+        
+        Animal::create($validated);
 
         return redirect()->route('animals')->with('success', 'Animal added successfully.');
     }
@@ -108,7 +97,7 @@ class AnimalController extends Controller
             'breed'      => 'sometimes|string',
             'name'       => 'sometimes|string',
             'birth_date' => 'sometimes|date',
-            'gender'     => 'sometimes|string',
+            'gender'     => 'sometimes|in:male, female',
             'weight'     => 'sometimes|numeric',
             'height'     => 'sometimes|numeric',
             'color'      => 'sometimes|string',

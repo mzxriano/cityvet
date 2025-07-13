@@ -48,11 +48,16 @@ class AnimalEditViewModel extends ChangeNotifier {
 
       print('anmimal model ${animalModel.name}');
       print('animal bdate: ${animalModel.birthDate}');
+      print('animal gender ${animalModel.gender}');
+      print('animal weight ${animalModel.weight}');
+      print('animal height ${animalModel.height}');
 
       final response = await AnimalService().editAnimal(token, animalModel);
 
-      if(response.data['animal'] != null && response.data['message'] != null) {
-        setAnimal(AnimalModel.fromJson(response.data['animal']));
+      print(response);
+
+      if(response.data['data'] != null && response.data['message'] != null) {
+        setAnimal(AnimalModel.fromJson(response.data['data']));
         setMessage(response.data['message']);
         setSuccess(true);
       } 

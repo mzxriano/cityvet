@@ -1,5 +1,4 @@
 import 'package:cityvet_app/components/button.dart';
-import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:cityvet_app/models/user_model.dart';
@@ -306,7 +305,13 @@ class _ProfileEditState extends State<ProfileEdit> {
                   ),
                   Config.heightMedium,
 
-                  LabelText(label: 'Street ', isRequired: false),
+                  Text(
+                    'Street',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                    ),
+                  ),
                   CustomTextField(
                     controller: _streetController,
                     node: _streetNode,

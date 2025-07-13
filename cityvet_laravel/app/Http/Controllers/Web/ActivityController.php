@@ -45,7 +45,7 @@ class ActivityController extends Controller
             'details' => 'required|string|max:1000',
             'time' => 'required|date_format:H:i',
             'date' => 'required|date',
-            'status' => 'required|in:pending,approved,rejected'
+            'status' => 'required|in:up_coming,on_going,completed,failed',
         ]);
 
         try {
@@ -87,12 +87,12 @@ class ActivityController extends Controller
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'reason' => 'required|string|max:255',
-            'barangay_id' => 'required|exists:barangays,id',
-            'details' => 'required|string|max:1000', 
-            'time' => 'required|date_format:H:i',
-            'date' => 'required|date',
-            'status' => 'required|in:pending,approved,rejected'
+            'reason' => 'sometimes|string|max:255',
+            'barangay_id' => 'sometimes|exists:barangays,id',
+            'details' => 'sometimes|string|max:1000', 
+            'time' => 'sometimes|date_format:H:i',
+            'date' => 'sometimes|date',
+            'status' => 'sometimes|in:up_coming,on_going,completed,failed',
         ]);
 
         try {

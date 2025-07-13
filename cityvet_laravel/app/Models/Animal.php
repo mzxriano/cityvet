@@ -23,10 +23,6 @@ class Animal extends Model
         'code'
     ];
 
-    protected $casts = [
-        'birth_date' => 'date',
-    ];
-
     protected static function boot()
     {
         parent::boot();
@@ -76,8 +72,8 @@ class Animal extends Model
     /**
      * Get age in years from birth_date
      */
-    public function getAgeAttribute()
-    {
-        return $this->birth_date ? $this->birth_date->age : null;
-    }
+    // public function getAgeAttribute()
+    // {
+    //     return $this->birth_date ? $this->birth_date->age : null;
+    // }
 }

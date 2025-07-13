@@ -1,6 +1,30 @@
 @extends('layouts.layout')
 
 @section('content')
+
+<!-- Success/Error Messages -->
+@if(session('success'))
+<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+  {{ session('success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+  {{ session('error') }}
+</div>
+@endif
+
+@if ($errors->any())
+  <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+    <ul>
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
+
 @php
   $breedOptions = [
     'Dog' => ['Aspin','Labrador', 'Poodle', 'Bulldog'],
@@ -77,7 +101,7 @@
       <tbody>
         @forelse($animals as $index => $animal)
           <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
-            <td class="px-4 py-2">{{ $index + 1 }}</td>
+            <td class="px-4 py-2">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
             <td class="px-4 py-2">{{ $animal->type }}</td>
             <td class="px-4 py-2">{{ $animal->name }}</td>
             <td class="px-4 py-2">{{ $animal->breed }}</td>
@@ -98,6 +122,9 @@
         @endforelse
       </tbody>
     </table>
+  </div>
+  <div class="mt-4">
+    {{ $animals->links() }}
   </div>
 
   <!-- Add Animal Modal -->
@@ -178,7 +205,7 @@
               class="w-full border border-gray-300 rounded-md p-3"
               required
             />
-            <input type="hidden" id="owner-id" name="owner_id" required />
+            <input type="hidden" id="owner-id" name="user_id" required />
             <div
               id="owner-suggestions"
               class="border border-gray-300 bg-white absolute w-full max-h-40 overflow-y-auto hidden z-10"

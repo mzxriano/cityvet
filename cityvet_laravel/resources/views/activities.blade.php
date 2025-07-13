@@ -98,7 +98,7 @@
 
   <!-- Add Button -->
   <div class="flex justify-end gap-5 mb-[2rem]">
-    <button @click="showCalendarModal = true"
+    <button @click="showCalendarModal = true; calendarMode = 'add'"
             class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
       + New Activity
     </button>
@@ -113,6 +113,7 @@
           <option value="">All Statuses</option>
           <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
           <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
+          <option value="up_coming" {{ request('status') == 'up_coming' ? 'selected' : '' }}>Up Coming</option>
           <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
         </select>
 
@@ -151,7 +152,7 @@
             <td class="px-4 py-2">{{ $activity->barangay->name ?? 'N/A' }}</td>
             <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</td>
             <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->date)->format('Y-m-d') }}</td>
-            <td class="px-4 py-2 capitalize">{{ $activity->status }}</td>
+            <td class="px-4 py-2 capitalize">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</td>
             <td class="px-4 py-2">
               @if($activity->details)
                 <span class="text-sm text-gray-600" title="{{ $activity->details }}">
@@ -174,12 +175,11 @@
         @endforelse
       </tbody>
     </table>
-
-    <!-- Pagination -->
-    <div class="mt-4">
-      {{ $activities->links() }}
-    </div>
   </div>
+  <!-- Pagination -->
+<div class="mt-4">
+  {{ $activities->links() }}
+</div>
 
   <!-- Calendar Modal -->
   <div x-show="showCalendarModal" x-transition x-cloak class="fixed inset-0 z-50 overflow-y-auto">
@@ -291,9 +291,10 @@
           <div>
             <label class="block font-medium mb-2">Status</label>
             <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-              <option value="completed">Completed</option>
-              <option value="on_going">On Going</option>
-              <option value="failed">Failed</option>
+              <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+              <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
+              <option value="up_coming" {{ request('status') == 'up_coming' ? 'selected' : '' }}>Up Coming</option>
+              <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
             </select>
           </div>
 
@@ -396,9 +397,10 @@
               x-model="currentActivity.status"
               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
               required>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+              <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
+              <option value="up_coming" {{ request('status') == 'up_coming' ? 'selected' : '' }}>Up Coming</option>
+              <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
             </select>
           </div>
 

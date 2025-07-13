@@ -9,7 +9,7 @@ use Illuminate\Routing\Controller;
 class BarangayController extends Controller
 {
     public function index(){
-        $barangays = Barangay::with("activities")->get();
+        $barangays = Barangay::with("activities")->orderBy('name', 'asc' )->paginate(10);
         return view("barangay",compact("barangays"));
     }
 }

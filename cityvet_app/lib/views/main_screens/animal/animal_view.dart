@@ -1,4 +1,5 @@
 import 'package:cityvet_app/modals/animal_modals/select_category_modal.dart';
+import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_card.dart';
@@ -40,6 +41,65 @@ class _AnimalViewState extends State<AnimalView> {
     }
   }
 
+  void _deleteAnimal(BuildContext context, AnimalViewModel animalViewModel, AnimalModel animal) async {
+    // Show confirmation dialog
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Animal'),
+          content: Text('Are you sure you want to delete ${animal.name}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        // Call the delete method from your view model
+        await animalViewModel.deleteAnimal(animal);
+        
+        // Show success message
+        if (animalViewModel.message?.isNotEmpty ?? false) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(animalViewModel.message ?? 'No Message'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        // Clear message
+        animalViewModel.setMessage(null);
+        
+        // Refresh the animal list
+        animalViewModel.fetchAnimals();
+      } catch (e) {
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete animal: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final animalViewModel = context.watch<AnimalViewModel>();
@@ -51,7 +111,10 @@ class _AnimalViewState extends State<AnimalView> {
     }
 
     final animalCards = animalViewModel.animals
-        .map((animal) => AnimalCard(animalModel: animal))
+        .map((animal) => AnimalCard(
+            animalModel: animal,
+            onDelete: () => _deleteAnimal(context, animalViewModel, animal),
+          ))
         .toList();
 
     return Column(
@@ -122,4 +185,3 @@ class _AnimalViewState extends State<AnimalView> {
     );
   }
 }
-

@@ -50,21 +50,19 @@ class AnimalFormViewModel extends ChangeNotifier {
 
       final result = await _animalService.createAnimal(animalModel);
 
-      if(result.statusCode == 200) {
-        print(result.data['message']);
+      print('result ${result.data['data']}');
+
+      if(result.statusCode == 201) {
         setMessage(result.data['message']);
       }
       
     } on DioException catch(e) {
       final data = e.response?.data;
 
-      print(data);
-
       if(data != null && data['errors'] !=null) {
         setErrors(data['errors'].toString());
       }
       else if(data != null && data['message'] != null) {
-        print(data['message']);
         setMessage(data['messsage'].toString());
       }
       else {

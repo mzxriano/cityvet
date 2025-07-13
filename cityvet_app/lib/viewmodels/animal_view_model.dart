@@ -1,5 +1,6 @@
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/services/animal_service.dart';
+import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class AnimalViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  setMessage(String message) {
+  setMessage(String? message) {
     _message = message;
     notifyListeners();
   }
@@ -48,8 +49,6 @@ Future<void> fetchAnimals() async {
     if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
       final responseData = response.data as Map<String, dynamic>;
       final List<dynamic> jsonList = responseData['data'];
-
-      print(responseData);
 
       final animalsList = jsonList
           .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
@@ -72,6 +71,30 @@ Future<void> fetchAnimals() async {
     print('Unexpected error: $e');
   } finally {
     setLoading(false);
+  }
+}
+
+Future<void> deleteAnimal(AnimalModel animalModel) async {
+  try {
+
+    final token = await AuthStorage().getToken();
+
+    if(token == null) return;
+    
+    final response = await AnimalService().deleteAnimal(token, animalModel);
+
+    if(response.statusCode == 200) {
+      setMessage(response.data['message']);
+    }
+
+  } on DioException catch (e) {
+    final exception = e.response?.data;
+
+    if(exception is DioException) {
+      DioExceptionHandler.handleException(exception);
+    }
+  } catch (e) {
+    print('Error deleting animal $e');
   }
 }
 

@@ -59,4 +59,17 @@ class AnimalService {
     return response;
   }
 
+  Future<Response> deleteAnimal(String token, AnimalModel animalModel) async {
+    final response = await _dio.delete(
+      '/animals/${animalModel.id}',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+        }
+      ), 
+      data: animalModel.toJson());
+      
+    return response;
+  }
+
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('barangay_id');
             $table->time('time');
             $table->date('date');
-            $table->string('status');
+            $table->enum('status', ['up_coming', 'on_going', 'completed', 'failed'])->default('up_coming');
             $table->timestamps();
 
             $table->foreign('barangay_id')->references('id')->on('barangays');

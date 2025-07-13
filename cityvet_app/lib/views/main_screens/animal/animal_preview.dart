@@ -5,7 +5,6 @@ import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_preview_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
-import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +29,6 @@ class _AnimalPreviewState extends State<AnimalPreview> {
   @override
   Widget build(BuildContext context) {
     final animalViewModel = Provider.of<AnimalViewModel>(context);
-    final user = Provider.of<UserViewModel>(context).user;
     final myAnimal = animalViewModel.animals.firstWhere(
       (a) => a.id == widget.animalModel.id,
       orElse: () => widget.animalModel,
@@ -154,7 +152,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                     ),
                                     Config.heightSmall,
                                     Text(
-                                      '${user?.firstName} ${user?.lastName}',
+                                      myAnimal.owner ?? 'No owner',
                                       style: TextStyle(
                                         fontFamily: Config.primaryFont,
                                         fontSize: Config.fontMedium,
@@ -188,10 +186,12 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                           _boxShadow,
                                         ]
                                       ),
-                                      child: Image.memory(
-                                        base64Decode(myAnimal.qrCode!),
-                                        fit: BoxFit.contain,
-                                      ),
+                                      child: myAnimal.qrCode != null 
+                                        ? Image.memory(
+                                            base64Decode(myAnimal.qrCode!),
+                                            fit: BoxFit.contain,
+                                          )
+                                        : Icon(Icons.qr_code, size: 100) 
                                     ),
                                     const SizedBox(height: 5,),
                                     Text(
@@ -251,7 +251,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                             ),
                             const SizedBox(height: 5,),
                             Text(
-                              (myAnimal.breed!),
+                              (myAnimal.breed ?? 'Unknown Breed'),
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: Config.fontSmall,
@@ -369,8 +369,8 @@ class AnimalGenderWidget {
 
   Widget operator [](String gender) {
     final Map<String, Color> genderColors = {
-      'Male': Color(0xFF334EAC),
-      'Female': Color(0xFFDFA6A1),
+      'male': Color(0xFF334EAC),
+      'female': Color(0xFFDFA6A1),
     };
 
     final color = genderColors[gender] ?? Colors.grey;
@@ -382,7 +382,7 @@ class AnimalGenderWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Center(
-        child: Icon((gender == 'Male') ? Icons.male : Icons.female, size: 50, color: Colors.white,)
+        child: Icon((gender == 'male') ? Icons.male : Icons.female, size: 50, color: Colors.white,)
       ),
     );
   }
