@@ -17,7 +17,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:api'])->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class,'show']);
-            Route::post('/edit', [UserController::class,'edit']);
+            Route::post('/edit', [UserController::class,'update']);
         });
 
         Route::prefix('activity')->group(function () {
@@ -29,6 +29,7 @@ Route::prefix('auth')->group(function () {
             Route::get('/', [AnimalController::class,'index']);
             Route::get('/{qrCode}', [AnimalController::class,'showByQrCode']);
             Route::put('/{id}', [AnimalController::class,'update']);
+            Route::post('/{id}', [AnimalController::class,'update']);
             Route::delete('/{id}', [AnimalController::class,'destroy']);
         });
         

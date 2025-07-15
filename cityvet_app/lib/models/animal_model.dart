@@ -12,6 +12,8 @@ class AnimalModel {
   final String? code;
   final String? qrCode;
   final String? qrCodeUrl;
+  final String? imageUrl;
+  final String? imagePublicId;
 
   AnimalModel({
     this.id, 
@@ -27,6 +29,8 @@ class AnimalModel {
     this.weight,
     this.height,
     this.qrCodeUrl,
+    this.imageUrl,
+    this.imagePublicId,
   });
 
   factory AnimalModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,8 @@ class AnimalModel {
       qrCode: json['qr_code_base64'],
       qrCodeUrl: json['qr_code_url'],
       owner: json['owner'],
+      imageUrl: json['image_url'],
+      imagePublicId: json['image_public_id'],
     );
   }
 

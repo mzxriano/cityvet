@@ -176,7 +176,7 @@ class ProfileEditViewModel extends ChangeNotifier {
         street: street,
       );
 
-      final response = await UserService().editProfile(token, user);
+      final response = await UserService().editProfile(token, user, imageFile: _profile);
 
       final UserModel updatedUser = UserModel.fromJson(response.data['user']);
       print('response here: ${response.data}');

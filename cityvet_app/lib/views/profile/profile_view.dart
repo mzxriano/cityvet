@@ -32,7 +32,7 @@ class _ProfileView extends State<ProfileView> {
     final userRef = Provider.of<UserViewModel>(context);
     final animals = animalViewModel.animals;
     final role = RoleWidget();
-    print('user from profile ${userRef.user}');
+    print('user from profile ${userRef.user?.imageUrl}');
 
     return Scaffold(
       appBar: AppBar(
@@ -77,7 +77,45 @@ class _ProfileView extends State<ProfileView> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              CircleAvatar(radius: 40),
+                              // Replace your CircleAvatar in the CustomCard with this improved version
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.grey[300],
+                                child: ClipOval(
+                                  child: userRef.user?.imageUrl != null && 
+                                        userRef.user!.imageUrl!.isNotEmpty
+                                      ? Image.network(
+                                          userRef.user!.imageUrl!,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress.expectedTotalBytes != null
+                                                    ? loadingProgress.cumulativeBytesLoaded /
+                                                        loadingProgress.expectedTotalBytes!
+                                                    : null,
+                                                strokeWidth: 2,
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.person,
+                                              size: 40,
+                                              color: Colors.grey[600],
+                                            );
+                                          },
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: Colors.grey[600],
+                                        ),
+                                ),
+                              ),
                               const SizedBox(width: 15.0),
                               Expanded(
                                 child: Column(

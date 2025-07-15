@@ -36,8 +36,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id');
             $table->string('street');
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('image_url')->nullable();
+            $table->string('image_public_id')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
@@ -57,6 +59,8 @@ return new class extends Migration
             $table->double('height')->nullable();
             $table->string('color');
             $table->string('code')->unique();
+            $table->string('image_url')->nullable();
+            $table->string('image_public_id')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

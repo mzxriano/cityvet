@@ -8,6 +8,8 @@ class UserModel {
   final String? birthDate;
   final BarangayModel? barangay;
   final String? street;
+  final String? imageUrl;
+  final String? imagePublicId;
 
   UserModel({
     required this.firstName,
@@ -16,7 +18,9 @@ class UserModel {
     required this.phoneNumber,
     required this.birthDate,
     required this.barangay,
-    required this.street
+    required this.street,
+    this.imageUrl,
+    this.imagePublicId,
   });
 
   // Convert from JSON (after fetching user )
@@ -31,6 +35,8 @@ class UserModel {
       ? BarangayModel.fromJson(json['barangay']) 
       : null,
       street: json['street'],
+      imageUrl: json['image_url'],
+      imagePublicId: json['image_public_id']
     );
   }
 
@@ -44,6 +50,8 @@ class UserModel {
       if (birthDate != null) 'birth_date': birthDate,
       if (barangay != null) 'barangay_id': barangay?.id,
       if (street != null) 'street': street,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (imagePublicId != null) 'image_public_id': imagePublicId,
     };
   }
 

@@ -81,7 +81,9 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                   child: FittedBox(
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
-                    child: Image.asset('assets/images/sample_dog.png'),
+                    child: myAnimal.imageUrl != null ?
+                      Image.network(myAnimal.imageUrl!) : 
+                      Image.asset('assets/images/logo.png'),
                   ),
                 ),
 

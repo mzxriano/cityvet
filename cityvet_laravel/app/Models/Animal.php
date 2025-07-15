@@ -20,7 +20,10 @@ class Animal extends Model
         'weight',
         'height',
         'color',
-        'code'
+        'code',
+        'image',
+        'image_url',
+        'image_public_id'
     ];
 
     protected static function boot()

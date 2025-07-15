@@ -119,16 +119,36 @@ class _ProfileEditState extends State<ProfileEdit> {
                 children: [
                   Align(
                     alignment: Alignment.center,
-                    child: CircleAvatar(
-                      backgroundImage: profileViewModel.profile != null ?
-                      FileImage(profileViewModel.profile!)
-                      : null,
-                      radius: 70, 
-                      child: IconButton(
-                        onPressed: (){
-                        profileViewModel.pickImageFromGallery();
-                      }, icon: Icon(Icons.camera_alt_rounded,size: 50, color: Colors.grey,)
-                      ),
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 70,
+                          backgroundColor: Colors.grey[300],
+                          child: ClipOval(
+                            child: _getProfileImage(profileViewModel, userViewModel),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Config.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                profileViewModel.pickImageFromGallery();
+                              },
+                              icon: Icon(
+                                Icons.camera_alt_rounded,
+                                size: 25,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Config.heightMedium,
@@ -374,4 +394,54 @@ class _ProfileEditState extends State<ProfileEdit> {
       _streetController.text = user.street ?? '';
     }
   }
+
 }
+
+Widget _getProfileImage(ProfileEditViewModel profileViewModel, UserViewModel userViewModel) {
+  // Show selected image if available
+  if (profileViewModel.profile != null) {
+    return Image.file(
+      profileViewModel.profile!,
+      width: 140,
+      height: 140,
+      fit: BoxFit.cover,
+    );
+  }
+  
+  // Show existing user image if available
+  if (userViewModel.user?.imageUrl != null && userViewModel.user!.imageUrl!.isNotEmpty) {
+    return Image.network(
+      userViewModel.user!.imageUrl!,
+      width: 140,
+      height: 140,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        print('Profile image loading error: $error');
+        return Icon(
+          Icons.person,
+          size: 70,
+          color: Colors.grey[600],
+        );
+      },
+    );
+  }
+  
+  // Show default person icon
+  return Icon(
+    Icons.person,
+    size: 70,
+    color: Colors.grey[600],
+  );
+}
+

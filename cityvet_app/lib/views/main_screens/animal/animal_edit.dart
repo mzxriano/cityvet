@@ -67,14 +67,12 @@ class _AnimalEditState extends State<AnimalEdit> {
     final animal = widget.animalModel;
 
     petNameController.text = animal.name;
-
     weightController.text = animal.weight?.toString() ?? '';
     heightController.text = animal.height?.toString() ?? '';
 
     selectedPetType = animal.type;
     selectedBreed = animal.breed;
-    selectedDate =
-        animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
+    selectedDate = animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
     selectedGender = animal.gender;
     selectedColor = animal.color;
   }
@@ -97,7 +95,7 @@ class _AnimalEditState extends State<AnimalEdit> {
           color: Config.primaryColor,
           width: 2,
         ),
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
     );
   }
@@ -126,18 +124,16 @@ class _AnimalEditState extends State<AnimalEdit> {
             padding: Config.paddingScreen,
             child: SingleChildScrollView(
               child: Form(
-                key: _formKey, // << The form key here
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Pet Profile
+                    // Pet Profile - Fixed image display logic
                     SizedBox(
                       child: Center(
                         child: CircleAvatar(
-                          backgroundImage: ref.animalProfile != null
-                              ? FileImage(ref.animalProfile!)
-                              : null,
                           radius: 70,
+                          backgroundImage: _getImageProvider(ref),
                           child: IconButton(
                             onPressed: () {
                               ref.pickImageFromGallery();
@@ -145,6 +141,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                             icon: const Icon(
                               Icons.camera_alt_rounded,
                               size: 50,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
@@ -173,7 +170,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         setState(() {
                           selectedPetType = value;
                           selectedBreed = null;
-                          petTypeError = null; // clear error on change
+                          petTypeError = null;
                         });
                       },
                       validator: (value) {
@@ -207,7 +204,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       onChanged: (value) {
                         setState(() {
                           selectedBreed = value;
-                          breedError = null; // clear error
+                          breedError = null;
                         });
                       },
                       validator: (value) {
@@ -297,7 +294,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                               onChanged: (value) {
                                 setState(() {
                                   selectedGender = value;
-                                  genderError = null; // clear error on change
+                                  genderError = null;
                                 });
                               },
                             ),
@@ -331,7 +328,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       decoration: _buildInputDecoration(),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return null; // optional field
+                          return null;
                         }
                         final parsed = double.tryParse(value);
                         if (parsed == null) {
@@ -357,7 +354,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       decoration: _buildInputDecoration(),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return null; // optional field
+                          return null;
                         }
                         final parsed = double.tryParse(value);
                         if (parsed == null) {
@@ -386,7 +383,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                       onChanged: (value) {
                         setState(() {
                           selectedColor = value;
-                          colorError = null; // clear error
+                          colorError = null;
                         });
                       },
                       validator: (value) {
@@ -406,7 +403,6 @@ class _AnimalEditState extends State<AnimalEdit> {
                       onPressed: () async {
                         final isValid = _formKey.currentState?.validate() ?? false;
 
-                        // Manually validate fields without validator property
                         bool manualValid = true;
 
                         if (selectedGender == null) {
@@ -417,8 +413,13 @@ class _AnimalEditState extends State<AnimalEdit> {
                         }
 
                         if (!manualValid || !isValid) {
-                          // Don't proceed if form is invalid
                           return;
+                        }
+
+                        // Format date properly for PHP backend
+                        String? formattedDate;
+                        if (selectedDate != null) {
+                          formattedDate = '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
                         }
 
                         final updatedAnimal = AnimalModel(
@@ -426,7 +427,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                           type: selectedPetType!,
                           breed: selectedBreed,
                           name: petNameController.text.trim(),
-                          birthDate: selectedDate?.toIso8601String(),
+                          birthDate: formattedDate, // Use formatted date instead of ISO string
                           gender: selectedGender!,
                           weight: double.tryParse(weightController.text.trim()),
                           height: double.tryParse(heightController.text.trim()),
@@ -437,17 +438,23 @@ class _AnimalEditState extends State<AnimalEdit> {
                           qrCodeUrl: widget.animalModel.qrCodeUrl,
                         );
 
-                        await ref.editAnimal(updatedAnimal);
+                        await ref.updateAnimal(updatedAnimal);
 
                         if (ref.isSucess) {
+                          // Update the local animal model with the response data
+                          final updatedAnimalFromResponse = ref.animal ?? updatedAnimal;
+                          
                           Provider.of<AnimalViewModel>(context, listen: false)
-                              .updateAnimal(updatedAnimal);
+                              .updateAnimal(updatedAnimalFromResponse);
+                          
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(ref.message ?? 'No Message')));
-                          Navigator.pop(context, true);
+                              SnackBar(content: Text(ref.message ?? 'Animal updated successfully!')));
+                          
+                          // Return the updated animal
+                          Navigator.pop(context, updatedAnimalFromResponse);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(ref.message ?? 'No message')));
+                              SnackBar(content: Text(ref.message ?? 'Update failed')));
                         }
                       },
                     ),
@@ -459,5 +466,18 @@ class _AnimalEditState extends State<AnimalEdit> {
         );
       }),
     );
+  }
+
+  // Helper method to get the correct image provider
+  ImageProvider<Object>? _getImageProvider(AnimalEditViewModel ref) {
+    // Priority: local file > updated animal image > original animal image
+    if (ref.animalProfile != null) {
+      return FileImage(ref.animalProfile!);
+    } else if (ref.animal?.imageUrl != null) {
+      return NetworkImage(ref.animal!.imageUrl!);
+    } else if (widget.animalModel.imageUrl != null) {
+      return NetworkImage(widget.animalModel.imageUrl!);
+    }
+    return null;
   }
 }

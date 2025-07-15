@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/services/animal_service.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
@@ -13,12 +15,14 @@ class AnimalFormViewModel extends ChangeNotifier {
   String? _errors;
   List<AnimalModel> _animals = [];
   bool _isLoading = false;
+  File? _animalProfile;
   
   AnimalModel? get animalModel => _animalModel;
   String? get message => _message;
   String? get errors => _errors;
   List<AnimalModel> get animals => _animals;
   bool get isLoading => _isLoading;
+  File? get animalProfile => _animalProfile;
 
   setAnimalModel(AnimalModel animalModel) {
     _animalModel = animalModel;
@@ -42,13 +46,19 @@ class AnimalFormViewModel extends ChangeNotifier {
 
   setLoading(bool isLoading) {
     _isLoading = isLoading;
+    notifyListeners();
+  }
+
+    setAnimalProfile(File? animalProfile) {
+    _animalProfile = animalProfile;
+    notifyListeners();
   }
 
   Future<void> createAnimal(AnimalModel animalModel) async {
     try {
       setLoading(true);
 
-      final result = await _animalService.createAnimal(animalModel);
+      final result = await _animalService.createAnimal(animalModel, imageFile: _animalProfile);
 
       print('result ${result.data['data']}');
 

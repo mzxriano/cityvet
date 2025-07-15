@@ -79,8 +79,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CircleAvatar(
-                        backgroundImage: AssetImage(''),
                         radius: 30,
+                        backgroundImage: ref.user?.imageUrl != null ? 
+                          NetworkImage(ref.user!.imageUrl!) : 
+                          null,
                       ),
                       const SizedBox(width: 20,),
                       Expanded(

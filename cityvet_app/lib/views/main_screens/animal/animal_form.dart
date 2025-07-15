@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +19,23 @@ class AnimalForm extends StatefulWidget {
 }
 
 class _AnimalFormState extends State<AnimalForm> {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => AnimalFormViewModel(),
+      child: const _AnimalFormContent(),
+    );
+  }
+}
+
+class _AnimalFormContent extends StatefulWidget {
+  const _AnimalFormContent();
+
+  @override
+  State<_AnimalFormContent> createState() => _AnimalFormContentState();
+}
+
+class _AnimalFormContentState extends State<_AnimalFormContent> {
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -37,26 +57,26 @@ class _AnimalFormState extends State<AnimalForm> {
   List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray'];
 
   Future<bool> _onWillPop() async {
-  final isFormDirty = petNameController.text.isNotEmpty ||
-                      weightController.text.isNotEmpty ||
-                      heightController.text.isNotEmpty ||
-                      selectedPetType != null ||
-                      selectedBreed != null ||
-                      selectedGender != null ||
-                      selectedDate != null ||
-                      selectedColor != null;
+    final isFormDirty = petNameController.text.isNotEmpty ||
+                        weightController.text.isNotEmpty ||
+                        heightController.text.isNotEmpty ||
+                        selectedPetType != null ||
+                        selectedBreed != null ||
+                        selectedGender != null ||
+                        selectedDate != null ||
+                        selectedColor != null;
 
-  if (!isFormDirty) return true;
+    if (!isFormDirty) return true;
 
-  final shouldLeave = await showConfirmationModal(context);
+    final shouldLeave = await showConfirmationModal(context);
 
-  return shouldLeave ?? false;
-}
+    return shouldLeave ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
     Config().init(context);
-    final formRef = context.watch<AnimalFormViewModel>();
+    final formRef = Provider.of<AnimalFormViewModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -81,17 +101,22 @@ class _AnimalFormState extends State<AnimalForm> {
               // Pet Profile
               SizedBox(
                 child: Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 70,
+                  child: CircleAvatar(
+                    backgroundImage: formRef.animalProfile != null
+                        ? FileImage(formRef.animalProfile!)
+                        : null,
+                    radius: 70,
+                    child: IconButton(
+                      onPressed: () async {
+                        final pickedImage = await CustomImagePicker().pickFromGallery();
+                        if(pickedImage == null) return;
+                        formRef.setAnimalProfile(File(pickedImage.path));
+                      },
+                      icon: const Icon(
+                        Icons.camera_alt_rounded,
+                        size: 50,
                       ),
-                      Positioned(
-                        right: 5,
-                        bottom: 0,
-                        child: Icon(Icons.edit, size: 40)
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -325,8 +350,6 @@ class _AnimalFormState extends State<AnimalForm> {
                     height: double.tryParse(heightController.text), 
                     color: selectedColor!
                   );
-
-                  print(selectedGender);
 
                   await formRef.createAnimal(animal);
 

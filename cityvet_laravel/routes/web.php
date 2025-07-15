@@ -5,9 +5,8 @@ use App\Http\Controllers\Web\AnimalController;
 use App\Http\Controllers\Web\BarangayController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\DashboardController;
-use App\Models\User;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 

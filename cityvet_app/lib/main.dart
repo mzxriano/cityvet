@@ -1,5 +1,4 @@
 import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
@@ -10,7 +9,6 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AnimalFormViewModel()),
         ChangeNotifierProvider(create: (_) => AnimalViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel())
       ],

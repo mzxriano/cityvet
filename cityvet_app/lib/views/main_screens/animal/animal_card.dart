@@ -31,7 +31,35 @@ class AnimalCard extends StatelessWidget {
                   // Top section - Image/Icon area
                   Expanded(
                     flex: 3,
-                    child: Container(
+                    child: animalModel.imageUrl != null ?
+                       Image.network(
+                         animalModel.imageUrl!,
+                         fit: BoxFit.cover,
+                         width: double.infinity,
+                         height: double.infinity,
+                         errorBuilder: (context, error, stackTrace) {
+                           return Container(
+                             color: Config.primaryColor,
+                             child: const Center(
+                               child: Icon(
+                                 Icons.pets,
+                                 size: 50,
+                                 color: Colors.white,
+                               ),
+                             ),
+                           );
+                         },
+                         loadingBuilder: (context, child, loadingProgress) {
+                           if (loadingProgress == null) return child;
+                           return Container(
+                             color: Config.primaryColor.withOpacity(0.3),
+                             child: const Center(
+                               child: CircularProgressIndicator(),
+                             ),
+                           );
+                         },
+                       ) :
+                      Container(
                       color: Config.primaryColor,
                       child: const Center(
                         child: Icon(
@@ -77,7 +105,7 @@ class AnimalCard extends StatelessWidget {
             ),
           ),
         ),
-        
+                
         // Delete button positioned at top-right
         if (onDelete != null)
           Positioned(

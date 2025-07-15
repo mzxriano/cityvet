@@ -116,10 +116,12 @@ void showCreatePostModal(BuildContext context) {
 
                     Row(
                       children: [
-                        CircleAvatar(
-                          backgroundImage: AssetImage('assets/images/default.png'),
-                          radius: 30,
-                        ),
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundImage: user?.imageUrl != null ? 
+                          NetworkImage(user!.imageUrl!) : 
+                          null,
+                      ),
                         SizedBox(width: 20),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
