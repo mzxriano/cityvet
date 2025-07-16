@@ -3,15 +3,21 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/text.dart';
 import 'package:cityvet_app/views/reset_pass_view.dart';
 import 'package:flutter/material.dart';
+import 'package:cityvet_app/services/auth_service.dart';
 
 class OtpVerificationView extends StatefulWidget {
-  const OtpVerificationView({super.key});
+  final String email;
+  const OtpVerificationView({super.key, required this.email});
 
   @override
   State<OtpVerificationView> createState() => _OtpVerificationViewState();
 }
 
 class _OtpVerificationViewState extends State<OtpVerificationView> {
+  final TextEditingController _otpController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
   @override
   Widget build(BuildContext context) {
     Config().init(context);
@@ -56,10 +62,21 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
               Config.heightMedium,
               Wrap(
                 spacing: 12,
-                children: List.generate(4, (_) => SizedBox(
-                  width: 60,
-                  child: _buildOtpField(),
-                )),
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: InputDecoration(
+                        labelText: 'Enter OTP',
+                        border: OutlineInputBorder(),
+                        counterText: '',
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Config.heightMedium,
               Row(
@@ -91,43 +108,41 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
               Button(
                 width: double.infinity, 
                 title: 'Verify', 
-                onPressed: (){
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ResetPassView() ));
+                onPressed: () async {
+                  final otp = _otpController.text.trim();
+                  if (otp.length != 6) {
+                    setState(() { _errorMessage = 'Please enter the 6-digit OTP.'; });
+                    return;
+                  }
+                  setState(() { _isLoading = true; _errorMessage = null; });
+                  try {
+                    final response = await AuthService().verifyOtp(email: widget.email, otp: otp);
+                    if (response.statusCode == 200) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ResetPassView(email: widget.email, otp: otp),
+                      ));
+                    } else {
+                      setState(() { _errorMessage = response.data['message'] ?? 'Invalid OTP.'; });
+                    }
+                  } catch (e) {
+                    setState(() { _errorMessage = 'Failed to verify OTP. Please try again.'; });
+                  } finally {
+                    setState(() { _isLoading = false; });
+                  }
                 }
               ),
+              if (_isLoading) ...[
+                SizedBox(height: 16),
+                CircularProgressIndicator(),
+              ],
+              if (_errorMessage != null) ...[
+                SizedBox(height: 16),
+                Text(_errorMessage!, style: TextStyle(color: Colors.red)),
+              ],
             ],
           ),
         ),
       ),
     );
   }
-}
-
-Widget _buildOtpField() {
-  return TextField(
-    keyboardType: TextInputType.number,
-    decoration: InputDecoration(
-      border: OutlineInputBorder(
-        borderSide: BorderSide(
-          width: 1,
-          color: Config.primaryColor,
-        ),
-        borderRadius: BorderRadius.zero,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          width: 1,
-          color: Config.primaryColor,
-        ),
-        borderRadius: BorderRadius.zero,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          width: 1,
-          color: Config.primaryColor,
-        ),
-        borderRadius: BorderRadius.zero,
-      ),
-    ),
-  );
 }

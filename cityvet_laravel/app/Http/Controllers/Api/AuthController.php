@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Validator;
 use Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 
 class AuthController extends Controller
 {
@@ -107,7 +110,7 @@ class AuthController extends Controller
 
         try {
             if (! $token = JWTAuth::attempt($credentials)) {
-                return response()->json(['message' => 'Invalid Credentials' ,'error' => 'invalid_validator'], 400);
+                return response()->json(['message' => 'Invalid Credentials' ,'error' => 'invalid_credentials'], 400);
             }
         } catch (JWTException $e) {
             return response()->json(['error' => 'could_not_create_token'], 500);
@@ -192,6 +195,101 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Handle forgot password request: generate OTP and email it to user
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $email = $request->email;
+        $otp = rand(100000, 999999); // 6-digit OTP
+        $expiresAt = now()->addMinutes(10);
+
+        // Store OTP (hashed) in password_reset_tokens table
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $email],
+            [
+                'token' => Hash::make($otp),
+                'created_at' => now(),
+            ]
+        );
+
+        // Send OTP via email
+        Mail::raw("Your CityVet password reset OTP is: $otp\nThis code will expire in 10 minutes.", function ($message) use ($email) {
+            $message->to($email)
+                ->subject('CityVet Password Reset OTP');
+        });
+
+        return response()->json(['message' => 'OTP sent to your email.'], 200);
+    }
+
+    /**
+     * Handle password reset: verify OTP and update password
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:6',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+        if (!$record) {
+            return response()->json(['message' => 'No OTP request found for this email.'], 404);
+        }
+
+        // Check if OTP is expired (10 minutes)
+        if (Carbon::parse($record->created_at)->addMinutes(10)->isPast()) {
+            return response()->json(['message' => 'OTP has expired. Please request a new one.'], 400);
+        }
+
+        // Verify OTP
+        if (!Hash::check($request->otp, $record->token)) {
+            return response()->json(['message' => 'Invalid OTP.'], 400);
+        }
+
+        // Update user password
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Delete the OTP record
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully.'], 200);
+    }
+
+    /**
+     * Verify OTP for password reset
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+        if (!$record) {
+            return response()->json(['message' => 'No OTP request found for this email.'], 404);
+        }
+
+        // Check if OTP is expired (10 minutes)
+        if (Carbon::parse($record->created_at)->addMinutes(10)->isPast()) {
+            return response()->json(['message' => 'OTP has expired. Please request a new one.'], 400);
+        }
+
+        // Verify OTP
+        if (!Hash::check($request->otp, $record->token)) {
+            return response()->json(['message' => 'Invalid OTP.'], 400);
+        }
+
+        return response()->json(['message' => 'OTP is valid.'], 200);
+    }
 
 
 }

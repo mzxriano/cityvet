@@ -2,9 +2,12 @@ import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/services/auth_service.dart';
 
 class ResetPassView extends StatefulWidget {
-  const ResetPassView({super.key});
+  final String email;
+  final String otp;
+  const ResetPassView({super.key, required this.email, required this.otp});
 
   @override
   State<ResetPassView> createState() => _ResetPassViewState();
@@ -22,6 +25,9 @@ class _ResetPassViewState extends State<ResetPassView> {
   bool _isconfirmNewPassFocused = false;
   bool _isnewPassObscured = true;
   bool _isconfirmNewPassObscured = true;
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
 
   @override
   void initState() {
@@ -162,8 +168,52 @@ class _ResetPassViewState extends State<ResetPassView> {
                 Button(
                   width: double.infinity, 
                   title: 'Done', 
-                  onPressed: (){}
+                  onPressed: () async {
+                    final newPassword = _newPassController.text.trim();
+                    final confirmPassword = _confirmNewPassController.text.trim();
+                    setState(() { _isLoading = true; _errorMessage = null; _successMessage = null; });
+                    if (newPassword.isEmpty || confirmPassword.isEmpty) {
+                      setState(() { _errorMessage = 'Please fill in all fields.'; _isLoading = false; });
+                      return;
+                    }
+                    if (newPassword != confirmPassword) {
+                      setState(() { _errorMessage = 'Passwords do not match.'; _isLoading = false; });
+                      return;
+                    }
+                    try {
+                      final response = await AuthService().resetPassword(
+                        email: widget.email,
+                        otp: widget.otp,
+                        password: newPassword,
+                        passwordConfirmation: confirmPassword,
+                      );
+                      if (response.statusCode == 200) {
+                        setState(() { _successMessage = 'Password reset successful!'; });
+                        Future.delayed(Duration(seconds: 2), () {
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        });
+                      } else {
+                        setState(() { _errorMessage = response.data['message'] ?? 'Failed to reset password.'; });
+                      }
+                    } catch (e) {
+                      setState(() { _errorMessage = 'Failed to reset password. Please try again.'; });
+                    } finally {
+                      setState(() { _isLoading = false; });
+                    }
+                  }
                 ),
+                if (_isLoading) ...[
+                  SizedBox(height: 16),
+                  CircularProgressIndicator(),
+                ],
+                if (_errorMessage != null) ...[
+                  SizedBox(height: 16),
+                  Text(_errorMessage!, style: TextStyle(color: Colors.red)),
+                ],
+                if (_successMessage != null) ...[
+                  SizedBox(height: 16),
+                  Text(_successMessage!, style: TextStyle(color: Colors.green)),
+                ],
               ],
             ),
           ),

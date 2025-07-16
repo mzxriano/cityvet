@@ -13,6 +13,7 @@ class LoginViewModel extends ChangeNotifier{
   var _isLoading = false;
   var _isLogin = false;
   var _isEmailVerified = false;
+  String? _message;
   String? _error;
   UserModel? _user;
   Map<String, dynamic> _fieldErrors = {};
@@ -23,6 +24,7 @@ class LoginViewModel extends ChangeNotifier{
   UserModel? get user => _user;
   get fieldErrors => _fieldErrors;
   get isEmailVerified => _isEmailVerified;
+  get message => _message;
 
   setLoading(bool isLoading) {
     _isLoading = isLoading;
@@ -36,6 +38,11 @@ class LoginViewModel extends ChangeNotifier{
 
   setError(String? error) {
     _error = error;
+    notifyListeners();
+  }
+
+  setMessage(String? message) {
+    _message = message;
     notifyListeners();
   }
 
@@ -54,12 +61,12 @@ class LoginViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-Future<void> login(String email, String password) async {
+Future<void> login(String email, String password) async 
+{
   try {
     setLoading(true);
     setError(null);
     setFieldErrors({});
-    setEmailVerify(false);
 
     final result = await AuthService().login(email, password);
     final token = result.data['token'];
@@ -73,46 +80,61 @@ Future<void> login(String email, String password) async {
       if(userResponse.containsKey('user')) {
         final userData = userResponse['user'];
         final user = UserModel.fromJson(userData);
-        print('user ${userData}');
         setUser(user);
         setLogin(true);
       }
 
     }
 
-  } on DioException catch (e) {
-    final data = e.response?.data;
+  } 
 
-    // check if invalid credentials;
-      print('Ito ay data: $data');
+  on DioException catch (e) 
+  {
+    final data = e.response?.data;
+    final statusCode = e.response?.statusCode;
+
     if(e.response?.statusCode == 401 && data['errors'] != null) {
       setError(data['errors']);
+      setMessage(data['message']);
+      return;
     }
 
-    if(data['error'] != null && data['error'] == 'user_not_found') {
+    if(statusCode == 404 && data['error'] == 'user_not_found') {
       setError(data['error']);
+      setMessage(data['message']);
+      return;
     }
 
-    if(data['error'] != null && data['error'] == 'email_not_verified') {
+    if(statusCode == 400 && data['error'] == 'invalid_credentials') {
+      setError(data['error']);
+      setMessage(data['message']);
+      return;
+    }
+
+    if(statusCode == 400 && data['error'] == 'email_not_verified') {
       setEmailVerify(!true);
+      setError(data['error']);
+      setMessage(data['message']);
+      return;
     }
 
     if (data is Map<String, dynamic> && data['errors'] is Map<String, dynamic>) {
       setFieldErrors(Map<String, dynamic>.from(data['errors']));
+      return;
     } 
     else if (data is Map<String, dynamic>) {
       final message = data['message'];
       if(message is String && message.isNotEmpty) {
         setError(data['message']);
+        return;
       }
     }
     else {
       setError(DioExceptionHandler.handleException(e));
+      return;
     }
 
   } catch (e) {
-    print(user);
-    print('Unexpected error: $e');
     setError('An unexpected error occurred. Please try again.');
   } finally {
     setLoading(false);

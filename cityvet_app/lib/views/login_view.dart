@@ -222,10 +222,11 @@ class _LoginViewState extends State<LoginView> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
                                               content: Text(
-                                                  loginViewModel.error!)));
+                                                  loginViewModel.message)));
                                     }
 
-                                    if(!loginViewModel.isEmailVerified && loginViewModel.error == 'email_not_verified') {
+
+                                    if(loginViewModel.isEmailVerified == false && loginViewModel.error == 'email_not_verified') {
                                       Navigator.push(context, MaterialPageRoute(builder: (_) => EmailVerificationPage(email: _emailController.text)));
                                     }
 

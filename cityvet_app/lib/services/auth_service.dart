@@ -56,4 +56,37 @@ class AuthService {
 
   }
 
+  Future<Response> forgotPassword(String email) async {
+    final response = await _dio.post('/forgot-password', data: {
+      'email': email,
+    });
+    return response;
+  }
+
+  Future<Response> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    final response = await _dio.post('/reset-password', data: {
+      'email': email,
+      'otp': otp,
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+    });
+    return response;
+  }
+
+  Future<Response> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _dio.post('/verify-otp', data: {
+      'email': email,
+      'otp': otp,
+    });
+    return response;
+  }
+
 }

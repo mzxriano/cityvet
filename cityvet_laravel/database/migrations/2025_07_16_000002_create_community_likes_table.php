@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('communities', function (Blueprint $table) {
+        Schema::create('community_likes', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('community_id');
             $table->unsignedBigInteger('user_id');
-            $table->text('content');
-            $table->unsignedInteger('likes_count')->default(0);
-            $table->unsignedInteger('comments_count')->default(0);
             $table->timestamps();
 
+            $table->foreign('community_id')->references('id')->on('communities')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['community_id', 'user_id']); // Prevent duplicate likes
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('communities');
+        Schema::dropIfExists('community_likes');
     }
-};
+}; 
