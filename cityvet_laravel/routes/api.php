@@ -7,17 +7,22 @@ use App\Http\Controllers\Api\BarangayController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
+
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class,'register']);
 
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+
     Route::get('/barangay', [BarangayController::class,'index']);
 
-
     Route::middleware(['auth:api'])->group(function () {
+        
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class,'show']);
             Route::post('/edit', [UserController::class,'update']);
+            Route::post('/logout', [AuthController::class,'logout']);
         });
 
         Route::prefix('activity')->group(function () {

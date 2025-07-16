@@ -12,6 +12,7 @@ class LoginViewModel extends ChangeNotifier{
 
   var _isLoading = false;
   var _isLogin = false;
+  var _isEmailVerified = false;
   String? _error;
   UserModel? _user;
   Map<String, dynamic> _fieldErrors = {};
@@ -21,6 +22,7 @@ class LoginViewModel extends ChangeNotifier{
   get error => _error;
   UserModel? get user => _user;
   get fieldErrors => _fieldErrors;
+  get isEmailVerified => _isEmailVerified;
 
   setLoading(bool isLoading) {
     _isLoading = isLoading;
@@ -32,7 +34,7 @@ class LoginViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  setError(String error) {
+  setError(String? error) {
     _error = error;
     notifyListeners();
   }
@@ -47,11 +49,17 @@ class LoginViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
+  setEmailVerify(bool value) {
+    _isEmailVerified = value;
+    notifyListeners();
+  }
+
 Future<void> login(String email, String password) async {
   try {
     setLoading(true);
-    setError('');
+    setError(null);
     setFieldErrors({});
+    setEmailVerify(false);
 
     final result = await AuthService().login(email, password);
     final token = result.data['token'];
@@ -79,6 +87,14 @@ Future<void> login(String email, String password) async {
       print('Ito ay data: $data');
     if(e.response?.statusCode == 401 && data['errors'] != null) {
       setError(data['errors']);
+    }
+
+    if(data['error'] != null && data['error'] == 'user_not_found') {
+      setError(data['error']);
+    }
+
+    if(data['error'] != null && data['error'] == 'email_not_verified') {
+      setEmailVerify(!true);
     }
 
     if (data is Map<String, dynamic> && data['errors'] is Map<String, dynamic>) {

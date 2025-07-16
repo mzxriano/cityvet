@@ -74,7 +74,7 @@ class UserController
         $validated = $validate->validated();
         $validated["password"] = Hash::make($validated["password"]);
 
-        $user = User::create($validated);
+        User::create($validated);
 
         return redirect()->route("users")->with("success", "User Successfully Created.");
 

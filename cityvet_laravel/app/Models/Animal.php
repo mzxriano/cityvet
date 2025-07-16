@@ -44,6 +44,10 @@ class Animal extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function vaccines() {
+        return $this->belongsToMany(Vaccine::class);
+    }
+
     /**
      * Get the route key name for route model binding
      */

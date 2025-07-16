@@ -38,4 +38,22 @@ class AuthService {
     return response;
   }
 
+    static Future<Response> resendVerification(String email) async {
+
+
+    final Dio dio = Dio(BaseOptions(
+      baseUrl: 'http://192.168.1.109:8000/api/auth',
+      headers: {
+        'Accept': 'application/json',
+      },
+    ));
+
+      final response = await dio.post('/resend-verification', data: {
+        'email': email,
+      });
+
+      return response;
+
+  }
+
 }

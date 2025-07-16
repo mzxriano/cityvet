@@ -190,6 +190,8 @@ class ProfileEditViewModel extends ChangeNotifier {
       if(e.response is DioException) {
         setError(DioExceptionHandler.handleException(e.response?.data));
       }
+    } catch (e) {
+      setError(e.toString());
     } finally {
       _isLoading = false;
       notifyListeners();

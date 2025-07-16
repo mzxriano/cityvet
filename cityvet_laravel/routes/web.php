@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Web\ActivityController;
 use App\Http\Controllers\Web\AnimalController;
 use App\Http\Controllers\Web\BarangayController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\DashboardController;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -40,3 +40,8 @@ Route::get('/archives', function () {
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
 Route::put('/users/{id}', [UserController::class, 'edit'])->name('users.edit');
 Route::get('/users/search', [AnimalController::class,'searchOwner'])->name('search.owner');
+
+Route::get('/successful-verification', function () {
+    return view('mail.verification_successful');
+})->name('email.successful');
+

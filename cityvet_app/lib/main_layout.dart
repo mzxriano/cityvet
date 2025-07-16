@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/qr_scanner.dart';
+import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/login_view.dart';
@@ -7,6 +8,7 @@ import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -182,9 +184,56 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       Icon(Icons.arrow_forward_ios_rounded, color: Config.tertiaryColor,),
                     ],
                   ),
-                  onTap: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginView())); 
+                  onTap: () async {
+                    // Get the token from storage
+                    final storage = AuthStorage();
+                    final token = await storage.getToken();
+
+                    if (token == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('No token found. Please log in again.')),
+                      );
+                      return;
+                    }
+
+                    // Create Dio instance
+                    final dio = Dio();
+                    try {
+                      // Send a request to the backend to invalidate the token
+                      var response = await dio.post(
+                        'http://192.168.1.109:8000/api/auth/user/logout',
+                        options: Options(
+                          headers: {'Authorization': 'Bearer $token'},
+                        ),
+                      );
+
+                      // Check if the response is successful
+                      if (response.statusCode == 200) {
+                        // Delete the token from storage
+                        await storage.deleteToken();
+
+                        // Show success message and navigate to login page
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(response.data['message'])),
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginView()),
+                        );
+                      } else {
+                        // Show error message if status code isn't 200
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(response.data['error'] ?? 'Unknown error occurred.')),
+                        );
+                      }
+                    } catch (e) {
+                      // Handle network or other errors
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to log out: ${e.toString()}')),
+                      );
+                    }
                   },
+
                 ),
               ],
             ),

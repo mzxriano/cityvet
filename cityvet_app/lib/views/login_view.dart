@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/email_verification_page.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
@@ -222,6 +223,10 @@ class _LoginViewState extends State<LoginView> {
                                           .showSnackBar(SnackBar(
                                               content: Text(
                                                   loginViewModel.error!)));
+                                    }
+
+                                    if(!loginViewModel.isEmailVerified && loginViewModel.error == 'email_not_verified') {
+                                      Navigator.push(context, MaterialPageRoute(builder: (_) => EmailVerificationPage(email: _emailController.text)));
                                     }
 
                                     if (loginViewModel.isLogin) {

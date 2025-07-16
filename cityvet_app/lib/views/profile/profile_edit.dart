@@ -38,10 +38,12 @@ class _ProfileEditState extends State<ProfileEdit> {
   void initState() {
     super.initState();
 
-    final user = Provider.of<UserViewModel>(context, listen: false).user!;
+    final user = Provider.of<UserViewModel>(context, listen: false).user;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileEditViewModel>(context, listen: false);
-      profileViewModel.initializeUserData(user);
+      if(user != null) {
+        profileViewModel.initializeUserData(user);
+      }
     });
 
     _firstNameNode.addListener(() {
@@ -93,7 +95,9 @@ class _ProfileEditState extends State<ProfileEdit> {
     Config().init(context);
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     final profileViewModel = context.watch<ProfileEditViewModel>();
-    _initializeControllers(userViewModel.user!);
+    if(userViewModel.user != null) {
+      _initializeControllers(userViewModel.user!);
+    }
 
     return Scaffold(
       appBar: AppBar(

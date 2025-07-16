@@ -76,8 +76,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
-    final formRef = Provider.of<AnimalFormViewModel>(context, listen: false);
-
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -98,25 +97,52 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               
-              // Pet Profile
+              // Pet Profile - Fixed: Now using Consumer to listen to changes
               SizedBox(
                 child: Center(
-                  child: CircleAvatar(
-                    backgroundImage: formRef.animalProfile != null
-                        ? FileImage(formRef.animalProfile!)
-                        : null,
-                    radius: 70,
-                    child: IconButton(
-                      onPressed: () async {
-                        final pickedImage = await CustomImagePicker().pickFromGallery();
-                        if(pickedImage == null) return;
-                        formRef.setAnimalProfile(File(pickedImage.path));
-                      },
-                      icon: const Icon(
-                        Icons.camera_alt_rounded,
-                        size: 50,
-                      ),
-                    ),
+                  child: Consumer<AnimalFormViewModel>(
+                    builder: (context, formRef, child) {
+                      return CircleAvatar(
+                        backgroundImage: formRef.animalProfile != null
+                            ? FileImage(formRef.animalProfile!)
+                            : null,
+                        radius: 70,
+                        backgroundColor: Colors.grey[300],
+                        child: formRef.animalProfile == null
+                            ? IconButton(
+                                onPressed: () async {
+                                  final pickedImage = await CustomImagePicker().pickFromGallery();
+                                  if(pickedImage == null) return;
+                                  formRef.setAnimalProfile(File(pickedImage.path));
+                                },
+                                icon: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                              )
+                            : InkWell(
+                                onTap: () async {
+                                  final pickedImage = await CustomImagePicker().pickFromGallery();
+                                  if(pickedImage == null) return;
+                                  formRef.setAnimalProfile(File(pickedImage.path));
+                                },
+                                child: Container(
+                                  width: 140,
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withOpacity(0.3),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -318,53 +344,53 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
               const SizedBox(height: 24),
 
               /// Submit Button
-              Button(
-                width: double.infinity, 
-                title: 'Submit', 
-                onPressed: () async {
-                    if (selectedPetType == null ||
-                      selectedBreed == null ||
-                      selectedGender == null ||
-                      selectedColor == null ||
-                      petNameController.text.trim().isEmpty) {
-                        
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill in all required fields.')),
-                    );
-                    return;
-                  }
+              Consumer<AnimalFormViewModel>(
+                builder: (context, formRef, child) {
+                  return Button(
+                    width: double.infinity, 
+                    title: formRef.isLoading ? 'Submitting...' : 'Submit',
+                    onPressed: () async {
+                      if (selectedPetType == null ||
+                          selectedBreed == null ||
+                          selectedGender == null ||
+                          selectedColor == null ||
+                          petNameController.text.trim().isEmpty) {
+                            
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill in all required fields.')),
+                        );
+                        return;
+                      }
 
-                  String? formattedDate;
-                  if(selectedDate != null) {
-                    formattedDate = 
-                      '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
-                  }
+                      String? formattedDate;
+                      if(selectedDate != null) {
+                        formattedDate = 
+                          '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+                      }
 
-                  final animal = AnimalModel(
-                    type: selectedPetType!, 
-                    name: petNameController.text, 
-                    breed: selectedBreed!, 
-                    birthDate: formattedDate, 
-                    gender: selectedGender!.toLowerCase(), 
-                    weight: double.tryParse(weightController.text), 
-                    height: double.tryParse(heightController.text), 
-                    color: selectedColor!
+                      final animal = AnimalModel(
+                        type: selectedPetType!, 
+                        name: petNameController.text, 
+                        breed: selectedBreed!, 
+                        birthDate: formattedDate, 
+                        gender: selectedGender!.toLowerCase(), 
+                        weight: double.tryParse(weightController.text), 
+                        height: double.tryParse(heightController.text), 
+                        color: selectedColor!
+                      );
+
+                      await formRef.createAnimal(animal);
+
+                      if (formRef.message != null && context.mounted) {
+                        print('na create ba');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(formRef.message!)),
+                        );
+                        Navigator.pop(context, true);
+                      }
+                    }
                   );
-
-                  await formRef.createAnimal(animal);
-
-                  final updatedFormRef = context.read<AnimalFormViewModel>();
-                  final message = updatedFormRef.message;
-
-                  if (message != null && context.mounted) {
-                    print('na create ba');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message)),
-                    );
-                    Navigator.pop(context, true);
-                  }
-
-                }
+                },
               ),
             ],
           ),

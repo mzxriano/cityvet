@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
+import 'package:cityvet_app/components/email_verification_page.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/components/text_field.dart';
 import 'package:cityvet_app/utils/config.dart';
@@ -362,7 +363,7 @@ class _SignupViewState extends State<SignupView> {
                               );
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const LoginView()),
+                                MaterialPageRoute(builder: (context) => EmailVerificationPage(email: _emailController.text,)),
                               );
                             }
                           },
