@@ -52,6 +52,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/community', [CommunityController::class, 'index']);
         Route::post('/community', [CommunityController::class, 'store']);
         Route::get('/community/{id}', [CommunityController::class, 'show']);
+        Route::delete('/community/{id}', [CommunityController::class, 'destroy']);
 
         Route::post('/community/{id}/comment', [CommunityCommentController::class, 'store']);
         Route::get('/community/{id}/comments', [CommunityCommentController::class, 'index']);

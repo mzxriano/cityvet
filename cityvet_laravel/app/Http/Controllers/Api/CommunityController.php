@@ -31,6 +31,28 @@ class CommunityController extends Controller
         $posts = Community::with(['user', 'images', 'comments', 'likes'])
             ->orderBy('created_at', 'desc')
             ->get();
+        $posts = $posts->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'content' => $post->content,
+                'user' => $post->user ? [
+                    'id' => $post->user->id,
+                    'first_name' => $post->user->first_name,
+                    'last_name' => $post->user->last_name,
+                    'image_url' => $post->user->image_url,
+                ] : null,
+                'images' => $post->images->map(function ($img) {
+                    return [
+                        'image_url' => $img->image_url,
+                        'image_public_id' => $img->image_public_id,
+                    ];
+                }),
+                'likes_count' => $post->likes_count,
+                'comments_count' => $post->comments_count,
+                'created_at' => $post->created_at,
+                'updated_at' => $post->updated_at,
+            ];
+        });
         return response()->json($posts);
     }
 
@@ -97,5 +119,41 @@ class CommunityController extends Controller
             'message' => 'Post created successfully.',
             'post' => $post->load(['images', 'user']),
         ], 201);
+    }
+
+    /**
+     * Delete a community post (and its images, comments, likes)
+     */
+    public function destroy($id)
+    {
+        $post = Community::with(['images', 'comments', 'likes'])->findOrFail($id);
+
+        // Only the owner can delete
+        if ($post->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Delete images from Cloudinary
+        $cloudinary = $this->getCloudinary();
+        foreach ($post->images as $image) {
+            if ($image->image_public_id) {
+                try {
+                    $cloudinary->uploadApi()->destroy($image->image_public_id);
+                } catch (\Exception $e) {
+                    // Log but continue
+                    \Log::error('Failed to delete image from Cloudinary: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Delete related images, comments, likes
+        $post->images()->delete();
+        $post->comments()->delete();
+        $post->likes()->delete();
+
+        // Delete the post itself
+        $post->delete();
+
+        return response()->json(['message' => 'Post deleted successfully.']);
     }
 } 

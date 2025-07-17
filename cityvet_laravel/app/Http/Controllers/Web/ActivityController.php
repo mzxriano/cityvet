@@ -33,7 +33,7 @@ class ActivityController extends Controller
         // Get all barangays for the dropdown
         $barangays = Barangay::orderBy('name')->get();
 
-        return view("activities", compact("activities", "barangays"));
+        return view("admin.activities", compact("activities", "barangays"));
     }
 
     public function create(Request $request)
@@ -60,7 +60,7 @@ class ActivityController extends Controller
             ]);
 
             // Redirect back with success message
-            return redirect()->route('activities')->with('success', 'Activity created successfully!');
+            return redirect()->route('admin.activities')->with('success', 'Activity created successfully!');
 
         } catch (\Exception $e) {
             // Redirect back with error message
@@ -106,7 +106,7 @@ class ActivityController extends Controller
                 'status' => $validatedData['status']
             ]);
 
-            return redirect()->route('activities')->with('success', 'Activity updated successfully!');
+            return redirect()->route('admin.activities')->with('success', 'Activity updated successfully!');
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to update activity. Please try again.');
@@ -119,7 +119,7 @@ class ActivityController extends Controller
             $activity = Activity::findOrFail($id);
             $activity->delete();
 
-            return redirect()->route('activities')->with('success', 'Activity deleted successfully!');
+            return redirect()->route('admin.activities')->with('success', 'Activity deleted successfully!');
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete activity. Please try again.');

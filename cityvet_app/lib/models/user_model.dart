@@ -1,6 +1,7 @@
 import 'package:cityvet_app/models/barangay_model.dart';
 
 class UserModel {
+  final int? id;
   final String? firstName;
   final String? lastName;
   final String? email;
@@ -12,6 +13,7 @@ class UserModel {
   final String? imagePublicId;
 
   UserModel({
+    required this.id,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -26,6 +28,7 @@ class UserModel {
   // Convert from JSON (after fetching user )
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      id: json['id'],
       firstName: json['first_name'],
       lastName: json['last_name'],
       email: json['email'],
@@ -43,6 +46,7 @@ class UserModel {
   // Convert to JSON (if needed, to update user )
   Map<String, dynamic> toJson() {
     return {
+      if (id != null) 'id': id,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,

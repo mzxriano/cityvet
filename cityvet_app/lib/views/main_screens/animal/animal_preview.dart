@@ -6,6 +6,7 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_preview_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_edit.dart';
+import 'package:cityvet_app/views/main_screens/animal/animal_vaccination_record_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -166,12 +167,10 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               ),
                               Config.heightMedium,
 
-                              // Register record widget
-                              _buildRecordButton('Register Record', (){}),
-                              Config.heightMedium,
-
-                              // Vaccination history widget
-                              _buildRecordButton('Vaccination History', (){}),
+                              // Vaccination record widget
+                              _buildRecordButton('Vaccination Record', (){
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => VaccinationRecord(animalName: myAnimal.name)));
+                              }),
                               Config.heightBig,
 
                               Center(
@@ -312,6 +311,7 @@ Widget _buildAttributeBox(String title, String value) {
             title,
             style: TextStyle(
               fontSize: Config.fontSmall,
+              fontFamily: Config.primaryFont,
               color: Config.tertiaryColor,
               fontWeight: FontWeight.bold,
             ),
@@ -321,6 +321,7 @@ Widget _buildAttributeBox(String title, String value) {
             value,
             style: TextStyle(
               fontSize: isPlaceholder ? Config.fontXS - 1 : Config.fontSmall,
+              fontFamily: Config.primaryFont,
               fontWeight: isPlaceholder ? FontWeight.normal : Config.fontW600,
               fontStyle: isPlaceholder ? FontStyle.italic : FontStyle.normal,
               color: isPlaceholder ? Colors.grey : Config.color524F4F,

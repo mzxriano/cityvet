@@ -1,7 +1,7 @@
 <nav class="sidebar flex flex-col p-[35px] w-1/6 min-h-screen bg-white">
-    <div>
+    <div class="flex items-center gap-[1rem]">
         <div>
-            <img src="" alt="">
+            <img src="{{ asset('images/logo.jpg') }}" width="50" height="50" alt="Cityvet logo">
         </div>
         <h2 class="text-2xl font-medium mt-4 mb-3">CityVet</h2>
     </div>
@@ -42,9 +42,9 @@
                             class="pl-4 mt-1 space-y-1">
                             @foreach ($item['children'] as $child)
                                 <li>
-                                    <a href="{{ route($child['route']) }}"
+                                    <a href="{{ route('admin.' . $child['route']) }}"
                                         class="block p-2 rounded-md text-sm text-gray-700 hover:bg-[#8ED968] hover:text-white
-                                            {{ request()->routeIs($child['route']) ? 'bg-[#8ED968] text-white' : '' }}">
+                                            {{ request()->routeIs('admin.' . $child['route']) ? 'bg-[#8ED968] text-white' : '' }}">
                                         {{ $child['label'] }}
                                     </a>
                                 </li>
@@ -53,14 +53,18 @@
                     </div>
                 @else
                     <!-- Regular menu item -->
-                    <a href="{{ route($route) }}"
+                    <a href="{{ route('admin.' . $route) }}"
                         class="block p-3 rounded-xl transition-colors duration-200
-                            {{ request()->routeIs($route) ? 'bg-[#8ED968] text-white' : 'nav-text-color hover:bg-gray-100' }}">
+                            {{ request()->routeIs('admin.' . $route) ? 'bg-[#8ED968] text-white' : 'nav-text-color hover:bg-gray-100' }}">
                         {{ $item['label'] }}
                     </a>
                 @endif
             </li>
         @endforeach
     </ul>
-    <button class="mt-auto text-left p-3 text-red-600 hover:bg-red-500 hover:text-white rounded-xl">Logout</button>
+
+<form action="{{ route('admin.logout') }}" method="POST">
+    @csrf
+    <button @click="" class="mt-auto text-left p-3 text-red-600 hover:bg-red-500 hover:text-white rounded-xl">Logout</button>
+</form>
 </nav>

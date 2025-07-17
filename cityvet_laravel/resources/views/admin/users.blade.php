@@ -44,7 +44,7 @@
     <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
         <!-- Filter Form -->
         <div class="mb-4">
-            <form method="GET" action="{{ route('users') }}" class="flex gap-4 items-center justify-end">
+            <form method="GET" action="{{ route('admin.users') }}" class="flex gap-4 items-center justify-end">
                 <div>
                     <select name="role" class="border border-gray-300 px-3 py-2 rounded-md">
                         <option value="">All Roles</option>
@@ -138,7 +138,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form action="{{ route('users.store') }}" method="POST" class="p-4">
+                <form action="{{ route('admin.users.store') }}" method="POST" class="p-4">
                     @csrf
                     <div class="space-y-4">
                         <div>
@@ -283,7 +283,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form x-bind:action="`{{ url('users') }}/${currentUser.id}`" method="POST" class="p-4">
+                <form x-bind:action="`{{ url('admin.users') }}/${currentUser.id}`" method="POST" class="p-4">
                     @csrf
                     @method("PUT")
                     <div class="space-y-4">

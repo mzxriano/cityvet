@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('animal_vaccine', function (Blueprint $table) {
             $table->id();
-            $table->integer('stock');
+            $table->integer('dose');
             $table->foreignId('animal_id')->constrained('animals')->onDelete('cascade');
             $table->foreignId('vaccine_id')->constrained('vaccines')->onDelete('cascade');
             $table->timestamps();

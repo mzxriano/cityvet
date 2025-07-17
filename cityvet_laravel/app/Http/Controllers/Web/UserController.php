@@ -34,7 +34,7 @@ class UserController
         $roles = Role::all();
         $barangays = Barangay::all();
 
-        return view("users", compact([
+        return view("admin.users", compact([
             "users",
             "roles",
             "barangays",
@@ -76,7 +76,7 @@ class UserController
 
         User::create($validated);
 
-        return redirect()->route("users")->with("success", "User Successfully Created.");
+        return redirect()->route("admin.users")->with("success", "User Successfully Created.");
 
     }
 
@@ -107,7 +107,7 @@ class UserController
 
         $user->update($validated);
 
-        return redirect()->route('users')->with('success', 'User successfully updated.');
+        return redirect()->route('adminusers')->with('success', 'User successfully updated.');
     }
 
     /**

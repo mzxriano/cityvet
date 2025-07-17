@@ -47,7 +47,7 @@ class AuthController extends Controller
 
         $validated = $validator->validate();
 
-        $roleId = Role::where('name','Owner')->first()->id;
+        $roleId = Role::where('name','owner')->first()->id;
 
         $user = User::create([
             ...$validated, 

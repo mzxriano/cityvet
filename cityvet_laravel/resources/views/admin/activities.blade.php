@@ -108,7 +108,7 @@
   <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
     <!-- Filter -->
     <div class="mb-4">
-      <form method="GET" action="{{ route('activities') }}" class="flex gap-4 items-center justify-end">
+      <form method="GET" action="{{ route('admin.activities') }}" class="flex gap-4 items-center justify-end">
         <select name="status" class="border border-gray-300 px-3 py-2 rounded-md">
           <option value="">All Statuses</option>
           <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -258,7 +258,7 @@
           </p>
         </div>
 
-        <form method="POST" action="{{ route('activities.store') }}" class="px-6 py-4 space-y-4">
+        <form method="POST" action="{{ route('admin.activities.store') }}" class="px-6 py-4 space-y-4">
           @csrf
 
           <div>
@@ -342,7 +342,7 @@
           </p>
         </div>
 
-        <form method="POST" action="{{ route('activities.store') }}" class="px-6 py-4 space-y-4">
+        <form method="POST" action="{{ route('admin.activities.store') }}" class="px-6 py-4 space-y-4">
           @csrf
 
           <div>

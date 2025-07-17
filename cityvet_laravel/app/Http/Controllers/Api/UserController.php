@@ -63,6 +63,7 @@ class UserController extends Controller
 
         return response()->json([
             "user" => [
+                "id" => $user->id,
                 "first_name" => $user->first_name,
                 "last_name" => $user->last_name,
                 "email" => $user->email,
@@ -70,6 +71,8 @@ class UserController extends Controller
                 "birth_date" => $user->birth_date,
                 "street" => $user->street,
                 "barangay" => $user->barangay ?? null,
+                "image_url" => $user->image_url,
+                "image_public_id" => $user->image_public_id,
             ]
         ]);
     }

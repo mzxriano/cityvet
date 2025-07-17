@@ -79,9 +79,14 @@ Future<void> login(String email, String password) async
       
       if(userResponse.containsKey('user')) {
         final userData = userResponse['user'];
+        print(userResponse['user']);
         final user = UserModel.fromJson(userData);
         setUser(user);
         setLogin(true);
+        print('user id ${user.id}');
+        if (userData['id'] != null) {
+          await storage.saveUserId(userData['id'].toString());
+        }
       }
 
     }

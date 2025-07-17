@@ -48,7 +48,7 @@
   <!-- Animal Table Filter -->
   <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
     <div class="mb-4">
-      <form method="GET" action="{{ route('animals') }}" class="flex gap-4 items-center justify-end">
+      <form method="GET" action="{{ route('admin.animals') }}" class="flex gap-4 items-center justify-end">
         <div>
           <select name="type" id="type-select" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Types</option>
@@ -57,14 +57,14 @@
             @endforeach
           </select>
 
-          <select name="breed" id="breed-select" class="border border-gray-300 px-3 py-2 rounded-md">
+          <!-- <select name="breed" id="breed-select" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Breeds</option>
             @if(request('type') && isset($breedOptions[request('type')]))
               @foreach($breedOptions[request('type')] as $breed)
                 <option value="{{ $breed }}" {{ request('breed') == $breed ? 'selected' : '' }}>{{ $breed }}</option>
               @endforeach
             @endif
-          </select>
+          </select> -->
 
           <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
             <option value="">All Genders</option>
@@ -138,7 +138,7 @@
             ✕
           </button>
         </div>
-        <form method="POST" action="{{ route('animals.store') }}" class="px-6 py-4 space-y-4">
+        <form method="POST" action="{{ route('admin.animals.store') }}" class="px-6 py-4 space-y-4">
           @csrf
 
           <div>
@@ -165,7 +165,7 @@
 
           <div>
             <label class="block font-medium">Birth Date</label>
-            <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-3" required>
+            <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-3">
           </div>
 
           <div>
@@ -180,12 +180,12 @@
           <div class="flex gap-4">
             <div class="w-1/2">
               <label class="block font-medium">Weight (kg)</label>
-              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-3" required>
+              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-3">
             </div>
 
             <div class="w-1/2">
               <label class="block font-medium">Height (cm)</label>
-              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-3" required>
+              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-3">
             </div>
           </div>
 
@@ -236,7 +236,7 @@
             ✕
           </button>
         </div>
-        <form method="POST" :action="`/animals/${currentAnimal?.id}`" class="px-6 py-4 space-y-4">
+        <form method="POST" :action="`admin/animals/${currentAnimal?.id}`" class="px-6 py-4 space-y-4">
           @csrf
           @method('PUT')
 
@@ -264,7 +264,7 @@
 
           <div>
             <label class="block font-medium">Birth Date</label>
-            <input type="date" x-model="currentAnimal.birth_date" name="birth_date" class="w-full border-gray-300 rounded-md p-3" required>
+            <input type="date" x-model="currentAnimal.birth_date" name="birth_date" class="w-full border-gray-300 rounded-md p-3">
           </div>
 
           <div>
@@ -279,12 +279,12 @@
           <div class="flex gap-4">
             <div class="w-1/2">
               <label class="block font-medium">Weight (kg)</label>
-              <input type="number" step="0.01" x-model="currentAnimal.weight" name="weight" class="w-full border-gray-300 rounded-md p-3" required>
+              <input type="number" step="0.01" x-model="currentAnimal.weight" name="weight" class="w-full border-gray-300 rounded-md p-3">
             </div>
 
             <div class="w-1/2">
               <label class="block font-medium">Height (cm)</label>
-              <input type="number" step="0.01" x-model="currentAnimal.height" name="height" class="w-full border-gray-300 rounded-md p-3" required>
+              <input type="number" step="0.01" x-model="currentAnimal.height" name="height" class="w-full border-gray-300 rounded-md p-3">
             </div>
           </div>
 
@@ -441,7 +441,7 @@
           debounceTimeout = setTimeout(() => {
               console.log('Making fetch request for:', query);
               
-              fetch(`/users/search?q=${encodeURIComponent(query)}`)
+              fetch(`/admin/users/search?q=${encodeURIComponent(query)}`)
                   .then(response => {
                       console.log('Response status:', response.status);
                       console.log('Response headers:', response.headers);

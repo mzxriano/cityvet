@@ -14,10 +14,14 @@ return new class extends Migration
         Schema::create('vaccines', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description');
-            $table->integer('stock');
+            $table->text('description')->nullable();
+            $table->integer('stock')->default(0);
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();
+            $table->string('protect_against')->nullable();
+            $table->string('affected')->nullable();
+            $table->string('schedule')->nullable();
+            $table->date('expiration_date')->nullable();
             $table->timestamps();
         });
     }

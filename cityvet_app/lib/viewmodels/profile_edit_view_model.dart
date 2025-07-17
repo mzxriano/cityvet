@@ -30,7 +30,19 @@ class ProfileEditViewModel extends ChangeNotifier {
   ProfileEditViewModel(UserModel? user) {
     if (user != null) {
       // Initialize with user data immediately
-      _initializeWithUser(user);
+      _user = UserModel(
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        birthDate: user.birthDate,
+        barangay: user.barangay,
+        street: user.street,
+        imageUrl: user.imageUrl,
+        imagePublicId: user.imagePublicId,
+      );
+      _initializeWithUser(_user!);
     }
   }
 
@@ -167,6 +179,7 @@ class ProfileEditViewModel extends ChangeNotifier {
       }
 
       final user = UserModel(
+        id: _user?.id,
         firstName: firstName,
         lastName: lastName,
         email: email,

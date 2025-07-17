@@ -217,12 +217,11 @@ class _LoginViewState extends State<LoginView> {
                                       _passwordController.text.trim(),
                                     );
 
-                                    if (loginViewModel.error?.isNotEmpty ??
-                                        false) {
+                                    if (loginViewModel.error != null) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(SnackBar(
                                               content: Text(
-                                                  loginViewModel.message)));
+                                                  loginViewModel.error!)));
                                     }
 
 

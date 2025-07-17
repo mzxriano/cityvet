@@ -44,7 +44,7 @@
     <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
         <!-- Filter Form -->
         <div class="mb-4">
-            <form method="GET" action="{{ route('barangay') }}" class="flex gap-4 items-center justify-end">
+            <form method="GET" action="{{ route('admin.barangay') }}" class="flex gap-4 items-center justify-end">
                 <div>
                     <button type="submit" 
                             class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
@@ -74,7 +74,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($barangays as $index => $barangay)
+                @forelse($barangays as $index => $barangay)
                     <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
                         <td class="px-4 py-2">{{ $index + 1 }}</td>
                         <td class="px-4 py-2">{{ $barangay->name }}</td>
@@ -88,7 +88,11 @@
                             </button>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-gray-500">No barangay found.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

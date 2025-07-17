@@ -115,7 +115,7 @@ class _PostDetailsViewState extends State<PostDetailsView> {
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 30,
+                    radius: 20,
                     backgroundImage: user['image_url'] != null ? 
                       NetworkImage(user['image_url']) : 
                       null,

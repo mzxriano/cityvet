@@ -62,4 +62,11 @@ class CommunityService {
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   }
+
+  Future<Response> deletePost(int postId, String token) async {
+    return await dio.delete(
+      '/community/ $postId',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
 } 

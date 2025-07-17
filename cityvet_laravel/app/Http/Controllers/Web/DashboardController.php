@@ -16,7 +16,7 @@ class DashboardController
         $totalUsers = User::count();
         $totalAnimals = Animal::count();
 
-        return view("dashboard", compact("totalUsers","totalAnimals"));
+        return view("admin.dashboard", compact("totalUsers","totalAnimals"));
     }
 
     /**

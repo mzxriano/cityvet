@@ -36,7 +36,7 @@ class AnimalController extends Controller
 
         $animals = $query->paginate(10)->appends(key: request()->query());
 
-        return view("animals", compact("animals"));
+        return view("admin.animals", compact("animals"));
     }
 
     /**
@@ -66,7 +66,7 @@ class AnimalController extends Controller
         
         Animal::create($validated);
 
-        return redirect()->route('animals')->with('success', 'Animal added successfully.');
+        return redirect()->route('admin.animals')->with('success', 'Animal added successfully.');
     }
 
     /**
@@ -116,7 +116,7 @@ class AnimalController extends Controller
 
         $animal->save();
 
-        return redirect()->route('animals')->with('success', 'Animal updated successfully.');
+        return redirect()->route('admin.animals')->with('success', 'Animal updated successfully.');
     }
 
 

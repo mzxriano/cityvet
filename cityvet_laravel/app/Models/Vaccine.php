@@ -13,6 +13,10 @@ class Vaccine extends Model
         'stock',
         'image_url',
         'image_public_id',
+        'protect_against',
+        'affected',
+        'schedule',
+        'expiration_date',
     ];
 
     public function animals() {
