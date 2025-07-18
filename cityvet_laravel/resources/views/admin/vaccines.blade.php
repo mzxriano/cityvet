@@ -85,8 +85,7 @@
                     <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
                     <th class="px-4 py-2 font-medium">Name</th>
                     <th class="px-4 py-2 font-medium">Affected</th>
-                    <th class="px-4 py-2 font-medium">Protect Against</th>
-                    <th class="px-4 py-2 font-medium">Schedule</th>
+                    <th class="px-4 py-2 font-medium">Expiration Date</th>
                     <th class="px-4 py-2 font-medium">Stock</th>
                     <th class="px-4 py-2 font-medium">Status</th>
                     <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
@@ -98,8 +97,7 @@
                     <td class="px-4 py-2">{{ $index + 1 }}</td>
                     <td class="px-4 py-2">{{ $vaccine->name }}</td>
                     <td class="px-4 py-2">{{ $vaccine->affected }}</td>
-                    <td class="px-4 py-2">{{ $vaccine->protect_against }}</td>
-                    <td class="px-4 py-2">{{ $vaccine->schedule }}</td>
+                    <td class="px-4 py-2">{{ \Carbon\Carbon::parse($vaccine->expiration_date)->format('F j, Y') }}</td>
                     <td class="px-4 py-2">{{ $vaccine->stock }}</td>
                     <td class="px-4 py-2">
                         @if($vaccine->stock <= 5)

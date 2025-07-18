@@ -46,7 +46,10 @@ Route::prefix('auth')->group(function () {
             Route::put('/{id}', [AnimalController::class,'update']);
             Route::post('/{id}', [AnimalController::class,'update']);
             Route::delete('/{id}', [AnimalController::class,'destroy']);
+            Route::post('/{animal}/vaccines', [AnimalController::class, 'attachVaccines']);
         });
+        // Vaccines
+        Route::get('/vaccines', [\App\Http\Controllers\Api\VaccineController::class, 'index']);
         
         // Community Engagement
         Route::get('/community', [CommunityController::class, 'index']);

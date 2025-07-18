@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/models/animal_model.dart';
 
 class VaccinationRecord extends StatefulWidget {
-  final String animalName;
-  
-  const VaccinationRecord({
-    super.key, 
-    required this.animalName,
-  });
+  final AnimalModel animal;
+  const VaccinationRecord({super.key, required this.animal});
 
   @override
   State<VaccinationRecord> createState() => _VaccinationRecordState();
 }
 
-class _VaccinationRecordState extends State<VaccinationRecord> with TickerProviderStateMixin {
+class _VaccinationRecordState extends State<VaccinationRecord> 
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -32,7 +30,6 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
       begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
-    
     _animationController.forward();
   }
 
@@ -42,48 +39,10 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
     super.dispose();
   }
 
-  // Static vaccination data
-  final List<Map<String, String>> vaccinations = [
-    {
-      'name': 'Rabies Vaccine',
-      'date': 'January 15, 2024',
-      'administrator': 'Dr. Sarah Johnson',
-      'dose': '1st dose',
-      'nextDue': 'January 15, 2025',
-    },
-    {
-      'name': 'DHPP (Distemper, Hepatitis, Parvovirus, Parainfluenza)',
-      'date': 'December 10, 2023',
-      'administrator': 'Dr. Michael Chen',
-      'dose': '2nd dose',
-      'nextDue': 'December 10, 2024',
-    },
-    {
-      'name': 'Bordetella',
-      'date': 'November 22, 2023',
-      'administrator': 'Dr. Sarah Johnson',
-      'dose': '1st dose',
-      'nextDue': 'November 22, 2024',
-    },
-    {
-      'name': 'Lyme Disease Vaccine',
-      'date': 'October 18, 2023',
-      'administrator': 'Dr. Emily Rodriguez',
-      'dose': '1st dose',
-      'nextDue': 'October 18, 2024',
-    },
-    {
-      'name': 'Canine Influenza',
-      'date': 'September 30, 2023',
-      'administrator': 'Dr. Michael Chen',
-      'dose': '1st dose',
-      'nextDue': 'September 30, 2024',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     Config().init(context);
+    final vaccinations = widget.animal.vaccinations ?? [];
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -112,7 +71,7 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with pet icon
+                // Header with medical icon
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -151,20 +110,18 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Vaccination Record',
+                              'Vaccination History',
                               style: TextStyle(
                                 fontSize: 18,
-                                fontFamily: Config.primaryFont,
                                 fontWeight: FontWeight.w600,
                                 color: Config.tertiaryColor,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Complete vaccination records for ${widget.animalName}',
+                              'Complete medical vaccination record',
                               style: TextStyle(
                                 fontSize: 14,
-                                fontFamily: Config.primaryFont,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -177,10 +134,87 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
 
                 const SizedBox(height: 24),
 
-                // Vaccination cards list
-                ...vaccinations.map((vaccination) => _buildVaccinationCard(vaccination)).toList(),
+                // Vaccination Records Section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Config.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.history,
+                              color: Config.primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Vaccination Records',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Config.tertiaryColor,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Config.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${vaccinations.length} records',
+                              style: TextStyle(
+                                color: Config.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
-                const SizedBox(height: 20),
+                      // Vaccination Records List
+                      if (vaccinations.isEmpty)
+                        _buildEmptyState()
+                      else
+                        Column(
+                          children: vaccinations.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final vaccination = entry.value;
+                            return _buildVaccinationCard(
+                              vaccination,
+                              index,
+                              isLast: index == vaccinations.length - 1,
+                            );
+                          }).toList(),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -189,26 +223,22 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
     );
   }
 
-  Widget _buildVaccinationCard(Map<String, String> vaccination) {
+  Widget _buildVaccinationCard(dynamic vaccination, int index, {bool isLast = false}) {
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Config.primaryColor.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with vaccine name and icon
+          // Vaccine Name Header
           Row(
             children: [
               Container(
@@ -220,18 +250,32 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
                 child: Icon(
                   Icons.vaccines,
                   color: Config.primaryColor,
-                  size: 20,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  vaccination['name']!,
+                  vaccination.vaccine.name,
                   style: TextStyle(
                     fontSize: 16,
-                    fontFamily: Config.primaryFont,
                     fontWeight: FontWeight.w600,
                     color: Config.tertiaryColor,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Dose ${vaccination.dose}',
+                  style: TextStyle(
+                    color: Colors.green[700],
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -240,44 +284,22 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
 
           const SizedBox(height: 16),
 
-          // Vaccine details in a grid layout
+          // Vaccination Details
           Row(
             children: [
               Expanded(
-                child: _buildDetailColumn(
+                child: _buildDetailItem(
                   'Date Given',
-                  vaccination['date']!,
+                  vaccination.dateGiven,
                   Icons.calendar_today,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildDetailColumn(
-                  'Dose',
-                  vaccination['dose']!,
-                  Icons.numbers,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetailColumn(
-                  'Administered by',
-                  vaccination['administrator']!,
+                child: _buildDetailItem(
+                  'Administrator',
+                  vaccination.administrator,
                   Icons.person,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDetailColumn(
-                  'Next Due',
-                  vaccination['nextDue']!,
-                  Icons.schedule,
                 ),
               ),
             ],
@@ -287,7 +309,7 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
     );
   }
 
-  Widget _buildDetailColumn(String title, String value, IconData icon) {
+  Widget _buildDetailItem(String label, String value, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,15 +317,14 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
           children: [
             Icon(
               icon,
-              size: 14,
               color: Config.primaryColor,
+              size: 14,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
-              title,
+              label,
               style: TextStyle(
                 fontSize: 12,
-                fontFamily: Config.primaryFont,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[600],
               ),
@@ -314,13 +335,103 @@ class _VaccinationRecordState extends State<VaccinationRecord> with TickerProvid
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
-            fontFamily: Config.primaryFont,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
             color: Config.tertiaryColor,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Icon(
+              Icons.vaccines_outlined,
+              size: 48,
+              color: Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Vaccination Records',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Config.tertiaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This pet has not received any vaccinations yet.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Config.primaryColor, Config.primaryColor.withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Config.primaryColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  // Navigate to vaccination page
+                  Navigator.pop(context);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: const Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Add First Vaccination',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

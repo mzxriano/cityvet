@@ -21,7 +21,7 @@ return new class extends Migration
 
         Schema::create('barangays', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             // $table->unsignedBigInteger('case_reports');
             $table->timestamps();
         });
@@ -64,6 +64,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->unique(['name', 'type']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

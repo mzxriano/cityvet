@@ -169,7 +169,8 @@ class _AnimalPreviewState extends State<AnimalPreview> {
 
                               // Vaccination record widget
                               _buildRecordButton('Vaccination Record', (){
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => VaccinationRecord(animalName: myAnimal.name)));
+                                print(myAnimal.vaccinations);
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => VaccinationRecord(animal: myAnimal)));
                               }),
                               Config.heightBig,
 

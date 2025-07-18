@@ -20,6 +20,8 @@ class Vaccine extends Model
     ];
 
     public function animals() {
-        return $this->belongsToMany(Animal::class);
+        return $this->belongsToMany(Animal::class)
+            ->withPivot('dose', 'date_given', 'administrator')
+            ->withTimestamps();
     }
 }

@@ -1,15 +1,18 @@
 import 'package:cityvet_app/models/animal_model.dart';
+import 'package:cityvet_app/models/vaccine_model.dart';
+import 'package:cityvet_app/services/api_service.dart';
+import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
 class VaccinationPage extends StatefulWidget {
   final AnimalModel animalModel;
-  final List<Map<String, dynamic>> vaccines;
+  // Remove vaccines param, fetch from backend
+  // final List<Map<String, dynamic>> vaccines;
 
   const VaccinationPage({
     super.key,
     required this.animalModel,
-    required this.vaccines,
   });
 
   @override
@@ -17,12 +20,15 @@ class VaccinationPage extends StatefulWidget {
 }
 
 class _VaccinationPageState extends State<VaccinationPage> with TickerProviderStateMixin {
-  Map<String, dynamic>? selectedVaccine;
+  List<VaccineModel> vaccines = [];
+  VaccineModel? selectedVaccine;
   DateTime? selectedDate;
   final TextEditingController doseController = TextEditingController();
+  final TextEditingController adminController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -38,22 +44,35 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
-    
     _animationController.forward();
+    fetchVaccines();
+  }
+
+  Future<void> fetchVaccines() async {
+    setState(() { isLoading = true; });
+    final token = await AuthStorage().getToken();
+    final api = ApiService();
+    try {
+      final data = await api.getVaccines(token!);
+      setState(() {
+        vaccines = data.map<VaccineModel>((v) => VaccineModel.fromJson(v)).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() { isLoading = false; });
+      _showSnackBar('Failed to load vaccines', Colors.red);
+    }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     doseController.dispose();
+    adminController.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    setState(() {
-      selectedDate = DateTime.now();  
-    });
-
+  void _submit() async {
     if (selectedVaccine == null) {
       _showSnackBar('Please select a vaccine', Colors.orange);
       return;
@@ -66,8 +85,33 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       _showSnackBar('Please enter dose number', Colors.orange);
       return;
     }
-
-    _showSnackBar('Vaccination recorded successfully!', Colors.green);
+    if (adminController.text.isEmpty) {
+      _showSnackBar('Please enter administrator', Colors.orange);
+      return;
+    }
+    setState(() { isLoading = true; });
+    final token = await AuthStorage().getToken();
+    final api = ApiService();
+    try {
+      await api.attachVaccinesToAnimal(
+        token!,
+        widget.animalModel.id!,
+        [
+          {
+            'id': selectedVaccine!.id,
+            'dose': int.tryParse(doseController.text) ?? 1,
+            'date_given': selectedDate!.toIso8601String().split('T')[0],
+            'administrator': adminController.text,
+          }
+        ],
+      );
+      setState(() { isLoading = false; });
+      _showSnackBar('Vaccination recorded successfully!', Colors.green);
+      Navigator.pop(context, true);
+    } catch (e) {
+      setState(() { isLoading = false; });
+      _showSnackBar('Failed to record vaccination', Colors.red);
+    }
   }
 
   void _showSnackBar(String message, Color color) {
@@ -270,50 +314,42 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                         ),
                       ),
                       const SizedBox(height: 8),
-                      EnhancedSearchableDropdown(
-                        items: widget.vaccines,
-                        selectedItem: selectedVaccine,
-                        onChanged: (value) => setState(() => selectedVaccine = value),
-                        hintText: 'Choose vaccine type',
-                        displayText: (item) => item?['name'] ?? 'Choose vaccine type',
-                        searchHint: 'Search vaccine...',
+                      DropdownButtonFormField<VaccineModel>(
+                        value: selectedVaccine,
+                        items: vaccines.map((vaccine) {
+                          return DropdownMenuItem<VaccineModel>(
+                            value: vaccine,
+                            child: Text(vaccine.name),
+                          );
+                        }).toList(),
+                        onChanged: (v) => setState(() => selectedVaccine = v),
+                        decoration: InputDecoration(labelText: 'Select Vaccine'),
                       ),
-
-                      const SizedBox(height: 20),
-
-                      // Dose Number Input
-                      Text(
-                        'Dose Number',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Config.tertiaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
+                      const SizedBox(height: 12),
+                      TextFormField(
                         controller: doseController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: 'Enter dose number (e.g., 1, 2, 3)',
-                          prefixIcon: Icon(Icons.numbers, color: Config.primaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Config.primaryColor, width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        ),
+                        decoration: InputDecoration(labelText: 'Dose'),
                       ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: adminController,
+                        decoration: InputDecoration(labelText: 'Administrator'),
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        title: Text(selectedDate == null ? 'Select Date' : selectedDate!.toLocal().toString().split(' ')[0]),
+                        trailing: Icon(Icons.calendar_today),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) setState(() => selectedDate = picked);
+                        },
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

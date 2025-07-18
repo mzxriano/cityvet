@@ -1,3 +1,5 @@
+import 'package:cityvet_app/models/vaccine_model.dart';
+
 class AnimalModel {
   final int? id;
   final String type;
@@ -14,6 +16,7 @@ class AnimalModel {
   final String? qrCodeUrl;
   final String? imageUrl;
   final String? imagePublicId;
+  final List<AnimalVaccinationModel>? vaccinations;
 
   AnimalModel({
     this.id, 
@@ -31,6 +34,7 @@ class AnimalModel {
     this.qrCodeUrl,
     this.imageUrl,
     this.imagePublicId,
+    this.vaccinations,
   });
 
   factory AnimalModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +54,11 @@ class AnimalModel {
       owner: json['owner'],
       imageUrl: json['image_url'],
       imagePublicId: json['image_public_id'],
+      vaccinations: json['vaccinations'] != null
+          ? (json['vaccinations'] as List)
+              .map((v) => AnimalVaccinationModel.fromJson(v))
+              .toList()
+          : null,
     );
   }
 
@@ -67,6 +76,7 @@ class AnimalModel {
       'code': code,
       'qr_code_base64': qrCode,
       'qr_code_url': qrCodeUrl,
+      'vaccinations': vaccinations?.map((v) => v.toJson()).toList(),
     };
 
     if (includeId && id != null) {

@@ -133,11 +133,6 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
         MaterialPageRoute(
           builder: (_) => VaccinationPage(
             animalModel: animal!,
-            vaccines: [
-              {'id': 1, 'name': 'Rabies'},
-              {'id': 2, 'name': 'Distemper'},
-              {'id': 3, 'name': 'Parvovirus'},
-            ],
           ),
         ),
       );

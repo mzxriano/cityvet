@@ -68,6 +68,7 @@ class AnimalService {
         }
       )
     );
+    print(response);
     return response;
   }
     

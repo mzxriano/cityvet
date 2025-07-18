@@ -48,6 +48,26 @@ class AnimalController
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
                 'qr_code_base64' => $this->generateQrCodeBase64($animal), 
                 'qr_code_url' => $animal->getQrCodeUrl(), 
+                'vaccinations' => $animal->vaccines->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'vaccine' => [
+                            'id' => $v->id,
+                            'name' => $v->name,
+                            'description' => $v->description,
+                            'stock' => $v->stock,
+                            'image_url' => $v->image_url,
+                            'image_public_id' => $v->image_public_id,
+                            'protect_against' => $v->protect_against,
+                            'affected' => $v->affected,
+                            'schedule' => $v->schedule,
+                            'expiration_date' => $v->expiration_date,
+                        ],
+                        'dose' => $v->pivot->dose,
+                        'date_given' => $v->pivot->date_given,
+                        'administrator' => $v->pivot->administrator,
+                    ];
+                }),
             ];
         });
 
@@ -159,9 +179,42 @@ class AnimalController
 
         return response()->json([
             'message' => 'Animal retrieved successfully.',
-            'data' => $animal,
-            'qr_code_base64' => $qrCodeBase64,
-            'qr_code_url' => $animal->getQrCodeUrl(),
+            'data' => [
+                'id' => $animal->id,
+                'type' => $animal->type,
+                'name' => $animal->name,
+                'breed' => $animal->breed,
+                'birth_date' => $animal->birth_date,
+                'gender' => $animal->gender,
+                'weight' => $animal->weight,
+                'height' => $animal->height,
+                'color' => $animal->color,
+                'code' => $animal->code,
+                'image_url' => $animal->image_url,
+                'owner' => $animal->user ? "{$animal->user->first_name} {$animal->user->last_name}" : null,
+                'qr_code_base64' => $qrCodeBase64,
+                'qr_code_url' => $animal->getQrCodeUrl(),
+                'vaccinations' => $animal->vaccines->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'vaccine' => [
+                            'id' => $v->id,
+                            'name' => $v->name,
+                            'description' => $v->description,
+                            'stock' => $v->stock,
+                            'image_url' => $v->image_url,
+                            'image_public_id' => $v->image_public_id,
+                            'protect_against' => $v->protect_against,
+                            'affected' => $v->affected,
+                            'schedule' => $v->schedule,
+                            'expiration_date' => $v->expiration_date,
+                        ],
+                        'dose' => $v->pivot->dose,
+                        'date_given' => $v->pivot->date_given,
+                        'administrator' => $v->pivot->administrator,
+                    ];
+                }),
+            ],
         ]);
     }
 
@@ -336,6 +389,30 @@ class AnimalController
         return response()->json([
             'message' => 'Animal deleted successfully.'
         ], 200);
+    }
+
+    /**
+     * Attach vaccines to an animal
+     */
+    public function attachVaccines(Request $request, $animalId)
+    {
+        $animal = Animal::where('id', $animalId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $vaccines = $request->input('vaccines', []);
+        $syncData = [];
+        foreach ($vaccines as $vaccine) {
+            if (isset($vaccine['id'])) {
+                $syncData[$vaccine['id']] = [
+                    'dose' => $vaccine['dose'] ?? 1,
+                    'date_given' => $vaccine['date_given'] ?? now()->toDateString(),
+                    'administrator' => $vaccine['administrator'] ?? null,
+                ];
+            }
+        }
+        $animal->vaccines()->attach($syncData);
+        return response()->json(['message' => 'Vaccines attached successfully.']);
     }
 
     /**
