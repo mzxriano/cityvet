@@ -67,6 +67,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->belongsTo(Role::class);
     }
 
+    public function deviceTokens()
+    {
+        return $this->hasMany(\App\Models\DeviceToken::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

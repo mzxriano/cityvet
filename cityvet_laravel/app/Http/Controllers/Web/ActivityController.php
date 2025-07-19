@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\Activity;
 use App\Models\Barangay;
+use App\Models\User;
+use App\Notifications\PushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -50,7 +52,7 @@ class ActivityController extends Controller
 
         try {
             // Create the activity
-            Activity::create([
+            $activity =  Activity::create([
                 'reason' => $validatedData['reason'],
                 'barangay_id' => $validatedData['barangay_id'],
                 'details' => $validatedData['details'], 
@@ -59,11 +61,22 @@ class ActivityController extends Controller
                 'status' => $validatedData['status']
             ]);
 
+            // Notify all users
+            $users = User::all();
+            foreach ($users as $user) {
+                $user->notify(new PushNotification(
+                    'Up coming event',
+                    'A new upcoming event. Reason - ' . $activity->reason,
+                    ['activity_id' => $activity->id]
+                ));
+            }
+
             // Redirect back with success message
             return redirect()->route('admin.activities')->with('success', 'Activity created successfully!');
 
         } catch (\Exception $e) {
             // Redirect back with error message
+            \Log::info($e);
             return redirect()->back()->with('error', 'Failed to create activity. Please try again.');
         }
     }

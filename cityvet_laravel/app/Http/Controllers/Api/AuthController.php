@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Mail\VerifyEmail;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\PushNotification;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

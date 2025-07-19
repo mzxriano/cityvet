@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use App\Models\User;
+use App\Notifications\PushNotification;
 
 class ActivityController extends Controller
 {
@@ -35,7 +37,21 @@ class ActivityController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'reason' => 'required|string|max:255',
+            'details' => 'required|string',
+            'barangay_id' => 'required|exists:barangays,id',
+            'time' => 'required',
+            'date' => 'required|date',
+            'status' => 'required|in:up_coming,on_going,completed,failed',
+        ]);
+
+        $activity = Activity::create($validated);
+
+        return response()->json([
+            'message' => 'Activity created and notifications sent.',
+            'activity' => $activity,
+        ], 201);
     }
 
     /**

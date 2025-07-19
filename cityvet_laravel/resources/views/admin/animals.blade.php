@@ -301,7 +301,7 @@
               id="owner-search-edit"
               placeholder="Search owner by name or email"
               autocomplete="off"
-              x-model="currentAnimal.user.first_name"
+              x-model="currentAnimal.user.first_name + ' ' + currentAnimal.user.last_name" 
               class="w-full border border-gray-300 rounded-md p-3"
               required
             />

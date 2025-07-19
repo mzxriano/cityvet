@@ -22,6 +22,12 @@ Route::post('/register', [AdminAuthController::class, 'register'])->name('regist
 
 Route::prefix('admin')->group(function () {
 
+    // Admin Forgot Password
+    Route::get('/forgot-password', [App\Http\Controllers\Web\AdminAuthController::class, 'showForgotPasswordForm'])->name('admin.forgot_password');
+    Route::post('/forgot-password', [App\Http\Controllers\Web\AdminAuthController::class, 'sendResetLink'])->name('admin.forgot_password.send');
+    Route::get('/reset-password/{token}', [App\Http\Controllers\Web\AdminAuthController::class, 'showResetPasswordForm'])->name('admin.reset_password');
+    Route::post('/reset-password', [App\Http\Controllers\Web\AdminAuthController::class, 'resetPassword'])->name('admin.reset_password.submit');
+
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     Route::middleware(['auth:admin', EnsureAdminSession::class])->group(function () {
@@ -41,6 +47,7 @@ Route::prefix('admin')->group(function () {
 
         Route::prefix('animals')->group(function () {
             Route::get('/', [AnimalController::class, 'index'])->name('admin.animals');
+            Route::get('/view', [AnimalController::class, 'show'])->name('admin.animals.view');
             Route::post('/', [AnimalController::class, 'store'])->name('admin.animals.store');
             Route::put('/{id}', [AnimalController::class, 'update'])->name('admin.animals.update');
         });

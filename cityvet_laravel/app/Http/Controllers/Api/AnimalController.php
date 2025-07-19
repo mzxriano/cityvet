@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Animal;
+use App\Notifications\PushNotification;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -137,6 +138,10 @@ class AnimalController
             ...$validated,
             'user_id' => auth()->id(),
         ]);
+
+        $user = auth()->user();
+
+        $user->notify(new PushNotification('Add Animal', 'Animal successfully created.', []));
 
         return response()->json([
             'message' => 'Animal successfully created.',

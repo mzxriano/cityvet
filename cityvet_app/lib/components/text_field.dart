@@ -39,6 +39,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
           focusNode: widget.node,
           obscureText: widget.isObscured,
           keyboardType: widget.textInputType,
+          style: TextStyle(
+            fontFamily: Config.primaryFont
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: widget.isFocused ? Colors.transparent : Config.secondaryColor,

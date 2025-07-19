@@ -12,6 +12,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:cityvet_app/services/api_service.dart';
+import 'package:cityvet_app/models/notification_model.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -23,6 +25,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   int _currentIndex = 0;
   int _previousIndex = 0;
+  int _unreadNotifications = 0;
 
   final List<Widget> _pages = const [
     HomeView(),
@@ -39,6 +42,47 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         _currentIndex = index;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUnreadNotifications();
+    // Listen for new notifications and show popup
+    final api = ApiService();
+    api.onNewNotification = (notification) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(child: Text(notification.title + ': ' + notification.body)),
+              ],
+            ),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            margin: EdgeInsets.all(16),
+          ),
+        );
+      }
+    };
+  }
+
+  Future<void> fetchUnreadNotifications() async {
+    final token = await AuthStorage().getToken();
+    if (token == null) return;
+    final api = ApiService();
+    try {
+      final data = await api.getNotifications(token);
+      final notifications = data.map<NotificationModel>((n) => NotificationModel.fromJson(n)).toList();
+      setState(() {
+        _unreadNotifications = notifications.where((n) => !n.read).length;
+      });
+    } catch (_) {}
   }
 
   @override

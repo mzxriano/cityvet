@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cityvet_app"
+    namespace = "com.example.cityvet"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
     ndkVersion = "27.0.12077973"
@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.cityvet_app"
+        applicationId = "com.example.cityvet"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -43,3 +43,5 @@ android {
 flutter {
     source = "../.."
 }
+
+apply(plugin = "com.google.gms.google-services")

@@ -9,6 +9,7 @@ import 'package:cityvet_app/views/forgot_pass_view.dart';
 import 'package:cityvet_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cityvet_app/services/fcm_service.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -84,6 +85,7 @@ class _LoginViewState extends State<LoginView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   RichText(
                                     text: TextSpan(
@@ -110,6 +112,9 @@ class _LoginViewState extends State<LoginView> {
                               TextField(
                                 controller: _emailController,
                                 focusNode: _emailNode,
+                                style: TextStyle(
+                                  fontFamily: Config.primaryFont
+                                ),
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: _isEmailFocused
@@ -144,6 +149,9 @@ class _LoginViewState extends State<LoginView> {
                                 controller: _passwordController,
                                 focusNode: _passwordNode,
                                 obscureText: _isObscured,
+                                style: TextStyle(
+                                  fontFamily: Config.primaryFont
+                                ),
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: _isPassFocused
@@ -233,6 +241,14 @@ class _LoginViewState extends State<LoginView> {
                                       Provider.of<UserViewModel>(context,
                                               listen: false)
                                           .setUser(loginViewModel.user!);
+
+                                      // Initialize FCM after login
+                                      if(loginViewModel.user?.id != null) {
+                                        await FcmService().initialize(userId: loginViewModel.user!.id!);
+                                      }else {
+                                        print('Failed to initialize fire base');
+                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to initialize firebase.')));
+                                      }
 
                                       Navigator.of(context).pushReplacement(
                                         MaterialPageRoute(

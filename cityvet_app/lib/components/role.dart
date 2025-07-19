@@ -12,7 +12,7 @@ class RoleWidget {
     final color = roleColors[role] ?? Colors.grey;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(100),
@@ -22,7 +22,7 @@ class RoleWidget {
         style: TextStyle(
           fontFamily: 'Poppins',
           color: Colors.white,
-          fontSize: 10,
+          fontSize: 7,
         ),
       ),
     );

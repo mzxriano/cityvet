@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Notifications\ChannelManager;
+use App\Channels\FcmChannel;
+use App\Services\FcmV1Service;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Log::info('AppServiceProvider boot called');
+        $this->app->make(ChannelManager::class)->extend('fcm', function ($app) {
+            return new FcmChannel($app->make(FcmV1Service::class));
+        });
     }
 }

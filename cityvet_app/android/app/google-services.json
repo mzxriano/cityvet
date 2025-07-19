@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "431838970874",
+    "project_id": "cityvet-d65f7",
+    "storage_bucket": "cityvet-d65f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431838970874:android:d00cb3db73c81804411a43",
+        "android_client_info": {
+          "package_name": "com.example.cityvet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG2lK6qavvTgCY2Ma0LtmKOt-YZ0R2poI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

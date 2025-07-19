@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\CommunityCommentController;
 use App\Http\Controllers\Api\CommunityLikeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\DeviceTokenController;
 
 Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
 
@@ -61,6 +63,10 @@ Route::prefix('auth')->group(function () {
         Route::get('/community/{id}/comments', [CommunityCommentController::class, 'index']);
 
         Route::post('/community/{id}/like', [CommunityLikeController::class, 'toggle']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/send-notification', [NotificationController::class, 'sendPushNotification']);
+        Route::post('/save-device-token', [DeviceTokenController::class, 'save']);
     }); 
 
 });

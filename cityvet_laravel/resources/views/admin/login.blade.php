@@ -61,7 +61,7 @@
 
 
                 <div class="text-right">
-                    <a href="#" class="text-sm font-medium text-red-500 hover:text-red-600">Forgot Password?</a>
+                    <a href="{{ route('admin.forgot_password') }}" class="text-sm font-medium text-red-500 hover:text-red-600">Forgot Password?</a>
                 </div>
 
 
