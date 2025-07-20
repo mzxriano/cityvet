@@ -93,7 +93,8 @@
             </thead>
             <tbody>
             @forelse($vaccines as $index => $vaccine)
-                <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
+                <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+                        onClick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'">
                     <td class="px-4 py-2">{{ $index + 1 }}</td>
                     <td class="px-4 py-2">{{ $vaccine->name }}</td>
                     <td class="px-4 py-2">{{ $vaccine->affected }}</td>

@@ -11,6 +11,7 @@ dependencies:
   dotted_border: ^3.1.0
   dropdown_search: ^6.0.2
   firebase_core: ^3.15.1
+  firebase_core_web: ^2.24.1
   firebase_messaging: ^15.2.9
   flutter:
     sdk: flutter

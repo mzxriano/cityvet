@@ -51,6 +51,8 @@ class VaccineController
      */
     public function show(string $id)
     {
+        $vaccine = Vaccine::find($id);
+        return view('admin.vaccines_view', compact('vaccine'));
     }
 
     /**

@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Notifications\Notification as BaseNotification;
 
 class AdminAuthController extends Controller
 {
@@ -47,14 +53,61 @@ class AdminAuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
         $role_id = Role::where('name','admin')->first()->id;
-        Admin::create([
+        $admin = Admin::create([
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $role_id,
             'password' => Hash::make($request->password),
         ]);
-        
-        return redirect()->route('login')->with('success', 'Registration successful. Please log in.');
+        // Send verification email
+        $this->sendVerificationEmail($admin);
+        return redirect()->route('showLogin')->with('success', 'Registration successful. Please check your email to verify your account.');
+    }
+
+    public function showVerificationNotice(Request $request) {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('showLogin');
+        }
+        $admin = Auth::guard('admin')->user();
+        if ($admin->hasVerifiedEmail()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return view('admin.verify_email');
+    }
+
+    public function verifyEmail(Request $request, $id, $hash) {
+        $admin = Admin::findOrFail($id);
+        if (!hash_equals((string) $hash, sha1($admin->getEmailForVerification()))) {
+            return redirect()->route('admin.verification.notice')->withErrors(['email' => 'Invalid verification link.']);
+        }
+        if (!$admin->hasVerifiedEmail()) {
+            $admin->markEmailAsVerified();
+            event(new Verified($admin));
+        }
+        return redirect()->route('email.successful');
+    }
+
+    public function resendVerificationEmail(Request $request) {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('showLogin');
+        }
+        $admin = Auth::guard('admin')->user();
+        if ($admin->hasVerifiedEmail()) {
+            return redirect()->route('admin.dashboard');
+        }
+        $this->sendVerificationEmail($admin);
+        return back()->with('status', 'Verification link sent!');
+    }
+
+    protected function sendVerificationEmail($admin) {
+        $verificationUrl = URL::temporarySignedRoute(
+            'admin.verification.verify',
+            now()->addMinutes(60),
+            ['id' => $admin->id, 'hash' => sha1($admin->getEmailForVerification())]
+        );
+        Mail::send('mail.verification_admin', ['admin' => $admin, 'url' => $verificationUrl], function ($message) use ($admin) {
+            $message->to($admin->email)->subject('Verify Your Admin Email');
+        });
     }
 
     public function logout() {

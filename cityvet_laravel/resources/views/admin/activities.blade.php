@@ -146,7 +146,8 @@
       </thead>
       <tbody>
         @forelse($activities as $index => $activity)
-          <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
+          <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+              onClick="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
             <td class="px-4 py-2">{{ $index + 1 }}</td>
             <td class="px-4 py-2">{{ $activity->reason }}</td>
             <td class="px-4 py-2">{{ $activity->barangay->name ?? 'N/A' }}</td>
@@ -164,7 +165,7 @@
             </td>
             <td class="px-4 py-2 text-center">
               <button 
-                @click="calendarMode = 'edit'; showEditModal = true; currentActivity = @js($activity)" 
+                @click.stop="calendarMode = 'edit'; showEditModal = true; currentActivity = @js($activity)" 
                 class="text-blue-600 hover:underline">Edit</button>
             </td>
           </tr>

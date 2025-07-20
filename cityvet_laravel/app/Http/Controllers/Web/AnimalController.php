@@ -72,9 +72,11 @@ class AnimalController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show()
-    {
-        return view('admin.animals_view');
+    public function show($id)
+    {   
+        $animal = Animal::find($id);
+        $vaccines = $animal->vaccines;
+        return view('admin.animals_view', compact('animal', 'vaccines'));
     }
 
     /**

@@ -85,7 +85,11 @@ class UserController
      */
     public function show(string $id)
     {
-        //
+        $user = User::find($id);
+        $animals = $user->animals;
+
+        return view('admin.users_view', compact(['user', 'animals']));
+
     }
 
     /**

@@ -20,6 +20,9 @@ void main() async {
   );
 }
 
+class DefaultFirebaseOptions {
+}
+
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 

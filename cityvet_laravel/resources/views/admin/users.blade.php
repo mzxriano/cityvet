@@ -89,7 +89,8 @@
             </thead>
             <tbody>
                 @forelse($users as $user)
-                    <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
+                    <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+                        onClick="window.location.href = '{{ route('admin.users.show', $user->id) }}'">
                         <td class="px-4 py-2">{{ $user->id }}</td>
                         <td class="px-4 py-2">{{ $user->first_name }}</td>
                         <td class="px-4 py-2">{{ $user->last_name }}</td>
@@ -98,7 +99,7 @@
                         <td class="px-4 py-2">{{ $user->email }}</td>
                         <td class="px-4 py-2 text-center">
                             <button type="button"
-                                    @click="currentUser = @js($user); showEditModal = true"
+                                    @click.stop="currentUser = @js($user); showEditModal = true"
                                     class="text-blue-600 hover:underline">
                                 Edit
                             </button>

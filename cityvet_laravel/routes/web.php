@@ -20,6 +20,13 @@ Route::post('/login', [AdminAuthController::class, 'login'])->name('login');
 Route::get('/register', [AdminAuthController::class, 'showRegisterForm'])->name('showRegister');
 Route::post('/register', [AdminAuthController::class, 'register'])->name('register');
 
+// Admin Email Verification
+Route::prefix('admin')->group(function () {
+    Route::get('/email/verify', [App\Http\Controllers\Web\AdminAuthController::class, 'showVerificationNotice'])->name('admin.verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\Web\AdminAuthController::class, 'verifyEmail'])->name('admin.verification.verify');
+    Route::post('/email/resend', [App\Http\Controllers\Web\AdminAuthController::class, 'resendVerificationEmail'])->name('admin.verification.resend');
+});
+
 Route::prefix('admin')->group(function () {
 
     // Admin Forgot Password
@@ -30,24 +37,26 @@ Route::prefix('admin')->group(function () {
 
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
-    Route::middleware(['auth:admin', EnsureAdminSession::class])->group(function () {
+    Route::middleware(['auth:admin', EnsureAdminSession::class, \App\Http\Middleware\EnsureAdminEmailIsVerified::class])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
 
         Route::prefix('activities')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
+            Route::get('/{id}/show', [ActivityController::class, 'show'])->name('admin.activities.show');
             Route::post('/', [ActivityController::class, 'create'])->name('admin.activities.store');
         });
 
         Route::prefix('users')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('admin.users');
             Route::post('/', [UserController::class, 'store'])->name('admin.users.store');
+            Route::get('/{id}/show', [UserController::class, 'show'])->name('admin.users.show');
             Route::put('/{id}', [UserController::class, 'edit'])->name('users.edit');
             Route::get('/search', [AnimalController::class,'searchOwner'])->name('search.owner');
         });
 
         Route::prefix('animals')->group(function () {
             Route::get('/', [AnimalController::class, 'index'])->name('admin.animals');
-            Route::get('/view', [AnimalController::class, 'show'])->name('admin.animals.view');
+            Route::get('/{id}/show', [AnimalController::class, 'show'])->name('admin.animals.show');
             Route::post('/', [AnimalController::class, 'store'])->name('admin.animals.store');
             Route::put('/{id}', [AnimalController::class, 'update'])->name('admin.animals.update');
         });
@@ -57,6 +66,7 @@ Route::prefix('admin')->group(function () {
         Route::prefix('vaccines')->group(function () {
             Route::get('/', [VaccineController::class, 'index'])->name('admin.vaccines');
             Route::get('/add', [VaccineController::class, 'create'])->name('admin.vaccines.add');
+            Route::get('/{id}/show', [VaccineController::class, 'show'])->name('admin.vaccines.show');
             Route::post('/', [VaccineController::class, 'store'])->name('admin.vaccines.store');
             Route::get('/{id}/edit', [VaccineController::class, 'edit'])->name('admin.vaccines.edit');
             Route::put('/{id}', [VaccineController::class, 'update'])->name('admin.vaccines.update');
@@ -74,7 +84,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/archives', function () {
             return view('admin.archives');
         })->name('admin.archives');
-        // Add your admin dashboard and protected routes here
+        
     });
 });
 

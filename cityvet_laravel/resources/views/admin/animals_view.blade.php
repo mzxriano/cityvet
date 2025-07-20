@@ -1,299 +1,263 @@
 @extends('layouts.layout')
 
 @section('content')
-  <style>
-    /* Base & Reset */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      background-color: #f0f0f3;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      color: #333;
-      padding: 2rem;
-    }
-    h1 {
-      font-weight: 600;
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
-      color: #444;
-    }
-    h2 {
-      font-weight: 700;
-      font-size: 1.7rem;
-      margin: 0;
-    }
-    h3 {
-      font-weight: 600;
-      font-size: 1rem;
-      margin-bottom: 0.75rem;
-      color: #777;
-    }
-    small {
-      font-size: 0.85rem;
-      color: #666;
-    }
-    /* Layout */
-    .container {
-      max-width: 940px;
-      margin: 0 auto;
-    }
-    .title-section {
-      margin-bottom: 2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .title-section h1 {
-      font-weight: 700;
-      color: #222;
-    }
-    .title-section small {
-      color: #999;
-    }
-    .main-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    /* Pet Card */
-    .pet-card {
-      background: #fff;
-      border: 2.5px solid #2a91ff;
-      border-radius: 12px;
-      display: flex;
-      padding: 1rem 1.5rem;
-      align-items: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      min-height: 180px;
-    }
-    .pet-type-tag {
-      background-color: #ff269e;
-      color: white;
-      font-weight: 600;
-      font-size: 0.85rem;
-      padding: 0.25rem 0.85rem;
-      border-radius: 9999px;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      user-select: none;
-      box-shadow: 0 0 6px rgba(255, 38, 158, 0.35);
-    }
-    .pet-image {
-      position: relative;
-      flex-shrink: 0;
-      width: 120px;
-      height: 130px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 6px 15px rgb(42 145 255 / 0.25);
-    }
-    .pet-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .qr-code {
-      position: absolute;
-      bottom: 6px;
-      right: 6px;
-      width: 34px;
-      height: 34px;
-      border-radius: 6px;
-      background-color: #fff;
-      border: 1.5px solid #e0e0e0;
-      box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .qr-code img {
-      width: 22px;
-      height: 22px;
-    }
-    .pet-details {
-      flex: 1;
-      min-width: 180px;
-      font-size: 0.9rem;
-      color: #555;
-      line-height: 1.4;
-    }
-    .pet-details dl {
-      margin: 0;
-    }
-    .pet-details dt {
-      font-weight: 600;
-      color: #222;
-      display: inline;
-    }
-    .pet-details dd {
-      display: inline;
-      margin: 0 0 0.3rem 4px;
-      color: #555;
-    }
-    /* Owner Card */
-    .owner-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1.5rem 1.75rem;
-      box-shadow: 0 8px 14px rgb(0 0 0 / 0.04);
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      font-size: 1rem;
-      color: #444;
-    }
-    .owner-card strong {
-      font-weight: 700;
-      display: block;
-      margin-bottom: 0.15rem;
-      color: #111;
-    }
-    .owner-card small {
-      font-weight: 600;
-      color: #666;
-      opacity: 0.85;
-      margin-bottom: 0.45rem;
-      display: block;
-    }
-    .owner-address {
-      font-weight: 600;
-      color: #555;
-      line-height: 1.3;
-    }
-    /* Pictures Section */
-    .pictures-section {
-      margin-bottom: 1.5rem;
-    }
-    .pictures-label {
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 0.75rem;
-      font-size: 1rem;
-      padding-left: 4px;
-    }
-    .pictures-list {
-      display: flex;
-      gap: 1rem;
-      overflow-x: auto;
-      padding-bottom: 6px;
-    }
-    .picture-box {
-      flex: 0 0 130px;
-      height: 180px;
-      background-color: #ccc;
-      border-radius: 12px;
-      box-shadow: inset 0 0 8px #bbb;
-      user-select: none;
-      position: relative;
-    }
-    /* Vaccination History Section */
-    .vax-history-section {
-      margin-top: 0.5rem;
-    }
-    .vax-label {
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-      padding-left: 4px;
-    }
-    .vax-textarea {
-      width: 100%;
-      min-height: 120px;
-      border-radius: 12px;
-      border: 1.5px solid #ccc;
-      padding: 0.9rem 1.1rem;
-      font-size: 1rem;
-      font-family: inherit;
-      resize: vertical;
-      box-shadow: inset 0 1px 4px #ddd;
-      outline-offset: 2px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      color: #444;
-      background-color: #fff;
-    }
-    .vax-textarea:focus {
-      border-color: #2a91ff;
-      box-shadow: 0 0 6px #2a91ffaa;
-      background-color: #f9fbff;
-    }
-    /* Responsive */
-    @media (max-width: 680px) {
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-      .owner-card {
-        margin-top: 1rem;
-      }
-      .pet-card {
-        justify-content: center;
-      }
-    }
-  </style>
-  <div class="container" role="main" aria-label="Animal Profile">
+<div class="min-h-screen">
+  <main class="p-6 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900">Animal Details</h1>
+    </div>
 
-    <header class="title-section" aria-label="Animals category and count">
-      <h1>Animals</h1>
-      <small aria-live="polite">(Animals: 1)</small>
-    </header>
-
-    <section class="main-grid">
-      <article class="pet-card" aria-labelledby="pet-name" tabindex="0" style="position:relative;">
-        <span class="pet-type-tag" aria-label="Animal type: Pet">Pet</span>
-        <figure class="pet-image" aria-label="Image of Mocha, a Golden Retriever dog">
-          <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c7c950cb-f736-4889-8849-ae22b3a4f610.png" alt="Mocha, a Golden Retriever dog sitting, light golden fur, looking forward with friendly expression" onerror="this.style.display='none'" />
-          <div class="qr-code" aria-label="QR code related to Mocha">
-            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/58ef8c2f-b3ef-41dc-9c22-7cad963926f5.png" alt="QR code black and white pattern" onerror="this.style.display='none'" />
+    <!-- Animal Profile Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Animal Info Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex flex-col items-center text-center mb-4">
+          <!-- Pet Badge -->
+          <span class="bg-pink-500 text-white text-xs px-4 py-1 rounded-full font-medium mb-4">
+            {{ ucfirst($animal->type ?? 'Pet') }}
+          </span>
+          
+          <!-- Animal Image -->
+          <div class="w-48 h-48 mb-4 relative">
+            @if($animal->image_url)
+              <img src="{{ $animal->image_url }}" 
+                   alt="{{ $animal->name }}" 
+                   class="w-full h-full object-cover rounded-lg">
+            @else
+              <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            @endif
+            
+            <!-- QR Code Badge -->
+            @if($animal->qr_code)
+              <div class="absolute bottom-3 left-3">
+                <div class="w-10 h-10 bg-white rounded border-2 border-gray-200 flex items-center justify-center shadow-sm">
+                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm6 0h2v2h-2V5zm0 4h2v2h-2V9zm-8 2h2v2H3v-2zm16-6h-8v8h8V3zm-2 6h-4V5h4v4zm-8 4h2v2h-2v-2zm0 4h2v2h-2v-2zm-2-2h2v2H9v-2zm8-2h2v2h-2v-2zm0 4h2v2h-2v-2zm-2-2h2v2h-2v-2zm0-8h2v2h-2V9zm4 0h2v2h-2V9z"/>
+                  </svg>
+                </div>
+              </div>
+            @endif
           </div>
-        </figure>
-        <dl class="pet-details">
-          <dt>Name:</dt>
-          <dd id="pet-name">Mocha</dd><br />
-          <dt>Breed:</dt>
-          <dd>Golden Retriever</dd><br />
-          <dt>Gender:</dt>
-          <dd>Male</dd><br />
-          <dt>Birthday:</dt>
-          <dd>June 6, 2023</dd><br />
-          <dt>Weight:</dt>
-          <dd>Unknown</dd><br />
-          <dt>Height:</dt>
-          <dd>Unknown</dd><br />
-          <dt>Vaccines:</dt>
-          <dd>–</dd>
-        </dl>
-      </article>
-
-      <aside class="owner-card" aria-labelledby="owner-name" tabindex="0">
-        <h2 id="owner-name">John Doe</h2>
-        <small>Owner</small>
-        <h3>Address</h3>
-        <address class="owner-address">2428 Bugnay, San Vicente, West, Urdaneta</address>
-      </aside>
-    </section>
-
-    <section class="pictures-section" aria-label="Pictures of Mocha">
-      <h3 class="pictures-label">Pictures</h3>
-      <div class="pictures-list" role="list">
-        <div class="picture-box" role="listitem" aria-label="Placeholder for picture 1"></div>
-        <div class="picture-box" role="listitem" aria-label="Placeholder for picture 2"></div>
-        <div class="picture-box" role="listitem" aria-label="Placeholder for picture 3"></div>
-        <div class="picture-box" role="listitem" aria-label="Placeholder for picture 4"></div>
+        </div>
+        
+        <!-- Animal Details -->
+        <div class="space-y-3 text-left">
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Name:</span>
+            <span class="text-gray-900 font-medium text-lg">{{ $animal->name ?? 'Unknown' }}</span>
+          </div>
+          
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Breed:</span>
+            <span class="text-gray-700">{{ $animal->breed ?? 'Unknown' }}</span>
+          </div>
+          
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Gender:</span>
+            <span class="text-gray-700">{{ $animal->gender ?? 'Unknown' }}</span>
+          </div>
+          
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Birthday:</span>
+            <span class="text-gray-700">
+              {{ $animal->birthday ? \Carbon\Carbon::parse($animal->birthday)->format('F j, Y') : 'Unknown' }}
+            </span>
+          </div>
+          
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Weight:</span>
+            <span class="text-gray-700">{{ $animal->weight ?? 'Unknown' }}</span>
+          </div>
+          
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Height:</span>
+            <span class="text-gray-700">{{ $animal->height ?? 'Unknown' }}</span>
+          </div>
+          
+          <div class="pt-2">
+            <span class="text-gray-500 text-sm">Vaccines:</span>
+            <div class="mt-1">
+              @if($animal->vaccines && $animal->vaccines->count() > 0)
+                <div class="flex flex-wrap gap-1">
+                  @foreach($animal->vaccines->take(4) as $vaccine)
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                      {{ $vaccine->name ?? 'Unknown' }}
+                    </span>
+                  @endforeach
+                  @if($animal->vaccines->count() > 4)
+                    <span class="text-xs text-gray-500">+{{ $animal->vaccines->count() - 4 }} more</span>
+                  @endif
+                </div>
+              @else
+                <span class="text-gray-700 text-sm">None</span>
+              @endif
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <section class="vax-history-section" aria-label="Vaccination History for Mocha">
-      <h3 class="vax-label">Vaccination History</h3>
-      <textarea class="vax-textarea" placeholder="No vaccination history available." aria-describedby="vax-note" readonly></textarea>
-    </section>
+      <!-- user Info Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg text-[#858585] mb-4">Owner</h3>
+        
+        <div class="mb-6">
+          <h2 class="text-2xl font-semibold text-[#524F4F]">
+            {{ $animal->user->first_name ?? 'Unknown' }} {{ $animal->user->last_name ?? '' }}
+          </h2>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 mb-2">Address</h4>
+            <p class="text-gray-600">
+              {{ $animal->user->street ?? '' }}
+              @if($animal->user->barangay)
+                {{ $animal->user->street ? ', ' : '' }}{{ $animal->user->barangay->name }}
+              @endif
+              @if($animal->user->city)
+                {{ ($animal->user->street || $animal->user->barangay) ? ', ' : '' }}{{ $animal->user->city }}
+              @endif
+            </p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 mb-2">Contact Information</h4>
+            <div class="space-y-1">
+              @if($animal->user->phone_number)
+                <p class="text-gray-600">{{ $animal->user->phone_number }}</p>
+              @endif
+              @if($animal->user->email)
+                <p class="text-gray-600">{{ $animal->user->email }}</p>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  </div>
+    <!-- Vaccination History Section -->
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-900">Vaccination History</h2>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+          Add Vaccination
+        </button>
+      </div>
+
+      @if($animal->vaccines && $animal->vaccines->count() > 0)
+        <!-- Vaccination Records Cards -->
+        <div class="space-y-4">
+          @foreach($animal->vaccines->sortByDesc('pivot.date_given') as $vaccine)
+            <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between">
+                <!-- Left Section: Vaccine Info -->
+                <div class="flex items-center space-x-6">
+                  <!-- Vaccine Name -->
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                      {{ $vaccine->name ?? 'Unknown Vaccine' }}
+                    </h3>
+                    @if($vaccine->description)
+                      <p class="text-sm text-gray-500 mt-1">{{ Str::limit($vaccine->description, 80) }}</p>
+                    @endif
+                  </div>
+
+                  <!-- Dose -->
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                      <span class="text-xs text-gray-500">Dose</span>
+                      <p class="text-sm font-semibold text-gray-900">{{ $vaccine->pivot->dose ?? 'N/A' }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Administered By -->
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                      <span class="text-xs text-gray-500">Administered by</span>
+                      <p class="text-sm font-semibold text-gray-900">{{ $vaccine->pivot->administrator ?? 'Unknown' }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Date -->
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                      <span class="text-xs text-gray-500">Date</span>
+                      <p class="text-sm font-semibold text-gray-900">
+                        {{ $vaccine->pivot->date_given ? \Carbon\Carbon::parse($vaccine->pivot->date_given)->format('M j, Y') : 'N/A' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Status Badge -->
+                  @php
+                    $status = 'completed';
+                    $statusClass = 'bg-green-100 text-green-800';
+                  @endphp
+                  <div>
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ $statusClass }}">
+                      {{ ucfirst($status) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Right Section: Actions -->
+                <div class="flex items-center space-x-3">
+                  @if($vaccine->protect_against)
+                    <div class="text-right">
+                      <span class="text-xs text-gray-500">Protects against</span>
+                      <p class="text-sm font-medium text-gray-900">{{ Str::limit($vaccine->protect_against, 30) }}</p>
+                    </div>
+                  @endif
+                  
+                  <div class="flex space-x-2">
+                    <button class="text-blue-600 hover:text-blue-900 p-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                      </svg>
+                    </button>
+                    <button class="text-red-600 hover:text-red-900 p-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      @else
+        <!-- Empty State -->
+        <div class="bg-white rounded-lg shadow-sm">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5l7-7 7 7M9 20h6m-7 4h7m.01 0h6m-6 4h6m-6 4h6m-7 4h7m.01 0h6m-6 4h6.01M9 32h6m-6 4h6.01" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No vaccination records</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding the first vaccination record for this animal.</p>
+            <div class="mt-6">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                Add First Vaccination
+              </button>
+            </div>
+          </div>
+        </div>
+      @endif
+    </div>
+  </main>
+</div>
 @endsection

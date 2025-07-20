@@ -100,7 +100,8 @@
       </thead>
       <tbody>
         @forelse($animals as $index => $animal)
-          <tr class="hover:bg-gray-50 border-t text-[#524F4F]">
+          <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+              onClick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'">
             <td class="px-4 py-2">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
             <td class="px-4 py-2">{{ $animal->type }}</td>
             <td class="px-4 py-2">{{ $animal->name }}</td>
@@ -111,7 +112,7 @@
             <td class="px-4 py-2">{{ $animal->user->first_name }} {{ $animal->user->last_name }}</td>
             <td class="px-4 py-2 text-center">
               <button
-                @click="showEditModal = true; currentAnimal = @js($animal)" 
+                @click.stop="showEditModal = true; currentAnimal = @js($animal)" 
                 class="text-blue-600 hover:underline">Edit</button>
             </td>
           </tr>

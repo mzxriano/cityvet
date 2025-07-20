@@ -38,6 +38,13 @@ class ActivityController extends Controller
         return view("admin.activities", compact("activities", "barangays"));
     }
 
+    public function show($id) 
+    {
+        $activity = Activity::findOrFail($id);
+
+        return view('admin.activities_view', compact('activity'));
+    }
+
     public function create(Request $request)
     {
         // Validate the incoming request
