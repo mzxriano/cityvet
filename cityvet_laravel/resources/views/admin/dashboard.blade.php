@@ -26,7 +26,7 @@
           Total Vaccinated Animals
         </div>
         <div class="text-[2rem]">
-          0
+          {{ $totalVaccinatedAnimals }}
         </div>
       </div>
     </div>
@@ -79,24 +79,21 @@
         <div class="text-[20px] text-[#524F4F] mb-5">
           Vaccinated Animal Per Barangay
         </div>
+        @forelse($barangays as $barangay)
         <div class="flex justify-between">
           <div class="text-[#858585]">
-            Anonas
+            {{ $barangay->name }}
           </div>
           <div class="text-[#858585]">
-            10
+            {{ $barangay->vaccinated_animals_count ?? 0 }}
           </div>
         </div>
         <hr>
-        <div class="flex justify-between">
-          <div class="text-[#858585]">
-            Camantiles
+        @empty
+          <div>
+            <p>No barangay found.</p>
           </div>
-          <div class="text-[#858585]">
-            3
-          </div>
-        </div>
-        <hr>
+        @endforelse
       </div>
       <!-- Animal per category -->
       <div class="flex flex-col flex-1 bg-white rounded-xl shadow-md p-[2rem]">
@@ -130,14 +127,15 @@
           dogBite: [20, 15, 25, 30, 22],  // Dog bite cases per month
           catBite: [18, 12, 20, 25, 15]  // Cat bite cases per month
         },
-        // Animal per Category Pie chart data
-        animalCategories: {
-          labels: ['Dog', 'Cat', 'Cow', 'Goat', 'Chicken', 'Duck'],
-          data: [50, 40, 30, 20, 3, 0]  // Number of animals per category
-        }
       };
 
       let selectedData = data.daily;  // Default to daily data
+
+      // Animal per Category Pie chart data
+      const animalCategories = {
+          labels: {!! json_encode($animalsPerCategory->pluck('type')) !!},
+          data: {!! json_encode($animalsPerCategory->pluck('total')) !!}
+        };
 
       // Create the bar chart
       const myChart = new Chart(ctx, {
@@ -172,10 +170,10 @@
       const animalPieChart = new Chart(pieCtx, {
         type: 'pie',
         data: {
-          labels: data.animalCategories.labels,
+          labels: animalCategories.labels,
           datasets: [{
             label: 'Animal Categories',
-            data: data.animalCategories.data,
+            data: animalCategories.data,
             backgroundColor: ['#D92A2A', '#FF8800', '#00A859', '#F2C35C', '#FFEB3B', '#03A9F4'],  // Colors for each category
           }]
         },

@@ -83,13 +83,38 @@ class UserController
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $user = User::find($id);
-        $animals = $user->animals;
+        $user = User::findOrFail($id);
+        
+        // Start with the user's animals relationship
+        $animalsQuery = $user->animals();
+        
+        // Apply animal type filter if provided
+        if ($request->filled('animal_type')) {
+            $animalsQuery->where('type', $request->animal_type);
+        }
+        
+        // Apply search filter if provided
+        if ($request->filled('animal_search')) {
+            $search = $request->animal_search;
+            $animalsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('breed', 'like', "%{$search}%")
+                  ->orWhere('registration_number', 'like', "%{$search}%");
+            });
+        }
+        
+        $animals = $animalsQuery->get();
+        
+        // Get distinct animal types for the filter dropdown
+        $animalTypes = $user->animals()->distinct()->pluck('type')->filter()->sort();
 
-        return view('admin.users_view', compact(['user', 'animals']));
-
+        return view('admin.users_view', compact([
+            'user', 
+            'animals', 
+            'animalTypes'
+        ]));
     }
 
     /**

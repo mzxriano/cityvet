@@ -144,9 +144,6 @@
     <div class="mb-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-900">Vaccination History</h2>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-          Add Vaccination
-        </button>
       </div>
 
       @if($animal->vaccines && $animal->vaccines->count() > 0)
@@ -248,12 +245,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5l7-7 7 7M9 20h6m-7 4h7m.01 0h6m-6 4h6m-6 4h6m-7 4h7m.01 0h6m-6 4h6.01M9 32h6m-6 4h6.01" />
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">No vaccination records</h3>
-            <p class="mt-1 text-sm text-gray-500">Get started by adding the first vaccination record for this animal.</p>
-            <div class="mt-6">
-              <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                Add First Vaccination
-              </button>
-            </div>
           </div>
         </div>
       @endif

@@ -59,11 +59,12 @@ class UserController extends Controller
      */
     public function show()
     {
-        $user = auth()->user()->load('barangay');
+        $user = auth()->user()->load(['barangay', 'role']);
 
         return response()->json([
             "user" => [
                 "id" => $user->id,
+                "role" => $user->role->name,
                 "first_name" => $user->first_name,
                 "last_name" => $user->last_name,
                 "email" => $user->email,

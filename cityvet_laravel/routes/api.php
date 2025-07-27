@@ -39,6 +39,9 @@ Route::prefix('auth')->group(function () {
         Route::prefix('activity')->group(function () {
             Route::get('/', [ActivityController::class,'index']);
         });
+
+        Route::get('/recent-activities', [ActivityController::class,'recentActivities']);
+
         
         // Animals 
         Route::prefix('animals')->group(function () {
@@ -58,11 +61,10 @@ Route::prefix('auth')->group(function () {
         Route::post('/community', [CommunityController::class, 'store']);
         Route::get('/community/{id}', [CommunityController::class, 'show']);
         Route::delete('/community/{id}', [CommunityController::class, 'destroy']);
-
         Route::post('/community/{id}/comment', [CommunityCommentController::class, 'store']);
         Route::get('/community/{id}/comments', [CommunityCommentController::class, 'index']);
-
         Route::post('/community/{id}/like', [CommunityLikeController::class, 'toggle']);
+
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/send-notification', [NotificationController::class, 'sendPushNotification']);

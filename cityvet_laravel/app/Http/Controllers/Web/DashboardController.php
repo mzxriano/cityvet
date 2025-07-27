@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Web;
 
 use App\Models\Animal;
+use App\Models\Barangay;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController
 {
@@ -15,8 +17,18 @@ class DashboardController
     {
         $totalUsers = User::count();
         $totalAnimals = Animal::count();
+        $totalVaccinatedAnimals = Animal::whereHas('vaccines')->distinct()->count('id');
+        $animalsPerCategory = Animal::select('type', DB::raw('COUNT(*) as total'))
+            ->groupBy('type')
+            ->get();
+        $barangays = Barangay::withCount(['users as vaccinated_animals_count' => function ($query) {
+            $query->join('animals', 'users.id', '=', 'animals.user_id')
+                ->join('animal_vaccine', 'animals.id', '=', 'animal_vaccine.animal_id')
+                ->select(DB::raw('count(distinct animals.id)'));
+        }])->get();
 
-        return view("admin.dashboard", compact("totalUsers","totalAnimals"));
+        return view(
+            "admin.dashboard", compact("totalUsers","totalAnimals", "totalVaccinatedAnimals", "animalsPerCategory", "barangays"));
     }
 
     /**

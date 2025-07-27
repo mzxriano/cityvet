@@ -2,6 +2,7 @@ import 'package:cityvet_app/models/barangay_model.dart';
 
 class UserModel {
   final int? id;
+  final String? role;
   final String? firstName;
   final String? lastName;
   final String? email;
@@ -21,6 +22,7 @@ class UserModel {
     required this.birthDate,
     required this.barangay,
     required this.street,
+    this.role,
     this.imageUrl,
     this.imagePublicId,
   });
@@ -29,6 +31,7 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
+      role: json['role'],
       firstName: json['first_name'],
       lastName: json['last_name'],
       email: json['email'],
@@ -47,6 +50,7 @@ class UserModel {
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
+      if(role != null) 'role' : role,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,

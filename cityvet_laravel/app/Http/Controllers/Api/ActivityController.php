@@ -25,10 +25,28 @@ class ActivityController extends Controller
             'reason' => $activity->reason,
             'details' => $activity->details,
             'barangay' => $activity->barangay->name ?? 'Unknown',
-            'date' => $activity->date,
-            'time' => $activity->time,
+            'date' => $activity->date->format('Y-m-d'),
+            'time' => $activity->time->format('H:i'),
             'status' => $activity->status,
         ]);
+    }
+
+    public function recentActivities()
+    {
+        $recentActivities = Activity::where('status', 'completed')->get();
+
+        if ($recentActivities->isEmpty()) {
+            return response()->json(['message' => 'No recent activity found'], 404);
+        }
+
+        $recentActivities = $recentActivities->map(function ($activity) {
+            $activity->date = $activity->date->format('Y-m-d'); 
+            $activity->time = $activity->time->format('H:i');  
+
+            return $activity;
+        });
+
+        return response()->json($recentActivities);
     }
 
 

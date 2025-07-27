@@ -152,7 +152,7 @@
             <td class="px-4 py-2">{{ $activity->reason }}</td>
             <td class="px-4 py-2">{{ $activity->barangay->name ?? 'N/A' }}</td>
             <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</td>
-            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->date)->format('Y-m-d') }}</td>
+            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}</td>
             <td class="px-4 py-2 capitalize">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</td>
             <td class="px-4 py-2">
               @if($activity->details)

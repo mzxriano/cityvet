@@ -17,6 +17,8 @@ Future<Map<String, dynamic>> fetchUser(String token) async {
 
   final user = await dio.get('/user');
 
+  print(user.data);
+
   return user.data;
 
 }
