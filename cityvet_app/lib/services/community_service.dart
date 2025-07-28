@@ -16,6 +16,13 @@ class CommunityService {
     );
   }
 
+  Future<Response> fetchUserPosts(String token) async {
+    return await dio.get(
+      '/community/user',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
+
   Future<Response> createPost({required String content, required List<File> images, required String token}) async {
     final formData = FormData();
     formData.fields.add(MapEntry('content', content));
@@ -60,6 +67,56 @@ class CommunityService {
       '/community/$postId/comment',
       data: data,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
+
+  Future<Response> updatePost({
+    required int postId,
+    required String content,
+    required List<File> images,
+    required String token,
+  }) async {
+    // If no images, send as JSON
+    if (images.isEmpty) {
+      print('Sending JSON update request:');
+      print('Content: $content');
+      
+      return await dio.patch(
+        '/community/$postId',
+        data: {'content': content},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+    }
+    
+    // If images, send as FormData
+    final formData = FormData();
+    formData.fields.add(MapEntry('content', content));
+    
+    for (var image in images) {
+      formData.files.add(MapEntry(
+        'images[]',
+        await MultipartFile.fromFile(image.path, filename: image.path.split('/').last),
+      ));
+    }
+    
+    print('Sending FormData update request:');
+    print('Content: $content');
+    print('Images count: ${images.length}');
+    
+    return await dio.patch(
+      '/community/$postId',
+      data: formData,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'multipart/form-data',
+        },
+      ),
     );
   }
 

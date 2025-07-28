@@ -21,7 +21,7 @@
           <!-- User Details -->
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-2">
-              <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium">Owner</span>
+              <!-- <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium">Owner</span> -->
             </div>
             <h2 class="text-2xl font-semibold text-gray-900 mb-1">{{ "$user->first_name $user->last_name" }}</h2>
             <p class="text-gray-600 mb-1">{{ ucwords($user->gender ?? 'N/A') }}</p>
@@ -67,19 +67,6 @@
                 </option>
               @endforeach
             </select>
-          </div>
-
-          <!-- Search Filter -->
-          <div class="flex-1 min-w-64">
-            <label for="animal_search" class="block text-sm font-medium text-gray-700 mb-1">Search Animals</label>
-            <input 
-              type="text" 
-              name="animal_search" 
-              id="animal_search"
-              value="{{ request('animal_search') }}"
-              placeholder="Search by name, breed, or registration number..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
           </div>
 
           <!-- Action Buttons -->

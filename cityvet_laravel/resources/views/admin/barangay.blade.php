@@ -70,7 +70,6 @@
                     <th class="px-4 py-2 font-medium">Activities</th>
                     <th class="px-4 py-2 font-medium">Vaccinated Animals</th>
                     <th class="px-4 py-2 font-medium">Bite Case Reports</th>
-                    <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,12 +80,6 @@
                         <td class="px-4 py-2">{{ $barangay->activities->count() }}</td>
                         <td class="px-4 py-2">{{ 0 }}</td>
                         <td class="px-4 py-2">{{ 0 }}</td>
-                        <td class="px-4 py-2 text-center">
-                            <button type="button"
-                                    class="text-blue-600 hover:underline">
-                                Edit
-                            </button>
-                        </td>
                     </tr>
                 @empty
                     <tr>

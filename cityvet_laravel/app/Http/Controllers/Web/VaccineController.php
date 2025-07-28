@@ -10,9 +10,43 @@ class VaccineController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $vaccines = Vaccine::all();
+        $query = Vaccine::query();
+
+        // Filter by affected animal
+        if ($request->filled('affected')) {
+            $query->where('affected', $request->affected);
+        }
+
+        // Filter by stock status
+        if ($request->filled('stock_status')) {
+            switch ($request->stock_status) {
+                case 'low':
+                    $query->where('stock', '<=', 5);
+                    break;
+                case 'medium':
+                    $query->whereBetween('stock', [6, 20]);
+                    break;
+                case 'high':
+                    $query->where('stock', '>', 20);
+                    break;
+            }
+        }
+
+        // Search by name (also search in description and protect_against)
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('protect_against', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Order by name for consistency
+        $vaccines = $query->orderBy('name', 'asc')->get();
+        
         return view('admin.vaccines', compact('vaccines'));
     }
 
@@ -60,7 +94,8 @@ class VaccineController
      */
     public function edit(string $id)
     {
-        //
+        $vaccine = Vaccine::findOrFail($id);
+        return response()->json($vaccine);
     }
 
     /**
@@ -91,6 +126,9 @@ class VaccineController
      */
     public function destroy(string $id)
     {
-        //
+        $vaccine = Vaccine::findOrFail($id);
+        $vaccine->delete();
+        
+        return redirect()->route('admin.vaccines')->with('success', 'Vaccine deleted successfully!');
     }
 }

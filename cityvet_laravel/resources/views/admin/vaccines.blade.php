@@ -27,7 +27,33 @@
 <div x-data="{
     showAddModal: false,
     showEditModal: false,
-    currentVaccine: null
+    currentVaccine: {
+        id: null,
+        name: '',
+        affected: '',
+        stock: 0,
+        description: '',
+        expiration_date: ''
+    },
+    editVaccine(id) {
+        fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
+            .then(response => response.json())
+            .then(data => {
+                this.currentVaccine = {
+                    id: data.id,
+                    name: data.name,
+                    affected: data.affected,
+                    stock: data.stock,
+                    description: data.description || '',
+                    expiration_date: data.expiration_date || ''
+                };
+                this.showEditModal = true;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading vaccine data');
+            });
+    }
 }">
     <h1 class="title-style mb-[2rem]">Vaccines</h1>
 
@@ -44,38 +70,102 @@
     <!-- Vaccines Table Card -->
     <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
         <!-- Filter Form -->
-        <div class="mb-4">
-            <form method="GET"  class="flex gap-4 items-center justify-end">
-                <div>
-                    <select name="affected" class="border border-gray-300 px-3 py-2 rounded-md">
-                        <option value="">All Animals</option>
-                        <option value="Dog" {{ request('affected') == 'Dog' ? 'selected' : '' }}>Dog</option>
-                        <option value="Cat" {{ request('affected') == 'Cat' ? 'selected' : '' }}>Cat</option>
-                        <option value="Bird" {{ request('affected') == 'Bird' ? 'selected' : '' }}>Bird</option>
-                        <option value="Rabbit" {{ request('affected') == 'Rabbit' ? 'selected' : '' }}>Rabbit</option>
-                        <option value="Other" {{ request('affected') == 'Other' ? 'selected' : '' }}>Other</option>
-                    </select>
-
-                    <select name="stock_status" class="border border-gray-300 px-3 py-2 rounded-md">
-                        <option value="">All Stock</option>
-                        <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock (≤5)</option>
-                        <option value="medium" {{ request('stock_status') == 'medium' ? 'selected' : '' }}>Medium Stock (6-20)</option>
-                        <option value="high" {{ request('stock_status') == 'high' ? 'selected' : '' }}>High Stock (>20)</option>
-                    </select>
-
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <form method="GET" class="space-y-4">
+                <!-- Search Bar -->
+                <div class="flex gap-4 items-center">
+                    <div class="flex-1">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Search by vaccine name, description, or diseases..." 
+                               class="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
                     <button type="submit" 
-                            class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
-                        Filter
+                            class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Search
                     </button>
                 </div>
-                <div>
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}" 
-                           placeholder="Search by vaccine name" 
-                           class="border border-gray-300 px-3 py-2 rounded-md">
+
+                <!-- Filters -->
+                <div class="flex gap-4 items-center flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Animal:</label>
+                        <select name="affected" class="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Animals</option>
+                            <option value="Dog" {{ request('affected') == 'Dog' ? 'selected' : '' }}>Dog</option>
+                            <option value="Cat" {{ request('affected') == 'Cat' ? 'selected' : '' }}>Cat</option>
+                            <option value="Cattle" {{ request('affected') == 'Cattle' ? 'selected' : '' }}>Cattle</option>
+                            <option value="Goat" {{ request('affected') == 'Goat' ? 'selected' : '' }}>Goat</option>
+                            <option value="Duck" {{ request('affected') == 'Duck' ? 'selected' : '' }}>Duck</option>
+                            <option value="Chicken" {{ request('affected') == 'Chicken' ? 'selected' : '' }}>Chicken</option>
+                            <option value="Swine" {{ request('affected') == 'Swine' ? 'selected' : '' }}>Swine</option>
+                            <option value="Other" {{ request('affected') == 'Other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Stock Level:</label>
+                        <select name="stock_status" class="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Stock Levels</option>
+                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock (≤5)</option>
+                            <option value="medium" {{ request('stock_status') == 'medium' ? 'selected' : '' }}>Medium Stock (6-20)</option>
+                            <option value="high" {{ request('stock_status') == 'high' ? 'selected' : '' }}>High Stock (>20)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" 
+                            class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
+                        Apply Filters
+                    </button>
+
+                    @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                        <a href="{{ route('admin.vaccines') }}" 
+                           class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition">
+                            Clear All
+                        </a>
+                    @endif
                 </div>
+
+                <!-- Active Filters Display -->
+                @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                    <div class="flex flex-wrap gap-2 pt-2 border-t">
+                        <span class="text-sm text-gray-600">Active filters:</span>
+                        
+                        @if(request('search'))
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                Search: "{{ request('search') }}"
+                                <a href="{{ request()->fullUrlWithQuery(['search' => null]) }}" class="text-blue-600 hover:text-blue-800">×</a>
+                            </span>
+                        @endif
+                        
+                        @if(request('affected'))
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                Animal: {{ request('affected') }}
+                                <a href="{{ request()->fullUrlWithQuery(['affected' => null]) }}" class="text-green-600 hover:text-green-800">×</a>
+                            </span>
+                        @endif
+                        
+                        @if(request('stock_status'))
+                            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                Stock: {{ ucfirst(request('stock_status')) }}
+                                <a href="{{ request()->fullUrlWithQuery(['stock_status' => null]) }}" class="text-yellow-600 hover:text-yellow-800">×</a>
+                            </span>
+                        @endif
+                    </div>
+                @endif
             </form>
+
+            <!-- Results Count -->
+            <div class="mt-4 text-sm text-gray-600">
+                Showing {{ $vaccines->count() }} vaccine(s)
+                @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                    matching your criteria
+                @endif
+            </div>
         </div>
 
         <!-- Vaccines Table -->
@@ -94,26 +184,49 @@
             <tbody>
             @forelse($vaccines as $index => $vaccine)
                 <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
-                        onClick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'">
+                    onClick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'">
                     <td class="px-4 py-2">{{ $index + 1 }}</td>
                     <td class="px-4 py-2">{{ $vaccine->name }}</td>
                     <td class="px-4 py-2">{{ $vaccine->affected }}</td>
-                    <td class="px-4 py-2">{{ \Carbon\Carbon::parse($vaccine->expiration_date)->format('F j, Y') }}</td>
-                    <td class="px-4 py-2">{{ $vaccine->stock }}</td>
                     <td class="px-4 py-2">
-                        @if($vaccine->stock <= 5)
+                        @if($vaccine->expiration_date)
+                            {{ \Carbon\Carbon::parse($vaccine->expiration_date)->format('F j, Y') }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">{{ $vaccine->stock ?? 0 }}</td>
+                    <td class="px-4 py-2">
+                        @php $stock = $vaccine->stock ?? 0; @endphp
+                        @if($stock <= 5)
                             <span class="text-red-500">Low</span>
-                        @elseif($vaccine->stock <= 20)
+                        @elseif($stock <= 20)
                             <span class="text-yellow-500">Medium</span>
                         @else
                             <span class="text-green-500">High</span>
                         @endif
                     </td>
-                    <td class="px-4 py-2"> <!-- Action buttons here --> </td>
+                    <td class="px-4 py-2" onclick="event.stopPropagation()">
+                        <div class="flex gap-2">
+                            <button @click="editVaccine({{ $vaccine->id }})"
+                                    class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition">
+                                Edit
+                            </button>
+                            <form action="{{ route('admin.vaccines.destroy', $vaccine->id) }}" method="POST" class="inline"
+                                  onsubmit="return confirm('Are you sure you want to delete this vaccine?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 @empty
                   <tr>
-                      <td colspan="8" class="text-center py-4 text-gray-500">No vaccine found.</td>
+                      <td colspan="7" class="text-center py-4 text-gray-500">No vaccine found.</td>
                   </tr>
             @endforelse
             </tbody>
@@ -128,7 +241,7 @@
          @keydown.escape.window="showEditModal = false">
         
         <!-- Modal Backdrop -->
-        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
         
         <!-- Modal Content -->
         <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -136,7 +249,7 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-4 border-b">
                     <h3 class="text-xl font-semibold text-gray-900">Edit Vaccine</h3>
-                    <button x-on:click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
+                    <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -145,9 +258,9 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form x-bind:action="`{{ url('vaccines') }}/${currentVaccine.id}`" method="POST" class="p-4">
+                <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}`" method="POST" class="p-4">
                     @csrf
-                    @method("PUT")
+                    @method('PUT')
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Vaccine Name</label>
@@ -155,7 +268,7 @@
                                    name="name"
                                    x-model="currentVaccine.name"
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border">
                         </div>
                         
                         <div>
@@ -163,12 +276,15 @@
                             <select name="affected" 
                                     required
                                     x-model="currentVaccine.affected"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                                <option value="" selected disabled>Select Animal</option>
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border">
+                                <option value="" disabled>Select Animal</option>
                                 <option value="Dog">Dog</option>
                                 <option value="Cat">Cat</option>
-                                <option value="Bird">Bird</option>
-                                <option value="Rabbit">Rabbit</option>
+                                <option value="Cattle">Cattle</option>
+                                <option value="Goat">Goat</option>
+                                <option value="Duck">Duck</option>
+                                <option value="Chicken">Chicken</option>
+                                <option value="Swine">Swine</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -179,8 +295,7 @@
                                    name="stock"
                                    x-model="currentVaccine.stock"
                                    min="0"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border">
                         </div>
 
                         <div>
@@ -188,7 +303,7 @@
                             <textarea name="description" 
                                       x-model="currentVaccine.description"
                                       rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3"></textarea>
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border"></textarea>
                         </div>
 
                         <div>
@@ -196,7 +311,7 @@
                             <input type="date" 
                                    name="expiration_date"
                                    x-model="currentVaccine.expiration_date"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border">
                         </div>
                     </div>
 

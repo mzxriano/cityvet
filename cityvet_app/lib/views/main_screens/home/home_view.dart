@@ -1,6 +1,3 @@
-// Option 2: If you prefer to keep the provider local to HomeView
-// This approach creates a new HomeViewModel instance for this view
-
 import 'package:cityvet_app/components/aew_card.dart';
 import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/utils/config.dart';
@@ -20,6 +17,9 @@ class HomeView extends StatefulWidget {
 }
 
 class HomeViewState extends State<HomeView> {
+  final TextEditingController _activitySearchController = TextEditingController();
+  String _activitySearchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     Config().init(context);
@@ -51,10 +51,7 @@ class HomeViewState extends State<HomeView> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(child: _searchBar()),
-                      Config.heightBig,
-                      
+                    children: [                      
                       // Animals Section
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -245,7 +242,7 @@ class HomeViewState extends State<HomeView> {
               style: TextStyle(
                 fontFamily: Config.primaryFont,
                 fontSize: Config.fontMedium,
-                fontWeight: Config.fontW600,
+                fontWeight: FontWeight.w600,
               ),
             ),
             TextButton(
@@ -262,53 +259,92 @@ class HomeViewState extends State<HomeView> {
           ],
         ),
         Config.heightSmall,
-        
-        // Show loading indicator for recent activities
+        // Search bar for recent activities
+        Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 500),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _activitySearchController,
+            onChanged: (value) {
+              setState(() {
+                _activitySearchQuery = value;
+              });
+            },
+            decoration: const InputDecoration(
+              hintText: 'Search recent activities...',
+              hintStyle: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontSmall,
+                color: Colors.grey,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+              prefixIcon: Icon(Icons.search, color: Colors.grey),
+            ),
+            style: const TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+            ),
+          ),
+        ),
+        Config.heightSmall,
         if (homeViewModel.isLoadingRecent)
           const Center(child: CircularProgressIndicator())
         else if (homeViewModel.recentActivities != null && homeViewModel.recentActivities!.isNotEmpty)
           Column(
-            children: homeViewModel.recentActivities!.take(3).map((activity) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: CustomCard(
-                  width: double.infinity,
-                  color: Colors.white,
-                  widget: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity.reason,
-                        style: const TextStyle(
-                          fontFamily: Config.primaryFont,
-                          fontSize: Config.fontMedium,
-                          fontWeight: Config.fontW600,
-                          color: Color(0xFF524F4F),
+            children: homeViewModel.recentActivities!
+              .where((activity) =>
+                _activitySearchQuery.isEmpty ||
+                activity.reason.toLowerCase().contains(_activitySearchQuery.toLowerCase()) ||
+                activity.details.toLowerCase().contains(_activitySearchQuery.toLowerCase()) ||
+                activity.barangay.toLowerCase().contains(_activitySearchQuery.toLowerCase())
+              )
+              .take(3)
+              .map((activity) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: CustomCard(
+                    width: double.infinity,
+                    color: Colors.white,
+                    widget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activity.reason,
+                          style: const TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontMedium,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF524F4F),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        activity.barangay.toString(),
-                        style: const TextStyle(
-                          fontFamily: Config.primaryFont,
-                          fontSize: Config.fontSmall,
-                          color: Config.tertiaryColor,
+                        const SizedBox(height: 4),
+                        Text(
+                          activity.barangay.toString(),
+                          style: const TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                            color: Config.tertiaryColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        DateFormat('MMM d, yyyy • h:mm a').format(activity.date),
-                        style: const TextStyle(
-                          fontFamily: Config.primaryFont,
-                          fontSize: Config.fontSmall,
-                          color: Config.tertiaryColor,
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('MMM d, yyyy • h:mm a').format(activity.date),
+                          style: const TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                            color: Config.tertiaryColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
           )
         else
           Center(
@@ -385,33 +421,6 @@ class HomeViewState extends State<HomeView> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AllAEWsView()),
-    );
-  }
-
-  // Search field widget
-  Widget _searchBar() {
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 500),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const TextField(
-        decoration: InputDecoration(
-          hintText: 'Search',
-          hintStyle: TextStyle(
-            fontFamily: Config.primaryFont,
-            fontSize: Config.fontMedium,
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-        ),
-        style: TextStyle(
-          fontFamily: Config.primaryFont,
-          fontSize: Config.fontSmall,
-        ),
-      ),
     );
   }
 

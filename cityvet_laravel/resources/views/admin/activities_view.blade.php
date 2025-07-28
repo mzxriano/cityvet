@@ -42,7 +42,7 @@
         <!-- Vaccinated Animals card -->
         <div class="bg-white rounded-xl p-6 shadow-lg">
           <p class="text-gray-500 font-light mb-1">Vaccinated Animals</p>
-          <p class="text-3xl font-light text-gray-800">10</p>
+          <p class="text-3xl font-light text-gray-800">0</p>
         </div>
         
         <!-- Status card -->

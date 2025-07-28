@@ -15,6 +15,9 @@ class AnimalView extends StatefulWidget {
 }
 
 class _AnimalViewState extends State<AnimalView> {
+  final TextEditingController _animalSearchController = TextEditingController();
+  String _animalSearchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -110,7 +113,15 @@ class _AnimalViewState extends State<AnimalView> {
       );
     }
 
-    final animalCards = animalViewModel.animals
+    final filteredAnimals = animalViewModel.animals.where((animal) =>
+      _animalSearchQuery.isEmpty ||
+      animal.name.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
+      (animal.breed?.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ?? false) ||
+      animal.type.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
+      animal.color.toLowerCase().contains(_animalSearchQuery.toLowerCase())
+    ).toList();
+
+    final animalCards = filteredAnimals
         .map((animal) => AnimalCard(
             animalModel: animal,
             onDelete: () => _deleteAnimal(context, animalViewModel, animal),
@@ -126,6 +137,39 @@ class _AnimalViewState extends State<AnimalView> {
             fontFamily: Config.primaryFont,
             fontSize: 18,
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Search bar for animals
+        Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 500),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _animalSearchController,
+            onChanged: (value) {
+              setState(() {
+                _animalSearchQuery = value;
+              });
+            },
+            decoration: const InputDecoration(
+              hintText: 'Search animals...',
+              hintStyle: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontSmall,
+                color: Colors.grey,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+              prefixIcon: Icon(Icons.search, color: Colors.grey),
+            ),
+            style: const TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+            ),
           ),
         ),
         const SizedBox(height: 16),

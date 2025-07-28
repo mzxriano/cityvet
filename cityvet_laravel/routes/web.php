@@ -77,6 +77,11 @@ Route::prefix('admin')->group(function () {
             return view('admin.community');
         })->name('admin.community');
 
+        // Admin AJAX endpoints for community moderation
+        Route::get('/community/pending-posts', [\App\Http\Controllers\Web\CommunityController::class, 'pending'])->name('admin.community.pending');
+        Route::patch('/community/{id}/review', [\App\Http\Controllers\Web\CommunityController::class, 'review'])->name('admin.community.review');
+        Route::get('/community/approved-posts', [\App\Http\Controllers\Web\CommunityController::class, 'approved'])->name('admin.community.approved');
+
         Route::get('/reports', function () {
             return view('admin.reports');
         })->name('admin.reports');

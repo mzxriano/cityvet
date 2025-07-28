@@ -15,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cityvet_app/services/api_service.dart';
 import 'package:cityvet_app/models/notification_model.dart';
+import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/views/main_screens/animal/animal_preview.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -162,6 +164,92 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
   }
 
+  void _showCommandPalette() async {
+    final animalViewModel = Provider.of<AnimalViewModel>(context, listen: false);
+    final animals = animalViewModel.animals;
+
+    final pages = [
+      {'label': 'Profile', 'builder': (_) => const ProfileView()},
+      {'label': 'Notifications', 'builder': (_) => const NotificationView()},
+    ];
+    String query = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        List<Map<String, dynamic>> filteredPages = pages;
+        List<Map<String, dynamic>> filteredAnimals = [];
+        return StatefulBuilder(
+          builder: (context, setState) {
+            filteredPages = pages.where((page) =>
+              query.isEmpty || (page['label'] as String).toLowerCase().contains(query.toLowerCase())
+            ).toList();
+
+            // Only search animals if query is not empty
+            if (query.isNotEmpty) {
+              filteredAnimals = animals
+                .where((animal) =>
+                  animal.name.toLowerCase().contains(query.toLowerCase()) ||
+                  (animal.breed?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
+                  animal.type.toLowerCase().contains(query.toLowerCase()) ||
+                  animal.color.toLowerCase().contains(query.toLowerCase())
+                )
+                .map((animal) => {
+                  'label': 'Animal: ${animal.name} (${animal.type})',
+                  'builder': (_) => AnimalPreview(animalModel: animal),
+                })
+                .toList();
+            } else {
+              filteredAnimals = [];
+            }
+
+            final results = [...filteredPages, ...filteredAnimals];
+
+            return AlertDialog(
+              title: const Text('Search for a page or animal'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Type to search pages or animals...'
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        query = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: 300,
+                    height: 200,
+                    child: ListView.builder(
+                      itemCount: results.length,
+                      itemBuilder: (context, index) {
+                        final item = results[index];
+                        return ListTile(
+                          title: Text(item['label']),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: item['builder']),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Config().init(context);
@@ -203,6 +291,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           fontSize: Config.fontMedium,
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: 'Search for a page',
+          onPressed: _showCommandPalette,
+        ),
+      ],
     );
   }
 

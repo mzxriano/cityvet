@@ -6,9 +6,6 @@
   <div>
     <h1 class="text-3xl font-semibold text-[#2C2A2A] mb-1">Vaccines</h1>
   </div>
-  <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-    Edit
-  </button>
 </div>
 
 <!-- Main Content Grid -->
@@ -58,38 +55,26 @@
   <!-- Protection Card -->
   <div class="bg-white p-6 rounded-lg shadow-lg">
     <h3 class="text-base font-semibold text-[#858585] mb-4">Protect Against</h3>
-    <ul class="space-y-2">
-      <li class="text-[#2C2A2A] text-sm flex items-start">
-        <span class="mr-3">•</span>
-        <span>Distemper</span>
-      </li>
-      <li class="text-[#2C2A2A] text-sm flex items-start">
-        <span class="mr-3">•</span>
-        <span>Hepatitis</span>
-      </li>
-      <li class="text-[#2C2A2A] text-sm flex items-start">
-        <span class="mr-3">•</span>
-        <span>Parvovirus</span>
-      </li>
-      <li class="text-[#2C2A2A] text-sm flex items-start">
-        <span class="mr-3">•</span>
-        <span>Parainfluenza</span>
-      </li>
-    </ul>
+    @if($vaccine->protect_against)
+      <ul class="space-y-2">
+        @foreach(explode(',', $vaccine->protect_against) as $disease)
+          <li class="text-[#2C2A2A] text-sm flex items-start">
+            <span class="mr-3">•</span>
+            <span>{{ trim($disease) }}</span>
+          </li>
+        @endforeach
+      </ul>
+    @else
+      <div class="text-gray-500 text-sm">No data provided.</div>
+    @endif
   </div>
 </div>
 
 <!-- Schedule Card -->
 <div class="bg-white p-6 rounded-lg shadow-lg mt-8">
   <h3 class="text-base font-semibold text-[#858585] mb-4">Schedule</h3>
-  <div class="text-gray-600 text-sm mb-2 leading-relaxed">
-    <strong>First Dose:</strong> 6-8 weeks old
-  </div>
-  <div class="text-gray-600 text-sm mb-2 leading-relaxed">
-    <strong>Booster every 3-4 weeks until 16 weeks old</strong>
-  </div>
   <div class="text-gray-600 text-sm leading-relaxed">
-    <strong>Then a booster at 1 year, followed by every 1-3 years</strong>
+    {{ $vaccine->schedule ?? 'No schedule information provided.' }}
   </div>
 </div>
 

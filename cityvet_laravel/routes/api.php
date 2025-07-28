@@ -58,12 +58,18 @@ Route::prefix('auth')->group(function () {
         
         // Community Engagement
         Route::get('/community', [CommunityController::class, 'index']);
+        Route::get('/community/user', [CommunityController::class, 'getUserPosts']);
         Route::post('/community', [CommunityController::class, 'store']);
         Route::get('/community/{id}', [CommunityController::class, 'show']);
+        Route::patch('/community/{id}', [CommunityController::class, 'update']);
         Route::delete('/community/{id}', [CommunityController::class, 'destroy']);
         Route::post('/community/{id}/comment', [CommunityCommentController::class, 'store']);
         Route::get('/community/{id}/comments', [CommunityCommentController::class, 'index']);
         Route::post('/community/{id}/like', [CommunityLikeController::class, 'toggle']);
+        
+        // Admin Community Management
+        Route::get('/admin/community/pending', [CommunityController::class, 'getPendingPosts']);
+        Route::patch('/admin/community/{id}/review', [CommunityController::class, 'reviewPost']);
 
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
