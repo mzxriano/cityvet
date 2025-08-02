@@ -37,15 +37,18 @@ class _MyPostsViewState extends State<MyPostsView> {
   }
 
   Future<void> _fetchPosts() async {
+    if (!mounted) return;
     setState(() { _isLoading = true; _error = null; });
     try {
       final response = await _service.fetchUserPosts(_token!);
+      if (!mounted) return;
       setState(() {
         _posts = response.data;
         _isLoading = false;
       });
     } catch (e) {
       print('Fetching user posts error $e');
+      if (!mounted) return;
       setState(() {
         _error = 'Failed to load your posts.';
         _isLoading = false;
@@ -264,8 +267,8 @@ class _MyPostsViewState extends State<MyPostsView> {
                                     ],
                                   ),
 
-                                  // Action Buttons (only for pending posts)
-                                  if (status == 'pending') ...[
+                                  // Action Buttons (for all user's posts)
+                                  ...[
                                     const SizedBox(height: 12),
                                     Row(
                                       children: [
@@ -343,5 +346,10 @@ class _MyPostsViewState extends State<MyPostsView> {
                       ),
                     ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 } 

@@ -247,7 +247,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               myAnimal.name,
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
-                                fontSize: Config.fontMedium,
+                                fontSize: Config.fontBig,
                                 fontWeight: Config.fontW600
                               ),
                             ),
@@ -256,7 +256,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               (myAnimal.breed ?? 'Unknown Breed'),
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
-                                fontSize: Config.fontSmall,
+                                fontSize: Config.fontMedium,
                                 color: Config.tertiaryColor
                               ),
                             ),
@@ -265,7 +265,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               myAnimal.ageString,
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
-                                fontSize: isBdateNull ? Config.fontXS - 1 : Config.fontSmall,
+                                fontSize: isBdateNull ? Config.fontSmall - 1 : Config.fontMedium,
                                 fontStyle: isBdateNull ? FontStyle.italic : FontStyle.normal,
                                 color: isBdateNull ? Colors.grey : Config.tertiaryColor,
                               ),

@@ -31,7 +31,7 @@
                 </div>
             @endif
             
-            <img src="{{ asset('images/logo.jpg') }}">
+            <img src="{{ asset('images/cityvet-logo.png') }}">
             <h2 class="text-4xl font-bold text-gray-800 mb-2">CityVet</h2>
             <p class="text-gray-600 text-center text-sm">URDANETA CITY AGRICULTURE OFFICE</p>
         </div>

@@ -49,7 +49,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
     final otp = _otpCode;
     if (otp.length != 4) {
       setState(() { 
-        _errorMessage = 'Please enter the complete 4-digit OTP.'; 
+        _errorMessage = 'Please enter the complete 6-digit OTP.'; 
       });
       return;
     }

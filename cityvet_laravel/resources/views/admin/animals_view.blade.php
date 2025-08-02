@@ -59,7 +59,7 @@
           
           <div class="flex items-center">
             <span class="text-gray-500 w-20 text-sm">Gender:</span>
-            <span class="text-gray-700">{{ $animal->gender ?? 'Unknown' }}</span>
+            <span class="text-gray-700">{{ ucwords($animal->gender ?? 'Unknown') }}</span>
           </div>
           
           <div class="flex items-center">

@@ -67,7 +67,7 @@ class _ForgotPassViewState extends State<ForgotPassView> {
           child: Padding(
             padding: Config.paddingScreen,
             child: Form(
-              key: _formKey,  // Use the form key
+              key: _formKey, 
               child: Column(
                 children: [
                   Center(
@@ -121,11 +121,11 @@ class _ForgotPassViewState extends State<ForgotPassView> {
                         fontWeight: FontWeight.bold,
                       ),
                       prefixIcon: Icon(
-                        Icons.error,
-                        color: Colors.red,
+                        Icons.mail,
+                        color: Colors.grey,
                       ),
                     ),
-                    validator: _validateInput,  // Apply the validator
+                    validator: _validateInput, 
                   ),
                   Config.heightMedium,
                   Button(

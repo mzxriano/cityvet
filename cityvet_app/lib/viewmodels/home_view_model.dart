@@ -14,6 +14,7 @@ class HomeViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoadingRecent = false;
   String? _error;
+  bool _disposed = false;
 
   // Getters
   ActivityModel? get activity => _activity;
@@ -22,32 +23,44 @@ class HomeViewModel extends ChangeNotifier {
   bool get isLoadingRecent => _isLoadingRecent;
   String? get error => _error;
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   void setActivity(ActivityModel activity) {
+    if (_disposed) return;
     _activity = activity;
     notifyListeners();
   }
 
   void setRecentActivities(List<ActivityModel> list) {
+    if (_disposed) return;
     _recentActivities = list;
     notifyListeners();
   }
 
   void _setLoading(bool loading) {
+    if (_disposed) return;
     _isLoading = loading;
     notifyListeners();
   }
 
   void _setLoadingRecent(bool loading) {
+    if (_disposed) return;
     _isLoadingRecent = loading;
     notifyListeners();
   }
 
   void _setError(String? error) {
+    if (_disposed) return;
     _error = error;
     notifyListeners();
   }
 
   Future<void> fetchActivity() async {
+    if (_disposed) return;
     _setLoading(true);
     _setError(null);
 
@@ -59,23 +72,28 @@ class HomeViewModel extends ChangeNotifier {
       }
 
       final response = await _activityService.fetchActivity(token);
+      if (_disposed) return;
       final activity = ActivityModel.fromJson(response);
       print(activity);
       setActivity(activity);
       
     } on DioException catch (e) {
+      if (_disposed) return;
       final errorMessage = _handleDioException(e);
       _setError(errorMessage);
       
     } catch (e) {
+      if (_disposed) return;
       _setError('Error fetching activity: $e');
       print('Error fetching activity: $e');
     } finally {
+      if (_disposed) return;
       _setLoading(false);
     }
   }
 
   Future<void> fetchRecentActivities() async {
+    if (_disposed) return;
     _setLoadingRecent(true);
     _setError(null);
 
@@ -87,17 +105,21 @@ class HomeViewModel extends ChangeNotifier {
       }
 
       final activities = await _activityService.fetchRecentActivities(token);
+      if (_disposed) return;
       print(activities);
       setRecentActivities(activities);
       
     } on DioException catch (e) {
+      if (_disposed) return;
       final errorMessage = _handleDioException(e);
       _setError(errorMessage);
       
     } catch (e) {
+      if (_disposed) return;
       _setError('Error fetching recent activities: $e');
       print('Error fetching recent activities: $e');
     } finally {
+      if (_disposed) return;
       _setLoadingRecent(false);
     }
   }
@@ -125,11 +147,13 @@ class HomeViewModel extends ChangeNotifier {
 
   // Method to clear error state
   void clearError() {
+    if (_disposed) return;
     _setError(null);
   }
 
   // Method to refresh all data
   Future<void> refreshData() async {
+    if (_disposed) return;
     await Future.wait([
       fetchActivity(),
       fetchRecentActivities(),

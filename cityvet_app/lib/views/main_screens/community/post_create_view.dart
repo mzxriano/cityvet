@@ -20,7 +20,7 @@ class _CreatePostViewState extends State<CreatePostView> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final picked = await picker.pickMultiImage();
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _images.addAll(picked.map((x) => File(x.path)));
       });
@@ -30,9 +30,11 @@ class _CreatePostViewState extends State<CreatePostView> {
   Future<void> _submitPost() async {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
+      if (!mounted) return;
       setState(() { _error = 'Please enter some text.'; });
       return;
     }
+    if (!mounted) return;
     setState(() { _isLoading = true; _error = null; });
     try {
       await CommunityService().createPost(
@@ -40,11 +42,14 @@ class _CreatePostViewState extends State<CreatePostView> {
         images: _images,
         token: widget.token,
       );
+      if (!mounted) return;
       Navigator.of(context).pop(true); // Indicate success
     } catch (e) {
       print('Failed to create post $e');
+      if (!mounted) return;
       setState(() { _error = 'Failed to create post.'; });
     } finally {
+      if (!mounted) return;
       setState(() { _isLoading = false; });
     }
   }
@@ -300,5 +305,11 @@ class _CreatePostViewState extends State<CreatePostView> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    super.dispose();
   }
 }

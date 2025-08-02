@@ -13,10 +13,10 @@
     <!-- User Profile Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <!-- User Info Card -->
-      <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="bg-white flex items-center rounded-lg shadow-lg p-6">
         <div class="flex items-start space-x-4">
           <!-- Profile Image -->
-          <div class="w-24 h-24 bg-gray-300 rounded-full flex-shrink-0"></div>
+          <img src="{{ $user->image_url }}" class="w-24 h-24 bg-gray-300 rounded-full flex-shrink-0"></img>
                    
           <!-- User Details -->
           <div class="flex-1">

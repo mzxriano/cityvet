@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
 
 class CommunityService {
   final Dio dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth',
+    baseUrl: ApiConstant.baseUrl,
     headers: {
       'Accept': 'application/json',
     },
@@ -122,7 +123,7 @@ class CommunityService {
 
   Future<Response> deletePost(int postId, String token) async {
     return await dio.delete(
-      '/community/ $postId',
+      '/community/$postId',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   }

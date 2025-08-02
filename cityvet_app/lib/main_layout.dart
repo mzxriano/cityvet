@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/qr_scanner.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/role_constant.dart';
@@ -128,7 +129,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       }
 
       final response = await Dio().post(
-        'http://192.168.1.109:8000/api/auth/user/logout',
+        '${ApiConstant.baseUrl}/user/logout',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
@@ -169,15 +170,21 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     final animals = animalViewModel.animals;
 
     final pages = [
-      {'label': 'Profile', 'builder': (_) => const ProfileView()},
-      {'label': 'Notifications', 'builder': (_) => const NotificationView()},
+      {'label': 'Profile', 'builder': (_) => const ProfileView(), 'icon': Icons.person_outline},
+      {'label': 'Notifications', 'builder': (_) => const NotificationView(), 'icon': Icons.notifications_outlined},
     ];
+    
     String query = '';
+    final TextEditingController searchController = TextEditingController();
+    final FocusNode searchFocusNode = FocusNode();
+    
     await showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         List<Map<String, dynamic>> filteredPages = pages;
         List<Map<String, dynamic>> filteredAnimals = [];
+        
         return StatefulBuilder(
           builder: (context, setState) {
             filteredPages = pages.where((page) =>
@@ -194,8 +201,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   animal.color.toLowerCase().contains(query.toLowerCase())
                 )
                 .map((animal) => {
-                  'label': 'Animal: ${animal.name} (${animal.type})',
+                  'label': animal.name,
+                  'subtitle': '${animal.type} • ${animal.breed ?? 'Mixed'}',
                   'builder': (_) => AnimalPreview(animalModel: animal),
+                  'icon': Icons.pets,
+                  'isAnimal': true,
                 })
                 .toList();
             } else {
@@ -204,44 +214,287 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
             final results = [...filteredPages, ...filteredAnimals];
 
-            return AlertDialog(
-              title: const Text('Search for a page or animal'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Type to search pages or animals...'
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100),
+              child: Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        query = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: 300,
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: results.length,
-                      itemBuilder: (context, index) {
-                        final item = results[index];
-                        return ListTile(
-                          title: Text(item['label']),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: item['builder']),
-                            );
-                          },
-                        );
-                      },
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Config.primaryColor.withOpacity(0.05),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            color: Config.primaryColor,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Quick Search',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Config.primaryColor,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    
+                    // Search Field
+                    Container(
+                      margin: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        focusNode: searchFocusNode,
+                        autofocus: true,
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Search pages, animals, or features...',
+                          hintStyle: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: 16,
+                            color: Colors.grey[500],
+                          ),
+                          prefixIcon: Container(
+                            padding: const EdgeInsets.all(12),
+                            child: Icon(
+                              Icons.search,
+                              color: Colors.grey[400],
+                              size: 20,
+                            ),
+                          ),
+                          suffixIcon: query.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () {
+                                    searchController.clear();
+                                    setState(() {
+                                      query = '';
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Icon(
+                                      Icons.clear,
+                                      color: Colors.grey[400],
+                                      size: 20,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            query = value;
+                          });
+                        },
+                      ),
+                    ),
+                    
+                    // Results
+                    Flexible(
+                      child: results.isEmpty && query.isNotEmpty
+                          ? Container(
+                              padding: const EdgeInsets.all(40),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 48,
+                                    color: Colors.grey[300],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No results found',
+                                    style: TextStyle(
+                                      fontFamily: Config.primaryFont,
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Try searching for pages or animal names',
+                                    style: TextStyle(
+                                      fontFamily: Config.primaryFont,
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : query.isEmpty
+                              ? Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lightbulb_outline,
+                                        size: 32,
+                                        color: Colors.grey[400],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Quick Tips',
+                                        style: TextStyle(
+                                          fontFamily: Config.primaryFont,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Type to search for:\n• Pages (Profile, Notifications)\n• Animals by name, breed, or type\n• App features',
+                                        style: TextStyle(
+                                          fontFamily: Config.primaryFont,
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                          height: 1.4,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  itemCount: results.length,
+                                  itemBuilder: (context, index) {
+                                    final item = results[index];
+                                    final isAnimal = item['isAnimal'] == true;
+                                    
+                                    return Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.transparent,
+                                      ),
+                                      child: ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        leading: Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: isAnimal 
+                                                ? Colors.orange.withOpacity(0.1)
+                                                : Config.primaryColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            item['icon'],
+                                            color: isAnimal 
+                                                ? Colors.orange[600]
+                                                : Config.primaryColor,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          item['label'],
+                                          style: TextStyle(
+                                            fontFamily: Config.primaryFont,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[800],
+                                          ),
+                                        ),
+                                        subtitle: item['subtitle'] != null
+                                            ? Text(
+                                                item['subtitle'],
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              )
+                                            : null,
+                                        trailing: Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey[400],
+                                        ),
+                                        onTap: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: item['builder']),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -294,7 +547,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       actions: [
         IconButton(
           icon: const Icon(Icons.search),
-          tooltip: 'Search for a page',
+          tooltip: 'Quick Search',
           onPressed: _showCommandPalette,
         ),
       ],
@@ -560,7 +813,6 @@ BottomAppBar _buildBottomNavigationBar(List<NavigationItem> navItems, bool isVet
   }
 }
 
-// Helper class for navigation items
 class NavigationItem {
   final IconData? icon;
   final int? pageIndex;

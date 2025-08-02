@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cityvet_app/models/user_model.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
 
 class UserService {
@@ -8,7 +9,7 @@ class UserService {
 Future<Map<String, dynamic>> fetchUser(String token) async {
 
   final Dio dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth',
+    baseUrl: ApiConstant.baseUrl,
     headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
@@ -25,7 +26,7 @@ Future<Map<String, dynamic>> fetchUser(String token) async {
 
 Future<Response> editProfile(String token, UserModel user, {File? imageFile}) async {
   final Dio dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth',
+    baseUrl: ApiConstant.baseUrl,
     headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',

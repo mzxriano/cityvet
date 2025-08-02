@@ -1,9 +1,10 @@
 import 'package:cityvet_app/models/notification_model.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api',
+    baseUrl: ApiConstant.baseUrl,
     headers: {
       'Accept': 'application/json',
     },
@@ -29,7 +30,7 @@ class ApiService {
 
   Future<List<dynamic>> getVaccines(String token) async {
     try {
-      final response = await _dio.get('/auth/vaccines', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      final response = await _dio.get('/vaccines', options: Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
         return response.data;
       } else {
@@ -44,7 +45,7 @@ class ApiService {
   Future<void> attachVaccinesToAnimal(String token, int animalId, List<Map<String, dynamic>> vaccines) async {
     try {
       final response = await _dio.post(
-        '/auth/animals/$animalId/vaccines',
+        '/animals/$animalId/vaccines',
         data: {
           'vaccines': vaccines,
         },
@@ -61,7 +62,7 @@ class ApiService {
 
   Future<List<dynamic>> getAnimalVaccinations(String token, int animalId) async {
     try {
-      final response = await _dio.get('/auth/animals/$animalId', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      final response = await _dio.get('/animals/$animalId', options: Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
         return response.data['vaccinations'] ?? [];
       } else {
@@ -75,7 +76,7 @@ class ApiService {
 
   Future<List<dynamic>> getNotifications(String token) async {
     try {
-      final response = await _dio.get('/auth/notifications', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      final response = await _dio.get('/notifications', options: Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
         final notifications = response.data;
         // If a callback is set, notify about new notifications
@@ -98,7 +99,7 @@ class ApiService {
   Future<void> markNotificationAsRead(String token, String? notificationId) async {
     try {
       final response = await _dio.post(
-        '/auth/notifications/$notificationId/read',
+        '/notifications/$notificationId/read',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode != 200) {

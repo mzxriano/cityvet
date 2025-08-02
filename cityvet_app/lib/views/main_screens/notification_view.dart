@@ -135,15 +135,16 @@ class _NotificationViewState extends State<NotificationView> {
     final unreadCount = notifications.where((n) => !n.read).length;
     
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Notifications', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            Text('Notifications', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)), 
             if (unreadCount > 0)
               Text(
                 '$unreadCount unread',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.normal),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.normal),
               ),
           ],
         ),
@@ -155,7 +156,7 @@ class _NotificationViewState extends State<NotificationView> {
           if (unreadCount > 0)
             TextButton(
               onPressed: markAllAsRead,
-              child: Text('Mark all read', style: TextStyle(color: Colors.green.shade600, fontSize: 13)),
+              child: Text('Mark all read', style: TextStyle(color: Colors.green.shade600, fontSize: 15)), 
             ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: Colors.grey.shade700),
@@ -173,7 +174,7 @@ class _NotificationViewState extends State<NotificationView> {
                   SizedBox(height: 16),
                   Text(
                     'Loading notifications...',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16), 
                   ),
                 ],
               ),
@@ -199,7 +200,7 @@ class _NotificationViewState extends State<NotificationView> {
                       Text(
                         'No notifications yet',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 18, // Increased from 16
                           fontWeight: FontWeight.w500,
                           color: Colors.grey.shade700,
                         ),
@@ -208,7 +209,7 @@ class _NotificationViewState extends State<NotificationView> {
                       Text(
                         'We\'ll notify you when something happens',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16, // Increased from 14
                           color: Colors.grey.shade500,
                         ),
                       ),
@@ -220,22 +221,14 @@ class _NotificationViewState extends State<NotificationView> {
                   color: Colors.green.shade600,
                   child: ListView.separated(
                     itemCount: notifications.length,
-                    separatorBuilder: (context, index) => SizedBox(height: 8),
+                    separatorBuilder: (context, index) => SizedBox(height: 12), 
                     itemBuilder: (context, index) {
                       final n = notifications[index];
                       return Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.white, 
                           borderRadius: BorderRadius.circular(12),
-                          border: n.read ? null : Border.all(color: Colors.green.shade100, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              offset: Offset(0, 2),
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                            ),
-                          ],
+                          border: n.read ? Border.all(color: Colors.grey.shade200, width: 1) : Border.all(color: Colors.green.shade200, width: 1.5),
                         ),
                         child: Material(
                           color: Colors.transparent,
@@ -243,21 +236,21 @@ class _NotificationViewState extends State<NotificationView> {
                             borderRadius: BorderRadius.circular(12),
                             onTap: n.read ? null : () => markAsRead(n.id),
                             child: Padding(
-                              padding: EdgeInsets.all(16),
+                              padding: EdgeInsets.all(15),
                               child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   // Notification indicator
                                   Container(
-                                    width: 8,
-                                    height: 8,
+                                    width: 10, 
+                                    height: 10,
                                     margin: EdgeInsets.only(top: 4),
                                     decoration: BoxDecoration(
                                       color: n.read ? Colors.transparent : Colors.green.shade600,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
-                                  SizedBox(width: 12),
+                                  SizedBox(width: 14),
                                   // Content
                                   Expanded(
                                     child: Column(
@@ -266,18 +259,18 @@ class _NotificationViewState extends State<NotificationView> {
                                         Text(
                                           n.title,
                                           style: TextStyle(
-                                            fontSize: 15,
+                                            fontSize: 17, 
                                             fontWeight: n.read ? FontWeight.w500 : FontWeight.w600,
                                             color: Colors.black87,
                                             height: 1.3,
                                           ),
                                         ),
                                         if (n.body.isNotEmpty) ...[
-                                          SizedBox(height: 4),
+                                          SizedBox(height: 6), 
                                           Text(
                                             n.body,
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 16,
                                               color: Colors.grey.shade600,
                                               height: 1.4,
                                             ),
@@ -286,11 +279,11 @@ class _NotificationViewState extends State<NotificationView> {
                                           ),
                                         ],
                                         if (n.createdAt != null) ...[
-                                          SizedBox(height: 8),
+                                          SizedBox(height: 10),
                                           Text(
                                             _formatTime(n.createdAt),
                                             style: TextStyle(
-                                              fontSize: 12,
+                                              fontSize: 14, 
                                               color: Colors.grey.shade500,
                                             ),
                                           ),
@@ -299,21 +292,21 @@ class _NotificationViewState extends State<NotificationView> {
                                     ),
                                   ),
                                   // Action button
-                                  if (!n.read)
+                                  if (n.read)
                                     Container(
                                       margin: EdgeInsets.only(left: 8),
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(20),
                                         onTap: () => markAsRead(n.id),
                                         child: Container(
-                                          padding: EdgeInsets.all(6),
+                                          padding: EdgeInsets.all(8), 
                                           decoration: BoxDecoration(
-                                            color: Colors.blue.shade50,
+                                            color: Colors.green.shade50,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
                                             Icons.check_rounded,
-                                            size: 16,
+                                            size: 18, 
                                             color: Colors.green.shade600,
                                           ),
                                         ),

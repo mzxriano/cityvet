@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -12,7 +13,7 @@ class FcmService {
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth', 
+    baseUrl: ApiConstant.baseUrl, 
   ));
 
   Future<void> initialize({

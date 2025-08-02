@@ -1,7 +1,7 @@
 <nav class="sidebar flex flex-col p-[35px] w-1/6 min-h-screen bg-white">
     <div class="flex items-center gap-[1rem]">
         <div>
-            <img src="{{ asset('images/logo.jpg') }}" width="50" height="50" alt="Cityvet logo">
+            <img src="{{ asset('images/cityvet-logo.png') }}" width="50" height="50" alt="Cityvet logo">
         </div>
         <h2 class="text-2xl font-medium mt-4 mb-3">CityVet</h2>
     </div>

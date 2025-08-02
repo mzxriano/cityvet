@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cityvet_app/models/animal_model.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:dio/dio.dart';
 
@@ -7,7 +8,7 @@ class AnimalService {
   final AuthStorage storage = AuthStorage();
   
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth', 
+    baseUrl: ApiConstant.baseUrl, 
     headers: {
       'Accept': 'application/json',
     },

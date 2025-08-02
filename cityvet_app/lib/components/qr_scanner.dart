@@ -1,4 +1,5 @@
 import 'package:cityvet_app/models/animal_model.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:cityvet_app/views/vaccination_page_view.dart';
@@ -108,7 +109,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
 
     try {
       final response = await Dio(BaseOptions(
-        baseUrl: 'http://192.168.1.109:8000/api/auth',
+        baseUrl: ApiConstant.baseUrl,
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',

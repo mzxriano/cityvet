@@ -31,7 +31,7 @@ class _EditPostViewState extends State<EditPostView> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final picked = await picker.pickMultiImage();
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _images.addAll(picked.map((x) => File(x.path)));
       });
@@ -41,9 +41,11 @@ class _EditPostViewState extends State<EditPostView> {
   Future<void> _submitEdit() async {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
+      if (!mounted) return;
       setState(() { _error = 'Please enter some text.'; });
       return;
     }
+    if (!mounted) return;
     setState(() { _isLoading = true; _error = null; });
     try {
       await CommunityService().updatePost(
@@ -52,6 +54,7 @@ class _EditPostViewState extends State<EditPostView> {
         images: _images,
         token: widget.token,
       );
+      if (!mounted) return;
       Navigator.of(context).pop(true); // Indicate success
     } catch (e) {
       print('Failed to update post $e');
@@ -69,8 +72,10 @@ class _EditPostViewState extends State<EditPostView> {
         }
       }
       
+      if (!mounted) return;
       setState(() { _error = errorMessage; });
     } finally {
+      if (!mounted) return;
       setState(() { _isLoading = false; });
     }
   }
@@ -371,5 +376,11 @@ class _EditPostViewState extends State<EditPostView> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    super.dispose();
   }
 } 

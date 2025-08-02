@@ -44,6 +44,8 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
             Route::get('/{id}/show', [ActivityController::class, 'show'])->name('admin.activities.show');
             Route::post('/', [ActivityController::class, 'create'])->name('admin.activities.store');
+            Route::put('/{id}', [ActivityController::class, 'update'])->name('admin.activities.update');
+            Route::delete('/{id}', [ActivityController::class, 'destroy'])->name('admin.activities.destroy');
         });
 
         Route::prefix('users')->group(function () {

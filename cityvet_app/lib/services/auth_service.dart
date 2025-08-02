@@ -1,9 +1,10 @@
 import 'package:cityvet_app/models/auth_model.dart';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
 
 class AuthService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.109:8000/api/auth',
+    baseUrl: ApiConstant.baseUrl,
     headers: {
       'Accept': 'application/json',
     },
@@ -42,7 +43,7 @@ class AuthService {
 
 
     final Dio dio = Dio(BaseOptions(
-      baseUrl: 'http://192.168.1.109:8000/api/auth',
+      baseUrl: ApiConstant.baseUrl,
       headers: {
         'Accept': 'application/json',
       },

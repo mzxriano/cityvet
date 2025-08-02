@@ -206,7 +206,7 @@ class AuthController extends Controller
         ]);
 
         $email = $request->email;
-        $otp = rand(100000, 999999); // 6-digit OTP
+        $otp = rand(1000, 9999); 
         $expiresAt = now()->addMinutes(10);
 
         // Store OTP (hashed) in password_reset_tokens table
