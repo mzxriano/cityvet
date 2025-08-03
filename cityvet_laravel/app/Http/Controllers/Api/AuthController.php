@@ -140,7 +140,7 @@ class AuthController extends Controller
 
         $user->markEmailAsVerified();
 
-        return redirect()->route('email.successful')->with('success', 'Email verified successfully! You can now login to the app.');
+        return redirect()->route('email.successful')->with('success', 'Verification email sent successfully!');
     }
 
     public function resendVerification(Request $request)
@@ -181,7 +181,7 @@ class AuthController extends Controller
             ], 500);
         }
 
-        return redirect()->route('email.successful')->with('success', 'Email verified successfully! You can now login to the app.');
+        return redirect()->route('email.successful')->with('success', 'Verification email sent successfully!');
     }
 
     public function logout(Request $request)

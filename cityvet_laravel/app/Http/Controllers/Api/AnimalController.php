@@ -360,6 +360,26 @@ class AnimalController
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}" ?? null,
                 'qr_code_url' => $animal->getQrCodeUrl(),
                 'qr_code_base64' => $this->generateQrCodeBase64($animal),
+                'vaccinations' => $animal->vaccines->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'vaccine' => [
+                            'id' => $v->id,
+                            'name' => $v->name,
+                            'description' => $v->description,
+                            'stock' => $v->stock,
+                            'image_url' => $v->image_url,
+                            'image_public_id' => $v->image_public_id,
+                            'protect_against' => $v->protect_against,
+                            'affected' => $v->affected,
+                            'schedule' => $v->schedule,
+                            'expiration_date' => $v->expiration_date,
+                        ],
+                        'dose' => $v->pivot->dose,
+                        'date_given' => $v->pivot->date_given,
+                        'administrator' => $v->pivot->administrator,
+                    ];
+                }),
             ],
         ]);
     }
@@ -399,25 +419,183 @@ class AnimalController
     /**
      * Attach vaccines to an animal
      */
-    public function attachVaccines(Request $request, $animalId)
-    {
-        $animal = Animal::where('id', $animalId)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
 
-        $vaccines = $request->input('vaccines', []);
-        $syncData = [];
-        foreach ($vaccines as $vaccine) {
-            if (isset($vaccine['id'])) {
-                $syncData[$vaccine['id']] = [
-                    'dose' => $vaccine['dose'] ?? 1,
-                    'date_given' => $vaccine['date_given'] ?? now()->toDateString(),
-                    'administrator' => $vaccine['administrator'] ?? null,
-                ];
+public function attachVaccines(Request $request, $animalId)
+{
+    try {
+        // Get the authenticated user
+        $user = auth()->user();
+        
+        // Check if animal exists
+        $animal = Animal::where('id', $animalId)->first();
+        
+        if (!$animal) {
+            return response()->json([
+                'message' => 'Animal not found.'
+            ], 404);
+        }
+        
+        \Log::info('Vaccination request received', [
+            'animalId' => $animalId,
+            'vaccines' => $request->input('vaccines'),
+            'user_id' => auth()->id(),
+            'user_role' => $user->role->name,
+            'animal_owner_id' => $animal->user_id
+        ]);
+
+        // Define roles that CAN perform vaccinations
+        $allowedRoles = ['staff', 'veterinarian'];
+        
+        // Check permissions
+        if (!in_array($user->role->name, $allowedRoles)) {
+            // If not a vet/staff, check if they own the animal
+            if ($animal->user_id !== $user->id) {
+                return response()->json([
+                    'message' => 'You can only vaccinate your own animals or must be a veterinarian/staff member.'
+                ], 403);
             }
         }
+        
+        // Validate vaccines input
+        $vaccines = $request->input('vaccines', []);
+        
+        if (empty($vaccines)) {
+            return response()->json([
+                'message' => 'No vaccines provided.'
+            ], 400);
+        }
+        
+        $syncData = [];
+        
+                    foreach ($vaccines as $vaccine) {
+                if (isset($vaccine['id'])) {
+                    $syncData[$vaccine['id']] = [
+                        'dose' => $vaccine['dose'] ?? 1,
+                        'date_given' => $vaccine['date_given'] ?? now()->toDateString(),
+                        'administrator' => $vaccine['administrator'] ?? null,
+                        'activity_id' => $vaccine['activity_id'] ?? null,
+                    ];
+                }
+            }
+        
+        if (empty($syncData)) {
+            return response()->json([
+                'message' => 'No valid vaccines to attach.'
+            ], 400);
+        }
+        
+        \Log::info('Attaching vaccines', ['syncData' => $syncData]);
         $animal->vaccines()->attach($syncData);
-        return response()->json(['message' => 'Vaccines attached successfully.']);
+        
+        \Log::info('Vaccines attached successfully');
+        return response()->json([
+            'message' => 'Vaccines attached successfully.',
+            'data' => $syncData
+        ], 200);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error attaching vaccines: ' . $e->getMessage(), [
+            'animalId' => $animalId,
+            'user_id' => auth()->id(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'message' => 'Failed to attach vaccines: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+    /**
+     * Attach vaccines to an animal during a specific activity
+     */
+    public function attachVaccinesToActivity(Request $request, $activityId)
+    {
+        try {
+            // Validate the request
+            $request->validate([
+                'animal_id' => 'required|exists:animals,id',
+                'vaccines' => 'required|array',
+                'vaccines.*.id' => 'required|exists:vaccines,id',
+                'vaccines.*.dose' => 'required|integer|min:1',
+                'vaccines.*.administrator' => 'nullable|string|max:255',
+            ]);
+
+            // Check if activity exists
+            $activity = \App\Models\Activity::find($activityId);
+            if (!$activity) {
+                return response()->json([
+                    'message' => 'Activity not found.'
+                ], 404);
+            }
+
+            // Get the authenticated user
+            $user = auth()->user();
+            
+            // Check if animal exists
+            $animal = Animal::where('id', $request->animal_id)->first();
+            
+            if (!$animal) {
+                return response()->json([
+                    'message' => 'Animal not found.'
+                ], 404);
+            }
+            
+            // Define roles that CAN perform vaccinations
+            $allowedRoles = ['staff', 'veterinarian'];
+            
+            // Check permissions
+            if (!in_array($user->role->name, $allowedRoles)) {
+                return response()->json([
+                    'message' => 'Only veterinarians and staff can perform vaccinations.'
+                ], 403);
+            }
+
+            $vaccines = $request->input('vaccines', []);
+            $syncData = [];
+            
+            foreach ($vaccines as $vaccine) {
+                if (isset($vaccine['id'])) {
+                    $syncData[$vaccine['id']] = [
+                        'dose' => $vaccine['dose'] ?? 1,
+                        'date_given' => $activity->date,
+                        'administrator' => $vaccine['administrator'] ?? $user->first_name . ' ' . $user->last_name,
+                        'activity_id' => $activityId,
+                    ];
+                }
+            }
+            
+            if (empty($syncData)) {
+                return response()->json([
+                    'message' => 'No valid vaccines to attach.'
+                ], 400);
+            }
+            
+            \Log::info('Attaching vaccines to activity', [
+                'activity_id' => $activityId,
+                'animal_id' => $animal->id,
+                'syncData' => $syncData
+            ]);
+            
+            $animal->vaccines()->attach($syncData);
+            
+            \Log::info('Vaccines attached to activity successfully');
+            return response()->json([
+                'message' => 'Vaccines attached successfully to activity.',
+                'data' => $syncData
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error attaching vaccines to activity: ' . $e->getMessage(), [
+                'activity_id' => $activityId,
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to attach vaccines to activity: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

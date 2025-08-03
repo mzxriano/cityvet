@@ -4,6 +4,7 @@ import 'package:cityvet_app/viewmodels/home_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/home/all_activities_page.dart';
 import 'package:cityvet_app/views/main_screens/home/all_aew_page.dart';
+import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,8 @@ class HomeViewState extends State<HomeView> {
     _homeViewModel = HomeViewModel();
     // Initialize data fetching
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _homeViewModel.fetchActivity();
+      _homeViewModel.fetchUpcomingActivities();
+      _homeViewModel.fetchOngoingActivities();
       _homeViewModel.fetchRecentActivities();
     });
   }
@@ -101,284 +103,27 @@ class HomeViewState extends State<HomeView> {
                       
                       Config.heightBig,
 
-                    // Upcoming Section
-                    const Text(
-                      'Up Coming',
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontMedium,
-                        fontWeight: Config.fontW600,
+                      // Upcoming Section
+                      const Text(
+                        'Up Coming',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontMedium,
+                          fontWeight: Config.fontW600,
+                        ),
                       ),
-                    ),
-                    Config.heightSmall,
+                      Config.heightSmall,
 
-                    // Show loading indicator for upcoming activity
-                    if (homeViewModel.isLoading)
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: const Center(child: CircularProgressIndicator()),
-                      )
-                    else if (homeViewModel.activity != null)
-                      GestureDetector(
-                        onTap: () => _showActivityDialog(context, homeViewModel),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF8ED968).withOpacity(0.1),
-                                const Color(0xFF8ED968).withOpacity(0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: const Color(0xFF8ED968).withOpacity(0.3),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.08),
-                                spreadRadius: 1,
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header row with icon and "upcoming" badge
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF8ED968),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.event,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      homeViewModel.activity?.reason ?? 'No reason',
-                                      style: const TextStyle(
-                                        fontFamily: Config.primaryFont,
-                                        fontSize: Config.fontMedium,
-                                        fontWeight: Config.fontW600,
-                                        color: Color(0xFF524F4F),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      'UPCOMING',
-                                      style: TextStyle(
-                                        fontFamily: Config.primaryFont,
-                                        fontSize: 10,
-                                        color: Colors.orange,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: 16),
-                              
-                              // Activity details
-                              Text(
-                                homeViewModel.activity?.details ?? 'No details',
-                                style: const TextStyle(
-                                  fontFamily: Config.primaryFont,
-                                  fontSize: Config.fontSmall,
-                                  color: Color(0xFF6B7280),
-                                  height: 1.4,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              
-                              const SizedBox(height: 16),
-                              
-                              // Date, time, and location info
-                              Row(
-                                children: [
-                                  // Date
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today_outlined,
-                                          size: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(
-                                            DateFormat('MMM d, yyyy').format(homeViewModel.activity!.date),
-                                            style: TextStyle(
-                                              fontFamily: Config.primaryFont,
-                                              fontSize: Config.fontSmall,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  
-                                  // Time
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time_outlined,
-                                          size: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(
-                                            DateFormat('h:mm a').format(homeViewModel.activity!.time),
-                                            style: TextStyle(
-                                              fontFamily: Config.primaryFont,
-                                              fontSize: Config.fontSmall,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: 8),
-                              
-                              // Location
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_outlined,
-                                    size: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      homeViewModel.activity?.barangay.toString() ?? 'Unknown',
-                                      style: TextStyle(
-                                        fontFamily: Config.primaryFont,
-                                        fontSize: Config.fontSmall,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  
-                                  // Tap to view more indicator
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.8),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'View Details',
-                                          style: TextStyle(
-                                            fontFamily: Config.primaryFont,
-                                            fontSize: 10,
-                                            color: Colors.grey[700],
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 10,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.event_busy_outlined,
-                                size: 32,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No Upcoming Events',
-                              style: TextStyle(
-                                fontFamily: Config.primaryFont,
-                                fontSize: Config.fontMedium,
-                                fontWeight: Config.fontW600,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Check back later for scheduled activities.',
-                              style: TextStyle(
-                                fontFamily: Config.primaryFont,
-                                fontSize: Config.fontSmall,
-                                color: Colors.grey[500],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Show loading indicator for upcoming activities
+                      if (homeViewModel.isLoadingUpcoming)
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: const Center(child: CircularProgressIndicator()),
+                        )
+                      else if (homeViewModel.upcomingActivities != null && homeViewModel.upcomingActivities!.isNotEmpty)
+                        _buildSingleUpcomingActivity(homeViewModel)
+                      else
+                        _buildNoUpcomingEventsCard(),
                       
                       Config.heightBig,
                       
@@ -395,7 +140,275 @@ class HomeViewState extends State<HomeView> {
     );
   }
 
-  void _showActivityDialog(BuildContext context, HomeViewModel homeViewModel) {
+  Widget _buildSingleUpcomingActivity(HomeViewModel homeViewModel) {
+    // Show only the first upcoming activity
+    final activity = homeViewModel.upcomingActivities!.first;
+
+    return GestureDetector(
+      onTap: () => _showActivityDialog(context, activity),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF8ED968).withOpacity(0.1),
+              const Color(0xFF8ED968).withOpacity(0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF8ED968).withOpacity(0.3),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              spreadRadius: 1,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row with icon and "upcoming" badge
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8ED968),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.event,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    activity.reason,
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                      fontWeight: Config.fontW600,
+                      color: Color(0xFF524F4F),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'UPCOMING',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: 10,
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Activity details
+            Text(
+              activity.details,
+              style: const TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontSmall,
+                color: Color(0xFF6B7280),
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Date, time, and location info
+            Row(
+              children: [
+                // Date
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          DateFormat('MMM d, yyyy').format(activity.date),
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Time
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time_outlined,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          DateFormat('h:mm a').format(activity.time),
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Location
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    activity.barangay.toString(),
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                
+                // Tap to view more indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View Details',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: 10,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 10,
+                        color: Colors.grey[700],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoUpcomingEventsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.event_busy_outlined,
+              size: 32,
+              color: Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Upcoming Events',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontMedium,
+              fontWeight: Config.fontW600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Check back later for scheduled activities.',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+              color: Colors.grey[500],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showActivityDialog(BuildContext context, dynamic activity) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -404,10 +417,10 @@ class HomeViewState extends State<HomeView> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            homeViewModel.activity!.reason,
+            activity.reason,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          content: _activityDetailsPopup(homeViewModel),
+          content: _activityDetailsPopup(activity),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -424,23 +437,23 @@ class HomeViewState extends State<HomeView> {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     String userRole = userViewModel.user?.role ?? '';
     
-    // Check if user is veterinarian or staff to show recent activities
-    if (userRole == 'veterinarian' || userRole == 'staff') {
-      return _buildRecentActivitiesSection(homeViewModel);
+    // Check if user is veterinarian or staff to show ongoing activities
+    if (userRole != 'owner') {
+      return _buildSingleOngoingActivity(homeViewModel);
     } else {
       return _buildAEWSection();
     }
   }
 
-  // Recent Activities section for veterinarian/staff
-  Widget _buildRecentActivitiesSection(HomeViewModel homeViewModel) {
+  // Single Ongoing Activity section for veterinarian/staff
+  Widget _buildSingleOngoingActivity(HomeViewModel homeViewModel) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Recent Activities',
+              'On Going Activity',
               style: TextStyle(
                 fontFamily: Config.primaryFont,
                 fontSize: Config.fontMedium,
@@ -450,7 +463,7 @@ class HomeViewState extends State<HomeView> {
             TextButton(
               onPressed: () => _navigateToAllActivities(context, homeViewModel),
               child: const Text(
-                'See all',
+                'See Recent Activities',
                 style: TextStyle(
                   fontFamily: Config.primaryFont,
                   fontSize: Config.fontSmall,
@@ -461,104 +474,98 @@ class HomeViewState extends State<HomeView> {
           ],
         ),
         Config.heightSmall,
-        // Search bar for recent activities
-        Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxWidth: 500),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _activitySearchController,
-            onChanged: (value) {
-              setState(() {
-                _activitySearchQuery = value;
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: 'Search recent activities...',
-              hintStyle: TextStyle(
-                fontFamily: Config.primaryFont,
-                fontSize: Config.fontSmall,
-                color: Colors.grey,
-              ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-              prefixIcon: Icon(Icons.search, color: Colors.grey),
-            ),
-            style: const TextStyle(
-              fontFamily: Config.primaryFont,
-              fontSize: Config.fontSmall,
-            ),
-          ),
-        ),
-        Config.heightSmall,
-        if (homeViewModel.isLoadingRecent)
+        if (homeViewModel.isLoadingOngoing)
           const Center(child: CircularProgressIndicator())
-        else if (homeViewModel.recentActivities != null && homeViewModel.recentActivities!.isNotEmpty)
-          Column(
-            children: homeViewModel.recentActivities!
-              .where((activity) =>
-                _activitySearchQuery.isEmpty ||
-                activity.reason.toLowerCase().contains(_activitySearchQuery.toLowerCase()) ||
-                activity.details.toLowerCase().contains(_activitySearchQuery.toLowerCase()) ||
-                activity.barangay.toLowerCase().contains(_activitySearchQuery.toLowerCase())
-              )
-              .take(3)
-              .map((activity) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: CustomCard(
-                    width: double.infinity,
-                    color: Colors.white,
-                    widget: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activity.reason,
-                          style: const TextStyle(
+        else if (homeViewModel.ongoingActivities != null && homeViewModel.ongoingActivities!.isNotEmpty)
+          // Show only the first ongoing activity
+          GestureDetector(
+            onTap: () => _navigateToActivityDetails(context, homeViewModel.ongoingActivities!.first),
+            child: CustomCard(
+              width: double.infinity,
+              color: Colors.white,
+              widget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'ON GOING',
+                          style: TextStyle(
                             fontFamily: Config.primaryFont,
-                            fontSize: Config.fontMedium,
+                            fontSize: 10,
+                            color: Colors.blue,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF524F4F),
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          activity.barangay.toString(),
-                          style: const TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: Config.fontSmall,
-                            color: Config.tertiaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat('MMM d, yyyy • h:mm a').format(activity.date),
-                          style: const TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: Config.fontSmall,
-                            color: Config.tertiaryColor,
-                          ),
-                        ),
-                      ],
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Config.tertiaryColor,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    homeViewModel.ongoingActivities!.first.reason,
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF524F4F),
                     ),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 4),
+                  Text(
+                    homeViewModel.ongoingActivities!.first.barangay.toString(),
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Config.tertiaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('MMM d, yyyy • h:mm a').format(homeViewModel.ongoingActivities!.first.date),
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Config.tertiaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           )
         else
           Center(
             child: Container(
               padding: const EdgeInsets.all(20.0),
-              child: const Text(
-                'No recent activities.',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: Config.fontSmall,
-                  color: Config.secondaryColor,
-                ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.work_outline,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'No ongoing activities.',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Config.secondaryColor,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -566,19 +573,17 @@ class HomeViewState extends State<HomeView> {
     );
   }
 
-// Replace your existing _buildAEWSection() method with this updated version
-
 Widget _buildAEWSection() {
   // Mock data for 2 AEWs to display in home view
   final List<Map<String, dynamic>> homeAEWs = [
     {
       'id': 1,
       'name': 'John Doe',
-      'position': 'Senior AEW',
+      'position': 'AEW',
       'barangay': 'Barangay 1',
       'contact': '+63 912 345 6789',
       'email': 'john.doe@cityvet.gov',
-      'specialization': 'Livestock Management',
+      'specialization': 'Agricultural Extension Worker',
       'yearsOfService': 5,
     },
     {
@@ -588,7 +593,7 @@ Widget _buildAEWSection() {
       'barangay': 'Barangay 2',
       'contact': '+63 923 456 7890',
       'email': 'jane.smith@cityvet.gov',
-      'specialization': 'Poultry Care',
+      'specialization': 'Agricultural Extension Worker',
       'yearsOfService': 3,
     },
   ];
@@ -834,20 +839,10 @@ void _showAEWDetails(BuildContext context, Map<String, dynamic> aew) {
                 child: TextButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    _makePhoneCall(aew['contact']);
+                    _chatWithAew(aew['contact']);
                   },
-                  icon: const Icon(Icons.phone),
-                  label: const Text('Call'),
-                ),
-              ),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _sendEmail(aew['email']);
-                  },
-                  icon: const Icon(Icons.email),
-                  label: const Text('Email'),
+                  icon: const Icon(Icons.message),
+                  label: const Text('Chat'),
                 ),
               ),
             ],
@@ -902,9 +897,9 @@ Widget _buildDetailRow(IconData icon, String label, String value) {
   );
 }
 
-void _makePhoneCall(String phoneNumber) {
+void _chatWithAew(String phoneNumber) {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Calling $phoneNumber...')),
+    SnackBar(content: Text('Opening a chat box')),
   );
 }
 
@@ -921,6 +916,17 @@ void _sendEmail(String email) {
         builder: (context) => ChangeNotifierProvider.value(
           value: homeViewModel, 
           child: const AllActivitiesView(),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToActivityDetails(BuildContext context, dynamic activity) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ActivityVaccinationReportView(
+          activityId: activity.id.toString(),
         ),
       ),
     );
@@ -963,8 +969,7 @@ void _sendEmail(String email) {
     );
   }
 
-  Widget _activityDetailsPopup(HomeViewModel homeViewModel) {
-    final activity = homeViewModel.activity!;
+  Widget _activityDetailsPopup(dynamic activity) {
     final formattedDate = DateFormat('MMMM d, yyyy').format(activity.date);
     final formattedTime = DateFormat('h:mm a').format(activity.time);
 
@@ -994,7 +999,7 @@ void _sendEmail(String email) {
           children: [
             const Icon(Icons.location_on, size: 18, color: Colors.grey),
             const SizedBox(width: 8),
-            Text(homeViewModel.activity?.barangay.toString() ?? 'Unknown'),
+            Text(activity.barangay.toString()),
           ],
         ),
       ],

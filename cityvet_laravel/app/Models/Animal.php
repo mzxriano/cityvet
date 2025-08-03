@@ -46,7 +46,7 @@ class Animal extends Model
 
     public function vaccines() {
         return $this->belongsToMany(Vaccine::class)
-            ->withPivot('dose', 'date_given', 'administrator')
+            ->withPivot('dose', 'date_given', 'administrator', 'activity_id')
             ->withTimestamps();
     }
 

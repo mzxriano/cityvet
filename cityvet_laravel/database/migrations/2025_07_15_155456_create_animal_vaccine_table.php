@@ -20,7 +20,8 @@ return new class extends Migration
             $table->foreignId('vaccine_id')->constrained('vaccines')->onDelete('cascade');
             $table->timestamps();
 
-           $table->unique(['dose', 'animal_id', 'vaccine_id']); 
+           // Removed unique constraint to allow multiple vaccination records
+           // $table->unique(['dose', 'animal_id', 'vaccine_id']); 
         });
     }
 

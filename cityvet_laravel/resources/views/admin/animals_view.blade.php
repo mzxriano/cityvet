@@ -78,6 +78,11 @@
             <span class="text-gray-500 w-20 text-sm">Height:</span>
             <span class="text-gray-700">{{ $animal->height ?? 'Unknown' }}</span>
           </div>
+
+          <div class="flex items-center">
+            <span class="text-gray-500 w-20 text-sm">Code:</span>
+            <span class="text-gray-700">{{ $animal->code ?? 'Unknown' }}</span>
+          </div>
           
           <div class="pt-2">
             <span class="text-gray-500 text-sm">Vaccines:</span>

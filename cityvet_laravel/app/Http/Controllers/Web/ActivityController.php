@@ -32,6 +32,13 @@ class ActivityController extends Controller
 
         $activities = $query->orderBy("created_at", "desc")->paginate(10);
         
+        // Get vaccination counts for each activity
+        foreach ($activities as $activity) {
+            $activity->vaccinated_animals_count = \App\Models\Animal::whereHas('vaccines', function($query) use ($activity) {
+                $query->where('animal_vaccine.activity_id', $activity->id);
+            })->count();
+        }
+        
         // Get all barangays for the dropdown
         $barangays = Barangay::orderBy('name')->get();
 
@@ -42,7 +49,36 @@ class ActivityController extends Controller
     {
         $activity = Activity::findOrFail($id);
 
-        return view('admin.activities_view', compact('activity'));
+        // Get vaccinated animals for this activity
+        $vaccinatedAnimals = \App\Models\Animal::with(['user', 'vaccines' => function($query) use ($activity) {
+            $query->where('animal_vaccine.activity_id', $activity->id);
+        }])
+        ->whereHas('vaccines', function($query) use ($activity) {
+            $query->where('animal_vaccine.activity_id', $activity->id);
+        })
+        ->get()
+        ->map(function($animal) {
+            return [
+                'id' => $animal->id,
+                'name' => $animal->name,
+                'type' => $animal->type,
+                'breed' => $animal->breed,
+                'color' => $animal->color,
+                'gender' => $animal->gender,
+                'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
+                'owner_phone' => $animal->user ? $animal->user->phone_number : null,
+                'vaccinations' => $animal->vaccines->map(function($vaccine) {
+                    return [
+                        'vaccine_name' => $vaccine->name,
+                        'dose' => $vaccine->pivot->dose,
+                        'date_given' => $vaccine->pivot->date_given,
+                        'administrator' => $vaccine->pivot->administrator,
+                    ];
+                })
+            ];
+        });
+
+        return view('admin.activities_view', compact('activity', 'vaccinatedAnimals'));
     }
 
     public function create(Request $request)

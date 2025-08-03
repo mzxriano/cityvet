@@ -40,30 +40,41 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
-    setState(() {
-      _errorMessage = null;
-    });
+    
+    // Clear error when user starts typing
+    if (mounted) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
   }
 
   Future<void> _verifyOtp() async {
     final otp = _otpCode;
     if (otp.length != 4) {
-      setState(() { 
-        _errorMessage = 'Please enter the complete 6-digit OTP.'; 
-      });
+      if (mounted) {
+        setState(() { 
+          _errorMessage = 'Please enter the complete 4-digit OTP.'; 
+        });
+      }
       return;
     }
     
-    setState(() { 
-      _isLoading = true; 
-      _errorMessage = null; 
-    });
+    if (mounted) {
+      setState(() { 
+        _isLoading = true; 
+        _errorMessage = null; 
+      });
+    }
     
     try {
       final response = await AuthService().verifyOtp(
         email: widget.email, 
         otp: otp
       );
+      
+      // Check mounted after async operation
+      if (!mounted) return;
       
       if (response.statusCode == 200) {
         Navigator.of(context).push(MaterialPageRoute(
@@ -78,13 +89,40 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
         });
       }
     } catch (e) {
-      setState(() { 
-        _errorMessage = 'Failed to verify OTP. Please check your connection and try again.'; 
-      });
+      // Check mounted before setState
+      if (mounted) {
+        setState(() { 
+          _errorMessage = 'Failed to verify OTP. Please check your connection and try again.'; 
+        });
+      }
     } finally {
-      setState(() { 
-        _isLoading = false; 
-      });
+      // Check mounted before setState
+      if (mounted) {
+        setState(() { 
+          _isLoading = false; 
+        });
+      }
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    try {
+      // Add your resend OTP service call here
+      // await AuthService().resendOtp(email: widget.email);
+      
+      // Check mounted before showing SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('OTP resent successfully')),
+        );
+      }
+    } catch (e) {
+      // Check mounted before showing SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to resend OTP')),
+        );
+      }
     }
   }
 
@@ -108,133 +146,140 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
           child: Column(
             children: [
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo
-                    Config.primaryLogo,
-                    Config.heightMedium,
-                    
-                    // Title
-                    Text(
-                      'OTP Verification',
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontBig,
-                        fontWeight: FontWeight.w600,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                      
+                      // Logo
+                      Config.primaryLogo,
+                      Config.heightMedium,
+                      
+                      // Title
+                      Text(
+                        'OTP Verification',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontBig,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Config.heightSmall,
-                    
-                    // Subtitle
-                    Text(
-                      'Please enter the code we just sent to email',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontSmall,
-                        color: Config.tertiaryColor,
-                      ),
-                    ),
-                    Config.heightBig,
-                    
-                    // OTP Input Boxes
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(4, (index) {
-                        return Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: _otpControllers[index].text.isNotEmpty 
-                                ? Config.primaryColor 
-                                : Colors.grey.shade300,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: TextField(
-                            controller: _otpControllers[index],
-                            focusNode: _focusNodes[index],
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            maxLength: 1,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: Config.primaryFont,
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              counterText: '',
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            onChanged: (value) => _onOtpChanged(value, index),
-                            onTap: () {
-                              _otpControllers[index].selection = TextSelection.fromPosition(
-                                TextPosition(offset: _otpControllers[index].text.length),
-                              );
-                            },
-                            onSubmitted: (value) {
-                              if (index < 3 && value.isNotEmpty) {
-                                _focusNodes[index + 1].requestFocus();
-                              }
-                            },
-                          ),
-                        );
-                      }),
-                    ),
-                    Config.heightBig,
-                    
-                    // Resend Code
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Didn\'t get a code? ',
+                      Config.heightSmall,
+                      
+                      // Subtitle
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'Please enter the 4-digit code we just sent to ${widget.email}',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontSmall,
                             color: Config.tertiaryColor,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () async {
-                            // Add resend functionality here
-                            try {
-                              // Call your resend OTP service
-                              // await AuthService().resendOtp(email: widget.email);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('OTP resent successfully')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to resend OTP')),
-                              );
-                            }
-                          }, 
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Resend',
+                      ),
+                      Config.heightBig,
+                      
+                      // OTP Input Boxes - Fixed overflow issue
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(4, (index) {
+                            return Flexible(
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                margin: EdgeInsets.symmetric(horizontal: 4),
+                                constraints: BoxConstraints(
+                                  minWidth: 50,
+                                  maxWidth: 70,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _otpControllers[index].text.isNotEmpty 
+                                      ? Config.primaryColor 
+                                      : Colors.grey.shade300,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: TextField(
+                                  controller: _otpControllers[index],
+                                  focusNode: _focusNodes[index],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  maxLength: 1,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: Config.primaryFont,
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    counterText: '',
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  onChanged: (value) => _onOtpChanged(value, index),
+                                  onTap: () {
+                                    _otpControllers[index].selection = TextSelection.fromPosition(
+                                      TextPosition(offset: _otpControllers[index].text.length),
+                                    );
+                                  },
+                                  onSubmitted: (value) {
+                                    if (index < 3 && value.isNotEmpty) {
+                                      _focusNodes[index + 1].requestFocus();
+                                    } else if (index == 3 && _otpCode.length == 4) {
+                                      // Auto-verify when last digit is entered
+                                      _verifyOtp();
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      Config.heightBig,
+                      
+                      // Resend Code
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Didn\'t get a code? ',
                             style: TextStyle(
                               fontFamily: Config.primaryFont,
                               fontSize: Config.fontSmall,
-                              color: Config.primaryColor,
-                              fontWeight: FontWeight.w600,
+                              color: Config.tertiaryColor,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          TextButton(
+                            onPressed: _resendOtp,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Resend',
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontSmall,
+                                color: Config.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -265,9 +310,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
               Button(
                 width: double.infinity, 
                 title: _isLoading ? 'Verifying...' : 'Verify', 
-                onPressed: () {
-                  _verifyOtp();
-                }
+                onPressed: _verifyOtp,
               ),
               
               // Loading Indicator

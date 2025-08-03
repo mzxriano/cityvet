@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 class ActivityModel {
+  final int? id;
   final String reason;
   final String details;
   final String barangay;
@@ -8,6 +9,7 @@ class ActivityModel {
   final DateTime time;
 
   ActivityModel({
+    this.id,
     required this.reason,
     required this.details,
     required this.barangay,
@@ -32,6 +34,7 @@ class ActivityModel {
     );
 
     return ActivityModel(
+      id: json['id'],
       reason: json['reason'] ?? '',
       details: json['details'] ?? '',
       barangay: json['barangay'] ?? '',

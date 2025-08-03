@@ -9,19 +9,37 @@ class HomeViewModel extends ChangeNotifier {
   final AuthStorage storage = AuthStorage();
   final ActivityService _activityService = ActivityService();
 
-  ActivityModel? _activity;
+  // Single upcoming activity (for the top section)
+  ActivityModel? _upcomingActivity;
+  
+  // Single ongoing activity (for staff/veterinarian section)
+  ActivityModel? _ongoingActivity;
+  
+  // Recent completed activities (for "See Recent Activities") - still a list
   List<ActivityModel>? _recentActivities;
-  bool _isLoading = false;
+  
+  bool _isLoadingUpcoming = false;
+  bool _isLoadingOngoing = false;
   bool _isLoadingRecent = false;
   String? _error;
   bool _disposed = false;
 
-  // Getters
-  ActivityModel? get activity => _activity;
+  // Getters - Updated for single activities
+  ActivityModel? get upcomingActivity => _upcomingActivity;
+  ActivityModel? get ongoingActivity => _ongoingActivity;
   List<ActivityModel>? get recentActivities => _recentActivities;
-  bool get isLoading => _isLoading;
+  
+  bool get isLoadingUpcoming => _isLoadingUpcoming;
+  bool get isLoadingOngoing => _isLoadingOngoing;
   bool get isLoadingRecent => _isLoadingRecent;
+  
   String? get error => _error;
+
+  // Legacy getters for backward compatibility
+  ActivityModel? get activity => _upcomingActivity;
+  List<ActivityModel>? get upcomingActivities => _upcomingActivity != null ? [_upcomingActivity!] : null;
+  List<ActivityModel>? get ongoingActivities => _ongoingActivity != null ? [_ongoingActivity!] : null;
+  bool get isLoading => _isLoadingUpcoming;
 
   @override
   void dispose() {
@@ -29,21 +47,33 @@ class HomeViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  void setActivity(ActivityModel activity) {
+  void setUpcomingActivity(ActivityModel? activity) {
     if (_disposed) return;
-    _activity = activity;
+    _upcomingActivity = activity;
     notifyListeners();
   }
 
-  void setRecentActivities(List<ActivityModel> list) {
+  void setOngoingActivity(ActivityModel? activity) {
     if (_disposed) return;
-    _recentActivities = list;
+    _ongoingActivity = activity;
     notifyListeners();
   }
 
-  void _setLoading(bool loading) {
+  void setRecentActivities(List<ActivityModel> activities) {
     if (_disposed) return;
-    _isLoading = loading;
+    _recentActivities = activities;
+    notifyListeners();
+  }
+
+  void _setLoadingUpcoming(bool loading) {
+    if (_disposed) return;
+    _isLoadingUpcoming = loading;
+    notifyListeners();
+  }
+
+  void _setLoadingOngoing(bool loading) {
+    if (_disposed) return;
+    _isLoadingOngoing = loading;
     notifyListeners();
   }
 
@@ -59,9 +89,10 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchActivity() async {
+  // Fetch single upcoming activity
+  Future<void> fetchUpcomingActivity() async {
     if (_disposed) return;
-    _setLoading(true);
+    _setLoadingUpcoming(true);
     _setError(null);
 
     try {
@@ -71,11 +102,10 @@ class HomeViewModel extends ChangeNotifier {
         return;
       }
 
-      final response = await _activityService.fetchActivity(token);
+      final activity = await _activityService.fetchUpcomingActivity(token);
       if (_disposed) return;
-      final activity = ActivityModel.fromJson(response);
-      print(activity);
-      setActivity(activity);
+      print('Upcoming activity: $activity');
+      setUpcomingActivity(activity);
       
     } on DioException catch (e) {
       if (_disposed) return;
@@ -84,14 +114,48 @@ class HomeViewModel extends ChangeNotifier {
       
     } catch (e) {
       if (_disposed) return;
-      _setError('Error fetching activity: $e');
-      print('Error fetching activity: $e');
+      _setError('Error fetching upcoming activity: $e');
+      print('Error fetching upcoming activity: $e');
     } finally {
       if (_disposed) return;
-      _setLoading(false);
+      _setLoadingUpcoming(false);
     }
   }
 
+  // Fetch single ongoing activity
+  Future<void> fetchOngoingActivity() async {
+    if (_disposed) return;
+    _setLoadingOngoing(true);
+    _setError(null);
+
+    try {
+      final String? token = await storage.getToken();
+      if (token == null) {
+        _setError('No authentication token found');
+        return;
+      }
+
+      final activity = await _activityService.fetchOngoingActivity(token);
+      if (_disposed) return;
+      print('Ongoing activity: $activity');
+      setOngoingActivity(activity);
+      
+    } on DioException catch (e) {
+      if (_disposed) return;
+      final errorMessage = _handleDioException(e);
+      _setError(errorMessage);
+      
+    } catch (e) {
+      if (_disposed) return;
+      _setError('Error fetching ongoing activity: $e');
+      print('Error fetching ongoing activity: $e');
+    } finally {
+      if (_disposed) return;
+      _setLoadingOngoing(false);
+    }
+  }
+
+  // Fetch recent activities list - FIXED VERSION
   Future<void> fetchRecentActivities() async {
     if (_disposed) return;
     _setLoadingRecent(true);
@@ -106,7 +170,7 @@ class HomeViewModel extends ChangeNotifier {
 
       final activities = await _activityService.fetchRecentActivities(token);
       if (_disposed) return;
-      print(activities);
+      print('Recent activities: $activities');
       setRecentActivities(activities);
       
     } on DioException catch (e) {
@@ -124,18 +188,29 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  // Legacy methods for backward compatibility
+  Future<void> fetchActivity() async {
+    await fetchUpcomingActivity();
+  }
+
+  Future<void> fetchUpcomingActivities() async {
+    await fetchUpcomingActivity();
+  }
+
+  Future<void> fetchOngoingActivities() async {
+    await fetchOngoingActivity();
+  }
+
   String _handleDioException(DioException e) {
     final error = e.response?.data;
     
     if (error is Map<String, dynamic>) {
-      // Try to extract error message from common API response formats
       return error['message'] ?? 
              error['error'] ?? 
              'An error occurred';
     } else if (error is String) {
       return error;
     } else {
-      // Use your existing DioExceptionHandler if available
       try {
         DioExceptionHandler.handleException(e);
         return 'Network error occurred';
@@ -155,7 +230,8 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> refreshData() async {
     if (_disposed) return;
     await Future.wait([
-      fetchActivity(),
+      fetchUpcomingActivity(),
+      fetchOngoingActivity(),
       fetchRecentActivities(),
     ]);
   }

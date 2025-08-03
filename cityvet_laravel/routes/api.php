@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuthController;
@@ -8,9 +9,9 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\CommunityCommentController;
 use App\Http\Controllers\Api\CommunityLikeController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DeviceTokenController;
+use App\Http\Controllers\Api\VaccineController;
 
 Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
 
@@ -18,7 +19,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class,'register']);
 
-    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    
 
     // Password reset (OTP)
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -26,6 +27,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 
     Route::get('/barangay', [BarangayController::class,'index']);
+
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 
     Route::middleware(['auth:api'])->group(function () {
         // User
@@ -37,10 +40,16 @@ Route::prefix('auth')->group(function () {
 
         // Activity
         Route::prefix('activity')->group(function () {
-            Route::get('/', [ActivityController::class,'index']);
+            Route::get('/upcoming', [ActivityController::class,'index']);
+            Route::get('/ongoing', [ActivityController::class,'ongoingActivity']);
+            Route::get('/recent', [ActivityController::class,'recentActivities']);
+            Route::get('/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimals']);
+            Route::get('/{activityId}/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimalsByActivity']);
         });
 
         Route::get('/recent-activities', [ActivityController::class,'recentActivities']);
+
+        Route::get('/vaccination-records', [VaccineController::class,'getAllVaccinationRecords']);
 
         
         // Animals 
@@ -51,7 +60,8 @@ Route::prefix('auth')->group(function () {
             Route::put('/{id}', [AnimalController::class,'update']);
             Route::post('/{id}', [AnimalController::class,'update']);
             Route::delete('/{id}', [AnimalController::class,'destroy']);
-            Route::post('/{animal}/vaccines', [AnimalController::class, 'attachVaccines']);
+            Route::post('/{animalId}/vaccines', [AnimalController::class, 'attachVaccines']);
+            Route::post('/activity/{activityId}/vaccinate', [AnimalController::class, 'attachVaccinesToActivity']);
         });
         // Vaccines
         Route::get('/vaccines', [\App\Http\Controllers\Api\VaccineController::class, 'index']);

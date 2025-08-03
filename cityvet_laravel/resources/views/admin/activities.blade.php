@@ -272,6 +272,7 @@ function activitiesManager() {
           <th class="px-4 py-2 font-medium">Time</th>
           <th class="px-4 py-2 font-medium">Date</th>
           <th class="px-4 py-2 font-medium">Status</th>
+          <th class="px-4 py-2 font-medium">Vaccinated</th>
           <th class="px-4 py-2 font-medium">Details</th>
           <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
         </tr>
@@ -302,6 +303,13 @@ function activitiesManager() {
             <td class="px-4 py-2 capitalize cursor-pointer" 
                 @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
               {{ ucwords(str_replace('_', ' ', $activity->status)) }}
+            </td>
+            <td class="px-4 py-2 cursor-pointer text-center" 
+                @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                {{ $activity->vaccinated_animals_count > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                {{ $activity->vaccinated_animals_count ?? 0 }} animals
+              </span>
             </td>
             <td class="px-4 py-2 cursor-pointer" 
                 @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
@@ -339,7 +347,7 @@ function activitiesManager() {
           </tr>
         @empty
           <tr>
-            <td colspan="8" class="text-center py-4 text-gray-500">No activities found.</td>
+            <td colspan="9" class="text-center py-4 text-gray-500">No activities found.</td>
           </tr>
         @endforelse
       </tbody>

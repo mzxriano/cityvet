@@ -21,34 +21,47 @@ class _NotificationViewState extends State<NotificationView> {
   }
 
   Future<void> fetchNotifications() async {
+    if (!mounted) return; // Check mounted before setState
     setState(() { isLoading = true; });
+    
     final token = await AuthStorage().getToken();
     final api = ApiService();
 
     if(token == null) return;
     try {
       final data = await api.getNotifications(token);
+      
+      // Check mounted after async operation
+      if (!mounted) return;
+      
       setState(() {
         notifications = data.map<NotificationModel>((n) => NotificationModel.fromJson(n)).toList();
         isLoading = false;
       });
     } catch (e) {
+      // Check mounted after async operation
+      if (!mounted) return;
+      
       setState(() { isLoading = false; });
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Text('Failed to load notifications'),
-            ],
+      
+      // Check mounted before showing SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Failed to load notifications'),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -60,6 +73,10 @@ class _NotificationViewState extends State<NotificationView> {
 
     try {
       await api.markNotificationAsRead(token, id);
+      
+      // Check mounted after async operation
+      if (!mounted) return;
+      
       setState(() {
         notifications = notifications.map((n) => n.id == id ? NotificationModel(
           id: n.id,
@@ -70,36 +87,42 @@ class _NotificationViewState extends State<NotificationView> {
         ) : n).toList();
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Text('Notification marked as read'),
-            ],
+      // Check mounted before showing SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Notification marked as read'),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: Duration(seconds: 2),
           ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: Duration(seconds: 2),
-        ),
-      );
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Text('Failed to mark as read'),
-            ],
+      // Check mounted before showing SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Failed to mark as read'),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -108,6 +131,8 @@ class _NotificationViewState extends State<NotificationView> {
     if (unreadNotifications.isEmpty) return;
 
     for (final notification in unreadNotifications) {
+      // Check mounted before each operation
+      if (!mounted) break;
       await markAsRead(notification.id);
     }
   }
@@ -200,7 +225,7 @@ class _NotificationViewState extends State<NotificationView> {
                       Text(
                         'No notifications yet',
                         style: TextStyle(
-                          fontSize: 18, // Increased from 16
+                          fontSize: 18,
                           fontWeight: FontWeight.w500,
                           color: Colors.grey.shade700,
                         ),
@@ -209,7 +234,7 @@ class _NotificationViewState extends State<NotificationView> {
                       Text(
                         'We\'ll notify you when something happens',
                         style: TextStyle(
-                          fontSize: 16, // Increased from 14
+                          fontSize: 16,
                           color: Colors.grey.shade500,
                         ),
                       ),

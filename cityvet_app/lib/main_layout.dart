@@ -10,6 +10,7 @@ import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
+import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   void _setupNotificationListener() {
     _apiService?.onNewNotification = (notification) {
       if (mounted) {
-        _fetchUnreadNotifications(); // Refresh unread count
+        _fetchUnreadNotifications(); 
       }
     };
   }
@@ -73,25 +74,25 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
   }
 
-  List<Widget> _getPages(bool isVet) {
+  List<Widget> _getPages(bool canUseQrScanner) {
     return [
       const HomeView(),
       const CommunityView(),
-      if (isVet) const QrScannerPage(),
+      if (canUseQrScanner) const QrScannerPage(),
       const AnimalView(),
       const NotificationView(),
     ];
   }
 
-  List<NavigationItem> _getNavigationItems(bool isVet) {
+  List<NavigationItem> _getNavigationItems(bool canUseQrScanner) {
     return [
       NavigationItem(icon: FontAwesomeIcons.house, pageIndex: 0),
       NavigationItem(icon: FontAwesomeIcons.users, pageIndex: 1),
-      if (isVet) NavigationItem(icon: null, pageIndex: null),
-      NavigationItem(icon: FontAwesomeIcons.paw, pageIndex: isVet ? 3 : 2),
+      if (canUseQrScanner) NavigationItem(icon: FontAwesomeIcons.qrcode, pageIndex: 2), // Fixed: Added proper pageIndex
+      NavigationItem(icon: FontAwesomeIcons.paw, pageIndex: canUseQrScanner ? 3 : 2),
       NavigationItem(
         icon: FontAwesomeIcons.bell,
-        pageIndex: isVet ? 4 : 3,
+        pageIndex: canUseQrScanner ? 4 : 3,
         showBadge: _unreadNotifications > 0,
       ),
     ];
@@ -100,10 +101,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   void _onTabSelected(int index) {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     final isVet = userViewModel.user?.role == Role.veterinarian;
-    final navItems = _getNavigationItems(isVet);
+    final isStaff = userViewModel.user?.role == Role.staff;
+    final canUseQrScanner = isVet || isStaff;
+    final navItems = _getNavigationItems(canUseQrScanner);
     
+    // Fixed: Allow navigation to valid indices with proper pageIndex
     if (index >= navItems.length || navItems[index].pageIndex == null) {
-      return; // Invalid index or QR placeholder
+      return; // Invalid index
     }
 
     if (_currentIndex != index) {
@@ -112,6 +116,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         _currentIndex = index;
       });
     }
+  }
+
+  // New method specifically for QR scanner navigation
+  void _openQrScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QrScannerPage()),
+    );
   }
 
   Future<void> _handleLogout() async {
@@ -166,342 +178,350 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   void _showCommandPalette() async {
-    final animalViewModel = Provider.of<AnimalViewModel>(context, listen: false);
-    final animals = animalViewModel.animals;
+  final animalViewModel = Provider.of<AnimalViewModel>(context, listen: false);
+  final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+  final animals = animalViewModel.animals;
+  
+  final user = userViewModel.user;
+  final userRole = user?.role ?? '';
+  final canAccessVaccination = userRole != 'owner';
 
-    final pages = [
-      {'label': 'Profile', 'builder': (_) => const ProfileView(), 'icon': Icons.person_outline},
-      {'label': 'Notifications', 'builder': (_) => const NotificationView(), 'icon': Icons.notifications_outlined},
-    ];
-    
-    String query = '';
-    final TextEditingController searchController = TextEditingController();
-    final FocusNode searchFocusNode = FocusNode();
-    
-    await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        List<Map<String, dynamic>> filteredPages = pages;
-        List<Map<String, dynamic>> filteredAnimals = [];
-        
-        return StatefulBuilder(
-          builder: (context, setState) {
-            filteredPages = pages.where((page) =>
-              query.isEmpty || (page['label'] as String).toLowerCase().contains(query.toLowerCase())
-            ).toList();
+  final pages = [
+    {'label': 'Profile', 'builder': (_) => const ProfileView(), 'icon': Icons.person_outline},
+    {'label': 'Notifications', 'builder': (_) => const NotificationView(), 'icon': Icons.notifications_outlined},
+    if (canAccessVaccination)
+      {'label': 'Vaccination History', 'builder': (_) => const VaccinationHistoryView(), 'icon': Icons.vaccines},
+  ];
+  
+  // Rest of the _showCommandPalette method remains the same...
+  String query = '';
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
+  
+  await showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      List<Map<String, dynamic>> filteredPages = pages;
+      List<Map<String, dynamic>> filteredAnimals = [];
+      
+      return StatefulBuilder(
+        builder: (context, setState) {
+          filteredPages = pages.where((page) =>
+            query.isEmpty || (page['label'] as String).toLowerCase().contains(query.toLowerCase())
+          ).toList();
 
-            // Only search animals if query is not empty
-            if (query.isNotEmpty) {
-              filteredAnimals = animals
-                .where((animal) =>
-                  animal.name.toLowerCase().contains(query.toLowerCase()) ||
-                  (animal.breed?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
-                  animal.type.toLowerCase().contains(query.toLowerCase()) ||
-                  animal.color.toLowerCase().contains(query.toLowerCase())
-                )
-                .map((animal) => {
-                  'label': animal.name,
-                  'subtitle': '${animal.type} • ${animal.breed ?? 'Mixed'}',
-                  'builder': (_) => AnimalPreview(animalModel: animal),
-                  'icon': Icons.pets,
-                  'isAnimal': true,
-                })
-                .toList();
-            } else {
-              filteredAnimals = [];
-            }
+          // Only search animals if query is not empty
+          if (query.isNotEmpty) {
+            filteredAnimals = animals
+              .where((animal) =>
+                animal.name.toLowerCase().contains(query.toLowerCase()) ||
+                (animal.breed?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
+                animal.type.toLowerCase().contains(query.toLowerCase()) ||
+                animal.color.toLowerCase().contains(query.toLowerCase())
+              )
+              .map((animal) => {
+                'label': animal.name,
+                'subtitle': '${animal.type} • ${animal.breed ?? 'Mixed'}',
+                'builder': (_) => AnimalPreview(animalModel: animal),
+                'icon': Icons.pets,
+                'isAnimal': true,
+              })
+              .toList();
+          } else {
+            filteredAnimals = [];
+          }
 
-            final results = [...filteredPages, ...filteredAnimals];
+          final results = [...filteredPages, ...filteredAnimals];
 
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100),
-              child: Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Config.primaryColor.withOpacity(0.05),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100),
+            child: Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Config.primaryColor.withOpacity(0.05),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.search,
+                          color: Config.primaryColor,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Quick Search',
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                             color: Config.primaryColor,
-                            size: 24,
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Quick Search',
-                            style: TextStyle(
-                              fontFamily: Config.primaryFont,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Config.primaryColor,
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 20,
+                              color: Colors.grey,
                             ),
                           ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () => Navigator.of(context).pop(),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Search Field
+                  Container(
+                    margin: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
-                    
-                    // Search Field
-                    Container(
-                      margin: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey.withOpacity(0.2),
-                          width: 1,
-                        ),
+                    child: TextField(
+                      controller: searchController,
+                      focusNode: searchFocusNode,
+                      autofocus: true,
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: 16,
+                        color: Colors.grey[800],
                       ),
-                      child: TextField(
-                        controller: searchController,
-                        focusNode: searchFocusNode,
-                        autofocus: true,
-                        style: TextStyle(
+                      decoration: InputDecoration(
+                        hintText: 'Search pages, animals, or features...',
+                        hintStyle: TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: 16,
-                          color: Colors.grey[800],
+                          color: Colors.grey[500],
                         ),
-                        decoration: InputDecoration(
-                          hintText: 'Search pages, animals, or features...',
-                          hintStyle: TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: 16,
-                            color: Colors.grey[500],
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.all(12),
+                          child: Icon(
+                            Icons.search,
+                            color: Colors.grey[400],
+                            size: 20,
                           ),
-                          prefixIcon: Container(
-                            padding: const EdgeInsets.all(12),
-                            child: Icon(
-                              Icons.search,
-                              color: Colors.grey[400],
-                              size: 20,
-                            ),
-                          ),
-                          suffixIcon: query.isNotEmpty
-                              ? GestureDetector(
-                                  onTap: () {
-                                    searchController.clear();
-                                    setState(() {
-                                      query = '';
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Icon(
-                                      Icons.clear,
-                                      color: Colors.grey[400],
-                                      size: 20,
-                                    ),
+                        ),
+                        suffixIcon: query.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  searchController.clear();
+                                  setState(() {
+                                    query = '';
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Icon(
+                                    Icons.clear,
+                                    color: Colors.grey[400],
+                                    size: 20,
                                   ),
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
-                          ),
+                                ),
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            query = value;
-                          });
-                        },
                       ),
+                      onChanged: (value) {
+                        setState(() {
+                          query = value;
+                        });
+                      },
                     ),
-                    
-                    // Results
-                    Flexible(
-                      child: results.isEmpty && query.isNotEmpty
-                          ? Container(
-                              padding: const EdgeInsets.all(40),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.search_off,
-                                    size: 48,
-                                    color: Colors.grey[300],
+                  ),
+                  
+                  // Results
+                  Flexible(
+                    child: results.isEmpty && query.isNotEmpty
+                        ? Container(
+                            padding: const EdgeInsets.all(40),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 48,
+                                  color: Colors.grey[300],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No results found',
+                                  style: TextStyle(
+                                    fontFamily: Config.primaryFont,
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No results found',
-                                    style: TextStyle(
-                                      fontFamily: Config.primaryFont,
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try searching for pages or animal names',
+                                  style: TextStyle(
+                                    fontFamily: Config.primaryFont,
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : query.isEmpty
+                            ? Container(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.lightbulb_outline,
+                                      size: 32,
+                                      color: Colors.grey[400],
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Try searching for pages or animal names',
-                                    style: TextStyle(
-                                      fontFamily: Config.primaryFont,
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : query.isEmpty
-                              ? Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.lightbulb_outline,
-                                        size: 32,
-                                        color: Colors.grey[400],
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Quick Tips',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
                                       ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'Quick Tips',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Type to search for:\n• Pages (Profile, Notifications${canAccessVaccination ? ', Vaccination History' : ''})\n• Animals by name, breed, or type\n• App features',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                        height: 1.4,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                itemCount: results.length,
+                                itemBuilder: (context, index) {
+                                  final item = results[index];
+                                  final isAnimal = item['isAnimal'] == true;
+                                  
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.transparent,
+                                    ),
+                                    child: ListTile(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      leading: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: isAnimal 
+                                              ? Colors.orange.withOpacity(0.1)
+                                              : Config.primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          item['icon'],
+                                          color: isAnimal 
+                                              ? Colors.orange[600]
+                                              : Config.primaryColor,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        item['label'],
                                         style: TextStyle(
                                           fontFamily: Config.primaryFont,
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[800],
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Type to search for:\n• Pages (Profile, Notifications)\n• Animals by name, breed, or type\n• App features',
-                                        style: TextStyle(
-                                          fontFamily: Config.primaryFont,
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                          height: 1.4,
-                                        ),
-                                        textAlign: TextAlign.center,
+                                      subtitle: item['subtitle'] != null
+                                          ? Text(
+                                              item['subtitle'],
+                                              style: TextStyle(
+                                                fontFamily: Config.primaryFont,
+                                                fontSize: 14,
+                                                color: Colors.grey[600],
+                                              ),
+                                            )
+                                          : null,
+                                      trailing: Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 16,
+                                        color: Colors.grey[400],
                                       ),
-                                    ],
-                                  ),
-                                )
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  itemCount: results.length,
-                                  itemBuilder: (context, index) {
-                                    final item = results[index];
-                                    final isAnimal = item['isAnimal'] == true;
-                                    
-                                    return Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.transparent,
-                                      ),
-                                      child: ListTile(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        leading: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: isAnimal 
-                                                ? Colors.orange.withOpacity(0.1)
-                                                : Config.primaryColor.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Icon(
-                                            item['icon'],
-                                            color: isAnimal 
-                                                ? Colors.orange[600]
-                                                : Config.primaryColor,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          item['label'],
-                                          style: TextStyle(
-                                            fontFamily: Config.primaryFont,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[800],
-                                          ),
-                                        ),
-                                        subtitle: item['subtitle'] != null
-                                            ? Text(
-                                                item['subtitle'],
-                                                style: TextStyle(
-                                                  fontFamily: Config.primaryFont,
-                                                  fontSize: 14,
-                                                  color: Colors.grey[600],
-                                                ),
-                                              )
-                                            : null,
-                                        trailing: Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey[400],
-                                        ),
-                                        onTap: () {
-                                          Navigator.of(context).pop();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: item['builder']),
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                ),
-                    ),
-                  ],
-                ),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: item['builder']),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -510,8 +530,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     return Consumer<UserViewModel>(
       builder: (context, userViewModel, _) {
         final isVet = userViewModel.user?.role == Role.veterinarian;
-        final pages = _getPages(isVet);
-        final navItems = _getNavigationItems(isVet);
+        final isStaff = userViewModel.user?.role == Role.staff;
+        final canUseQrScanner = isVet || isStaff; // Allow both vets and staff
+        final pages = _getPages(canUseQrScanner);
+        final navItems = _getNavigationItems(canUseQrScanner);
         final selectedPageIndex = navItems[_currentIndex].pageIndex ?? 0;
 
         return Scaffold(
@@ -519,9 +541,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           backgroundColor: const Color(0xFFEEEEEE),
           drawer: _buildDrawer(userViewModel),
           body: _buildBody(pages, selectedPageIndex),
-          floatingActionButton: _buildFloatingActionButton(isVet),
+          floatingActionButton: _buildFloatingActionButton(canUseQrScanner),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: _buildBottomNavigationBar(navItems, isVet),
+          bottomNavigationBar: _buildBottomNavigationBar(navItems, canUseQrScanner),
         );
       },
     );
@@ -554,38 +576,49 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Drawer _buildDrawer(UserViewModel userViewModel) {
-    final user = userViewModel.user;
-    
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildDrawerHeader(user),
+Drawer _buildDrawer(UserViewModel userViewModel) {
+  final user = userViewModel.user;
+  final userRole = user?.role ?? '';
+  final canAccessVaccination = userRole != 'owner';
+  
+  return Drawer(
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        _buildDrawerHeader(user),
+        _buildDrawerItem(
+          'Profile',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ProfileView()),
+          ),
+        ),
+        _buildDrawerItem(
+          'Archives',
+          () {
+            Navigator.pop(context);
+            _onTabSelected(1);
+          },
+        ),
+        // Add vaccination history for staff and vets only
+        if (canAccessVaccination)
           _buildDrawerItem(
-            'Profile',
+            'Vaccination History',
             () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ProfileView()),
+              MaterialPageRoute(builder: (_) => const VaccinationHistoryView()),
             ),
           ),
-          _buildDrawerItem(
-            'Archives',
-            () {
-              Navigator.pop(context);
-              _onTabSelected(1);
-            },
-          ),
-          const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
-          _buildDrawerItem(
-            'Logout',
-            _handleLogout,
-            isLoading: _isLoading,
-          ),
-        ],
-      ),
-    );
-  }
+        const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
+        _buildDrawerItem(
+          'Logout',
+          _handleLogout,
+          isLoading: _isLoading,
+        ),
+      ],
+    ),
+  );
+}
 
   DrawerHeader _buildDrawerHeader(user) {
     return DrawerHeader(
@@ -647,12 +680,25 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  ListTile _buildDrawerItem(String title, VoidCallback onTap, {bool isLoading = false}) {
-    return ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
+  ListTile _buildDrawerItem(
+  String title, 
+  VoidCallback onTap, {
+  bool isLoading = false,
+  IconData? icon,
+}) {
+  return ListTile(
+    leading: icon != null 
+        ? Icon(
+            icon,
+            color: Config.tertiaryColor,
+            size: 24,
+          )
+        : null,
+    title: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
             title,
             style: TextStyle(
               fontFamily: Config.primaryFont,
@@ -660,22 +706,24 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               color: Config.tertiaryColor,
             ),
           ),
-          if (isLoading)
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Config.tertiaryColor,
-            ),
-        ],
-      ),
-      onTap: isLoading ? null : onTap,
-    );
-  }
+        ),
+        if (isLoading)
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        else
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Config.tertiaryColor,
+            size: 16,
+          ),
+      ],
+    ),
+    onTap: isLoading ? null : onTap,
+  );
+}
 
   Widget _buildBody(List<Widget> pages, int selectedPageIndex) {
     return Padding(
@@ -708,10 +756,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget? _buildFloatingActionButton(bool isVet) {
-    if (!isVet) return null;
+  Widget? _buildFloatingActionButton(bool canUseQrScanner) {
+    if (!canUseQrScanner) return null;
 
     return FloatingActionButton(
+      // Fixed: Changed to use the tab selection method that now works
       onPressed: () => _onTabSelected(2),
       backgroundColor: Colors.white,
       splashColor: Config.primaryColor,
@@ -720,7 +769,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-BottomAppBar _buildBottomNavigationBar(List<NavigationItem> navItems, bool isVet) {
+BottomAppBar _buildBottomNavigationBar(List<NavigationItem> navItems, bool canUseQrScanner) {
   return BottomAppBar(
     color: Colors.white,
     shape: const CircularNotchedRectangle(),
@@ -739,12 +788,12 @@ BottomAppBar _buildBottomNavigationBar(List<NavigationItem> navItems, bool isVet
               showBadge: navItems[i].showBadge,
             ),
         
-        // Spacer for FAB (only for vets)
-        if (isVet) 
+        // Spacer for FAB (only for users who can use QR scanner)
+        if (canUseQrScanner) 
           const SizedBox(width: 60), // Adjusted width
         
         // Remaining items (Animals, Notifications)
-        for (int i = isVet ? 3 : 2; i < navItems.length; i++)
+        for (int i = canUseQrScanner ? 3 : 2; i < navItems.length; i++)
           if (navItems[i].icon != null)
             _buildNavItem(
               icon: navItems[i].icon!,

@@ -8,12 +8,27 @@ class EmailVerificationPage extends StatelessWidget {
   const EmailVerificationPage({required this.email});
 
   Future<void> resendVerificationEmail(BuildContext context) async {
-    await AuthService.resendVerification(email);
-
-    // Show a confirmation message after resend
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Verification email resent!')),
-    );
+    try {
+      final response = await AuthService.resendVerification(email);
+      
+      // Show a confirmation message after resend
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Verification email resent!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Error resending verification email: $e');
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to resend verification email. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

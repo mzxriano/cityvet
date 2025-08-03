@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 
 class VaccinationPage extends StatefulWidget {
   final AnimalModel animalModel;
-  // Remove vaccines param, fetch from backend
-  // final List<Map<String, dynamic>> vaccines;
+  final int? activityId; 
 
   const VaccinationPage({
     super.key,
     required this.animalModel,
+    this.activityId,
   });
 
   @override
@@ -49,16 +49,26 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
   }
 
   Future<void> fetchVaccines() async {
+    if (!mounted) return; // Check if widget is still mounted
+    
     setState(() { isLoading = true; });
     final token = await AuthStorage().getToken();
+    
+    if (!mounted) return; // Check again after async operation
+    
     final api = ApiService();
     try {
       final data = await api.getVaccines(token!);
+      
+      if (!mounted) return; // Check before setState
+      
       setState(() {
         vaccines = data.map<VaccineModel>((v) => VaccineModel.fromJson(v)).toList();
         isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return; // Check before setState
+      
       setState(() { isLoading = false; });
       _showSnackBar('Failed to load vaccines', Colors.red);
     }
@@ -73,11 +83,19 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
   }
 
   void _submit() async {
+    print(selectedVaccine?.id);
+    print(selectedDate);
+    print(doseController.text);
+    print(adminController.text);
+
+    if (!mounted) return; // Check if widget is still mounted
+
     if (selectedVaccine == null) {
       _showSnackBar('Please select a vaccine', Colors.orange);
       return;
     }
-    if (selectedDate == null) {
+    // Date is only required for regular vaccination (not activity-based)
+    if (widget.activityId == null && selectedDate == null) {
       _showSnackBar('Please select a date', Colors.orange);
       return;
     }
@@ -89,32 +107,90 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       _showSnackBar('Please enter administrator', Colors.orange);
       return;
     }
+    
+    if (!mounted) return; // Check before setState
+    
     setState(() { isLoading = true; });
     final token = await AuthStorage().getToken();
+     
+    if (!mounted) return; // Check after async operation
+    
+    if(token == null) {
+      if (mounted) {
+        setState(() { isLoading = false; });
+        _showSnackBar('Authentication failed. Please log in again.', Colors.red);
+      }
+      return;
+    }
+
     final api = ApiService();
     try {
-      await api.attachVaccinesToAnimal(
-        token!,
-        widget.animalModel.id!,
-        [
-          {
-            'id': selectedVaccine!.id,
-            'dose': int.tryParse(doseController.text) ?? 1,
-            'date_given': selectedDate!.toIso8601String().split('T')[0],
-            'administrator': adminController.text,
-          }
-        ],
-      );
+      // Use activity-based vaccination if activityId is provided
+      if (widget.activityId != null) {
+        await api.attachVaccinesToActivity(
+          token,
+          widget.activityId!,
+          widget.animalModel.id!,
+          [
+            {
+              'id': selectedVaccine!.id,
+              'dose': int.tryParse(doseController.text) ?? 1,
+              'administrator': adminController.text,
+            }
+          ],
+        );
+      } else {
+        // Regular vaccination (existing functionality)
+        await api.attachVaccinesToAnimal(
+          token,
+          widget.animalModel.id!,
+          [
+            {
+              'id': selectedVaccine!.id,
+              'dose': int.tryParse(doseController.text) ?? 1,
+              'date_given': selectedDate!.toIso8601String().split('T')[0],
+              'administrator': adminController.text,
+            }
+          ],
+        );
+      }
+      
+      if (!mounted) return; // Check before setState and navigation
+      
       setState(() { isLoading = false; });
       _showSnackBar('Vaccination recorded successfully!', Colors.green);
-      Navigator.pop(context, true);
+      
+      // Add a small delay before navigation to ensure snackbar is shown
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
+      if (!mounted) return; // Check before setState
+      
       setState(() { isLoading = false; });
-      _showSnackBar('Failed to record vaccination', Colors.red);
+      print('error attach vaccine $e');
+      
+      // Show more specific error message
+      String errorMessage = 'Failed to record vaccination';
+      if (e.toString().contains('422')) {
+        errorMessage = 'Invalid vaccination data. Please check your inputs.';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Animal not found. Please try again.';
+      } else if (e.toString().contains('401')) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (e.toString().contains('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      _showSnackBar(errorMessage, Colors.red);
     }
   }
 
   void _showSnackBar(String message, Color color) {
+    if (!mounted) return; // Check before showing snackbar
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -135,8 +211,27 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     );
   }
 
+  Future<void> _selectDate() async {
+    if (!mounted) return;
+    
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    
+    if (!mounted) return; // Check after async operation
+    
+    if (picked != null) {
+      setState(() => selectedDate = picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!mounted) return const SizedBox.shrink(); // Safety check
+    
     Config().init(context);
 
     return Scaffold(
@@ -145,11 +240,15 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (mounted) Navigator.pop(context);
+          },
           icon: Config.backButtonIcon,
         ),
         title: Text(
-          'Vaccinate ${widget.animalModel.name}',
+          widget.activityId != null 
+            ? 'Vaccinate ${widget.animalModel.name} (Activity)'
+            : 'Vaccinate ${widget.animalModel.name}',
           style: TextStyle(
             color: Config.tertiaryColor,
             fontWeight: FontWeight.w600,
@@ -322,33 +421,56 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                             child: Text(vaccine.name),
                           );
                         }).toList(),
-                        onChanged: (v) => setState(() => selectedVaccine = v),
-                        decoration: InputDecoration(labelText: 'Select Vaccine'),
+                        onChanged: (v) {
+                          if (mounted) {
+                            setState(() => selectedVaccine = v);
+                          }
+                        },
+                        decoration: const InputDecoration(labelText: 'Select Vaccine'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: doseController,
-                        decoration: InputDecoration(labelText: 'Dose'),
+                        decoration: const InputDecoration(labelText: 'Dose'),
+                        keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: adminController,
-                        decoration: InputDecoration(labelText: 'Administrator'),
+                        decoration: const InputDecoration(labelText: 'Administrator'),
                       ),
                       const SizedBox(height: 12),
-                      ListTile(
-                        title: Text(selectedDate == null ? 'Select Date' : selectedDate!.toLocal().toString().split(' ')[0]),
-                        trailing: Icon(Icons.calendar_today),
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2100),
-                          );
-                          if (picked != null) setState(() => selectedDate = picked);
-                        },
-                      ),
+                      // Only show date picker for regular vaccination (not activity-based)
+                      if (widget.activityId == null) ...[
+                        ListTile(
+                          title: Text(selectedDate == null ? 'Select Date' : selectedDate!.toLocal().toString().split(' ')[0]),
+                          trailing: const Icon(Icons.calendar_today),
+                          onTap: _selectDate,
+                        ),
+                      ] else ...[
+                        // Show activity info instead of date picker
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Config.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Config.primaryColor.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.event, color: Config.primaryColor, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Vaccination will be linked to current activity',
+                                style: TextStyle(
+                                  color: Config.primaryColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -378,28 +500,51 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _submit,
+                      onTap: isLoading ? null : _submit, // Disable button when loading
                       borderRadius: BorderRadius.circular(16),
-                      child: const Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.save,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Record Vaccination',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                      child: Center(
+                        child: isLoading
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Recording...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.save,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Record Vaccination',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
                       ),
                     ),
                   ),
@@ -517,6 +662,8 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
   }
 
   void _filterItems() {
+    if (!mounted) return; // Add mounted check
+    
     setState(() {
       filteredItems = widget.items
           .where((item) => item['name']
@@ -528,6 +675,8 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
   }
 
   void _toggleDropdown() {
+    if (!mounted) return; // Add mounted check
+    
     setState(() {
       isDropdownOpen = !isDropdownOpen;
       if (isDropdownOpen) {
@@ -543,6 +692,8 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
 
   void _selectItem(Map<String, dynamic> item) {
     widget.onChanged(item);
+    if (!mounted) return; // Add mounted check
+    
     setState(() {
       isDropdownOpen = false;
     });
@@ -552,6 +703,8 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
 
   @override
   Widget build(BuildContext context) {
+    if (!mounted) return const SizedBox.shrink(); // Safety check
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

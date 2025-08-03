@@ -8,6 +8,8 @@ import 'package:cityvet_app/views/main_screens/community/post_edit_view.dart';
 import 'package:cityvet_app/views/main_screens/community/my_posts_view.dart';
 import 'package:intl/intl.dart'; 
 
+enum PostFilter { newest, oldest }
+
 class CommunityView extends StatefulWidget {
   const CommunityView({Key? key}) : super(key: key);
 
@@ -18,11 +20,13 @@ class CommunityView extends StatefulWidget {
 class _CommunityViewState extends State<CommunityView> {
   final CommunityService _service = CommunityService();
   List<dynamic> _posts = [];
+  List<dynamic> _filteredPosts = [];
   bool _isLoading = true;
   String? _error;
   String? _token;
   String? _userId;
   bool _tokenLoaded = false;
+  PostFilter _currentFilter = PostFilter.newest;
 
   @override
   void initState() {
@@ -52,6 +56,7 @@ class _CommunityViewState extends State<CommunityView> {
       if (!mounted) return;
       setState(() {
         _posts = response.data;
+        _applyFilter(); // Apply current filter after fetching
         _isLoading = false;
       });
     } catch (e) {
@@ -64,6 +69,45 @@ class _CommunityViewState extends State<CommunityView> {
     }
   }
 
+  void _applyFilter() {
+    List<dynamic> sortedPosts = List.from(_posts);
+    
+    sortedPosts.sort((a, b) {
+      DateTime? dateA = _parseDate(a['created_at']);
+      DateTime? dateB = _parseDate(b['created_at']);
+      
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      
+      if (_currentFilter == PostFilter.newest) {
+        return dateB.compareTo(dateA); // Newest first
+      } else {
+        return dateA.compareTo(dateB); // Oldest first
+      }
+    });
+    
+    _filteredPosts = sortedPosts;
+  }
+
+  DateTime? _parseDate(String? dateString) {
+    if (dateString == null) return null;
+    try {
+      return DateTime.parse(dateString);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _onFilterChanged(PostFilter? filter) {
+    if (filter != null && filter != _currentFilter) {
+      setState(() {
+        _currentFilter = filter;
+        _applyFilter();
+      });
+    }
+  }
+
   // Pull-to-refresh handler
   Future<void> _onRefresh() async {
     if (_token == null) return;
@@ -72,6 +116,7 @@ class _CommunityViewState extends State<CommunityView> {
       if (!mounted) return;
       setState(() {
         _posts = response.data;
+        _applyFilter(); // Apply current filter after refresh
         _error = null;
       });
     } catch (e) {
@@ -152,6 +197,103 @@ class _CommunityViewState extends State<CommunityView> {
         );
       }
     }
+  }
+
+  Widget _buildFilterChips() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            'Sort by:',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Row(
+              children: [
+                FilterChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 16,
+                        color: _currentFilter == PostFilter.newest 
+                            ? Colors.white 
+                            : Config.primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('Newest'),
+                    ],
+                  ),
+                  selected: _currentFilter == PostFilter.newest,
+                  onSelected: (selected) {
+                    if (selected) _onFilterChanged(PostFilter.newest);
+                  },
+                  selectedColor: Config.primaryColor,
+                  checkmarkColor: Colors.white,
+                  labelStyle: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: 13,
+                    color: _currentFilter == PostFilter.newest 
+                        ? Colors.white 
+                        : Config.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  side: BorderSide(
+                    color: Config.primaryColor,
+                    width: 1,
+                  ),
+                  backgroundColor: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 16,
+                        color: _currentFilter == PostFilter.oldest 
+                            ? Colors.white 
+                            : Config.primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('Oldest'),
+                    ],
+                  ),
+                  selected: _currentFilter == PostFilter.oldest,
+                  onSelected: (selected) {
+                    if (selected) _onFilterChanged(PostFilter.oldest);
+                  },
+                  selectedColor: Config.primaryColor,
+                  checkmarkColor: Colors.white,
+                  labelStyle: TextStyle(
+                    fontFamily: Config.primaryFont,
+                    fontSize: 13,
+                    color: _currentFilter == PostFilter.oldest 
+                        ? Colors.white 
+                        : Config.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  side: BorderSide(
+                    color: Config.primaryColor,
+                    width: 1,
+                  ),
+                  backgroundColor: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -242,13 +384,16 @@ class _CommunityViewState extends State<CommunityView> {
           ),
         ),
 
+        // Filter Chips
+        if (_posts.isNotEmpty) _buildFilterChips(),
+
         // Posts List with RefreshIndicator
         Expanded(
           child: RefreshIndicator(
             onRefresh: _onRefresh,
             color: Config.primaryColor,
             backgroundColor: Colors.white,
-            child: _posts.isEmpty 
+            child: _filteredPosts.isEmpty 
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: const [
@@ -264,9 +409,9 @@ class _CommunityViewState extends State<CommunityView> {
               : ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  itemCount: _posts.length,
+                  itemCount: _filteredPosts.length,
                   itemBuilder: (context, index) {
-                    final post = _posts[index];
+                    final post = _filteredPosts[index];
                     final user = post['user'] ?? {};
                     final images = post['images'] as List<dynamic>? ?? [];
                     final isOwner = _userId != null && user['id']?.toString() == _userId;

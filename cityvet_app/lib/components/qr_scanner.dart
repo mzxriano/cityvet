@@ -9,7 +9,12 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrScannerPage extends StatefulWidget {
-  const QrScannerPage({super.key});
+  final int? activityId; 
+
+  const QrScannerPage({
+    super.key,
+    this.activityId,
+  });
 
   @override
   State<QrScannerPage> createState() => _QrScannerPageState();
@@ -134,6 +139,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
         MaterialPageRoute(
           builder: (_) => VaccinationPage(
             animalModel: animal!,
+            activityId: widget.activityId, // Pass the activityId from QR scanner
           ),
         ),
       );

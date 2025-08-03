@@ -15,6 +15,29 @@ Route::get('/successful-verification', function () {
     return view('mail.verification_successful');
 })->name('email.successful');
 
+Route::post('/resend-verification', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email|exists:users,email',
+    ]);
+
+    $user = \App\Models\User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return back()->withErrors(['email' => 'User not found']);
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return back()->withErrors(['email' => 'Email already verified']);
+    }
+
+    try {
+        \Mail::to($user->email)->send(new \App\Mail\VerifyEmail($user));
+        return redirect()->route('email.successful')->with('success', 'Verification email sent successfully!');
+    } catch (\Exception $e) {
+        return back()->withErrors(['email' => 'Failed to send verification email']);
+    }
+})->name('resend.verification');
+
 Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('showLogin');
 Route::post('/login', [AdminAuthController::class, 'login'])->name('login');
 Route::get('/register', [AdminAuthController::class, 'showRegisterForm'])->name('showRegister');
