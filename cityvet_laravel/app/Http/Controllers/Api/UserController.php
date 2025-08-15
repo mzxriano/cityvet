@@ -160,6 +160,7 @@ class UserController extends Controller
             'user'    => [
                 'first_name'=> $user->first_name,
                 'last_name'=> $user->last_name,
+                'role' => $user->role->name,
                 'email'=> $user->email,
                 'phone_number'=> $user->phone_number,
                 'birth_date' => $user->birth_date,

@@ -10,7 +10,6 @@ class ApiService {
     },
   ));
 
-  // Optionally, add a callback for new notifications
   void Function(NotificationModel)? onNewNotification;
 
   Future<List<dynamic>> getUsers() async {
@@ -171,4 +170,15 @@ class ApiService {
       throw Exception('Error: $e');
     }
   }
+
+  Future<List<dynamic>> fetchVeterinarians(String token) async {
+    final response = await _dio.get(
+      '/veterinarians',
+      options: Options(headers: {'Authorization' : 'Bearer $token'}),
+    );
+
+    return response.data;
+  }
 }
+
+

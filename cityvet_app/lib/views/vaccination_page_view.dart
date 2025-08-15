@@ -21,6 +21,7 @@ class VaccinationPage extends StatefulWidget {
 
 class _VaccinationPageState extends State<VaccinationPage> with TickerProviderStateMixin {
   List<VaccineModel> vaccines = [];
+  List<Map<String, dynamic>> veterinarians = [];
   VaccineModel? selectedVaccine;
   DateTime? selectedDate;
   final TextEditingController doseController = TextEditingController();
@@ -46,31 +47,54 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
     _animationController.forward();
     fetchVaccines();
+    fetchVeterinarians();
   }
 
   Future<void> fetchVaccines() async {
-    if (!mounted) return; // Check if widget is still mounted
+    if (!mounted) return; 
     
     setState(() { isLoading = true; });
     final token = await AuthStorage().getToken();
     
-    if (!mounted) return; // Check again after async operation
+    if (!mounted) return; 
     
     final api = ApiService();
     try {
       final data = await api.getVaccines(token!);
       
-      if (!mounted) return; // Check before setState
+      if (!mounted) return; 
       
       setState(() {
         vaccines = data.map<VaccineModel>((v) => VaccineModel.fromJson(v)).toList();
         isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return; // Check before setState
+      if (!mounted) return; 
       
       setState(() { isLoading = false; });
       _showSnackBar('Failed to load vaccines', Colors.red);
+    }
+  }
+
+  Future<void> fetchVeterinarians() async {
+    if (!mounted) return;
+
+    try {
+      final token = await AuthStorage().getToken();
+      if (!mounted) return;
+      
+      if (token == null) return;
+      
+      final fetchedVeterinarians = await ApiService().fetchVeterinarians(token);
+      if (!mounted) return;
+      
+      setState(() {
+        // Assuming the API returns a list of user objects with name field
+        veterinarians = List<Map<String, dynamic>>.from(fetchedVeterinarians);
+      });
+    } catch (e) {
+      print('Error fetching veterinarians: $e');
+      // Don't show error for veterinarians as it's not critical
     }
   }
 
@@ -155,7 +179,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
         );
       }
       
-      if (!mounted) return; // Check before setState and navigation
+      if (!mounted) return; 
       
       setState(() { isLoading = false; });
       _showSnackBar('Vaccination recorded successfully!', Colors.green);
@@ -167,7 +191,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (!mounted) return; // Check before setState
+      if (!mounted) return; 
       
       setState(() { isLoading = false; });
       print('error attach vaccine $e');
@@ -221,8 +245,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       lastDate: DateTime(2100),
     );
     
-    if (!mounted) return; // Check after async operation
-    
+    if (!mounted) return;
     if (picked != null) {
       setState(() => selectedDate = picked);
     }
@@ -230,7 +253,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    if (!mounted) return const SizedBox.shrink(); // Safety check
+    if (!mounted) return const SizedBox.shrink(); 
     
     Config().init(context);
 
@@ -349,7 +372,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                       _buildInfoRow('Name', widget.animalModel.name, Icons.badge),
                       _buildInfoRow('Species', widget.animalModel.type, Icons.category),
                       _buildInfoRow('Breed', widget.animalModel.breed!, Icons.pets),
-                      _buildInfoRow('Age', widget.animalModel.ageString, Icons.cake),
+                      _buildInfoRow('Birthdate', '${widget.animalModel.birthDate ?? 'Unknown'} (${widget.animalModel.ageString})' , Icons.cake),
                       _buildInfoRow('Color', widget.animalModel.color, Icons.palette),
                       _buildInfoRow('Owner', widget.animalModel.owner!, Icons.person, isLast: true),
                     ],
@@ -428,24 +451,93 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                         },
                         decoration: const InputDecoration(labelText: 'Select Vaccine'),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+                      
+                      // Dose Input
+                      Text(
+                        'Dose Number',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Config.tertiaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         controller: doseController,
                         decoration: const InputDecoration(labelText: 'Dose'),
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: adminController,
-                        decoration: const InputDecoration(labelText: 'Administrator'),
+                      const SizedBox(height: 16),
+                      
+                      // Administrator Selection with Search
+                      Text(
+                        'Administrator',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Config.tertiaryColor,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      // Only show date picker for regular vaccination (not activity-based)
+                      const SizedBox(height: 8),
+                      SearchableAdministratorField(
+                        veterinarians: veterinarians,
+                        controller: adminController,
+                        onChanged: (value) {
+                          // The controller is automatically updated
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Date Selection or Activity Info
                       if (widget.activityId == null) ...[
-                        ListTile(
-                          title: Text(selectedDate == null ? 'Select Date' : selectedDate!.toLocal().toString().split(' ')[0]),
-                          trailing: const Icon(Icons.calendar_today),
+                        Text(
+                          'Vaccination Date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Config.tertiaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
                           onTap: _selectDate,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[50],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: selectedDate != null ? Config.primaryColor : Colors.grey[600],
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    selectedDate == null 
+                                        ? 'Select vaccination date'
+                                        : selectedDate!.toLocal().toString().split(' ')[0],
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: selectedDate == null
+                                          ? Colors.grey[600]
+                                          : Config.tertiaryColor,
+                                      fontWeight: selectedDate != null ? FontWeight.w500 : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.grey[600],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ] else ...[
                         // Show activity info instead of date picker
@@ -463,6 +555,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                               Text(
                                 'Vaccination will be linked to current activity',
                                 style: TextStyle(
+                                  fontSize: Config.fontXS,
                                   color: Config.primaryColor,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -607,7 +700,276 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
   }
 }
 
-// Enhanced Searchable Dropdown Widget
+// Searchable Administrator Field Widget
+class SearchableAdministratorField extends StatefulWidget {
+  final List<Map<String, dynamic>> veterinarians;
+  final TextEditingController controller;
+  final Function(String) onChanged;
+
+  const SearchableAdministratorField({
+    super.key,
+    required this.veterinarians,
+    required this.controller,
+    required this.onChanged,
+  });
+
+  @override
+  State<SearchableAdministratorField> createState() => _SearchableAdministratorFieldState();
+}
+
+class _SearchableAdministratorFieldState extends State<SearchableAdministratorField>
+    with SingleTickerProviderStateMixin {
+  final FocusNode _focusNode = FocusNode();
+  List<Map<String, dynamic>> filteredVeterinarians = [];
+  bool isDropdownOpen = false;
+  late AnimationController _dropdownController;
+  late Animation<double> _dropdownAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    filteredVeterinarians = widget.veterinarians;
+    widget.controller.addListener(_filterVeterinarians);
+    _focusNode.addListener(_onFocusChange);
+    
+    _dropdownController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _dropdownAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _dropdownController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_filterVeterinarians);
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _dropdownController.dispose();
+    super.dispose();
+  }
+
+  void _filterVeterinarians() {
+    if (!mounted) return;
+    
+    final query = widget.controller.text.toLowerCase();
+    setState(() {
+      filteredVeterinarians = widget.veterinarians
+          .where((vet) => _getVetName(vet).toLowerCase().contains(query))
+          .toList();
+    });
+    widget.onChanged(widget.controller.text);
+  }
+
+  String _getVetName(Map<String, dynamic> vet) {
+    // Handle different possible field names from the API
+    return vet.isNotEmpty ? '${vet['first_name']} ${vet['last_name']}' : 'Unknown';
+  }
+
+  void _onFocusChange() {
+    if (!mounted) return;
+    
+    if (_focusNode.hasFocus && !isDropdownOpen && widget.veterinarians.isNotEmpty) {
+      _showDropdown();
+    }
+  }
+
+  void _showDropdown() {
+    if (!mounted) return;
+    
+    setState(() {
+      isDropdownOpen = true;
+      filteredVeterinarians = widget.veterinarians;
+    });
+    _dropdownController.forward();
+  }
+
+  void _hideDropdown() {
+    if (!mounted) return;
+    
+    setState(() {
+      isDropdownOpen = false;
+    });
+    _dropdownController.reverse();
+  }
+
+  void _selectVeterinarian(Map<String, dynamic> vet) {
+    widget.controller.text = _getVetName(vet);
+    _hideDropdown();
+    _focusNode.unfocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!mounted) return const SizedBox.shrink();
+    
+    return Column(
+      children: [
+        TextFormField(
+          controller: widget.controller,
+          focusNode: _focusNode,
+          decoration: InputDecoration(
+            labelText: 'Administrator',
+            hintText: 'Type name or select from list',
+            prefixIcon: Icon(
+              Icons.person,
+              color: widget.controller.text.isNotEmpty ? Config.primaryColor : Colors.grey[600],
+            ),
+            suffixIcon: widget.veterinarians.isNotEmpty 
+                ? IconButton(
+                    icon: AnimatedRotation(
+                      turns: isDropdownOpen ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    onPressed: () {
+                      if (isDropdownOpen) {
+                        _hideDropdown();
+                        _focusNode.unfocus();
+                      } else {
+                        _showDropdown();
+                        _focusNode.requestFocus();
+                      }
+                    },
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Config.primaryColor, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+          onTap: () {
+            if (!isDropdownOpen && widget.veterinarians.isNotEmpty) {
+              _showDropdown();
+            }
+          },
+        ),
+        AnimatedBuilder(
+          animation: _dropdownAnimation,
+          builder: (context, child) {
+            return ClipRect(
+              child: Align(
+                alignment: Alignment.topCenter,
+                heightFactor: _dropdownAnimation.value,
+                child: child,
+              ),
+            );
+          },
+          child: isDropdownOpen && widget.veterinarians.isNotEmpty
+              ? Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: filteredVeterinarians.length,
+                      itemBuilder: (context, index) {
+                        final vet = filteredVeterinarians[index];
+                        final vetName = _getVetName(vet);
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.person,
+                              color: Config.primaryColor,
+                              size: 20,
+                            ),
+                            title: Text(
+                              vetName,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            subtitle: vet['email'] != null 
+                                ? Text(
+                                    vet['email'].toString(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  )
+                                : null,
+                            onTap: () => _selectVeterinarian(vet),
+                            dense: true,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                )
+              : isDropdownOpen && filteredVeterinarians.isEmpty
+                  ? Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            color: Colors.grey[400],
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No veterinarians found',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+// Enhanced Searchable Dropdown Widget (keeping the original for vaccine selection)
 class EnhancedSearchableDropdown extends StatefulWidget {
   final List<Map<String, dynamic>> items;
   final Map<String, dynamic>? selectedItem;
@@ -662,7 +1024,7 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
   }
 
   void _filterItems() {
-    if (!mounted) return; // Add mounted check
+    if (!mounted) return; 
     
     setState(() {
       filteredItems = widget.items
@@ -675,7 +1037,7 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
   }
 
   void _toggleDropdown() {
-    if (!mounted) return; // Add mounted check
+    if (!mounted) return; 
     
     setState(() {
       isDropdownOpen = !isDropdownOpen;
@@ -692,7 +1054,7 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
 
   void _selectItem(Map<String, dynamic> item) {
     widget.onChanged(item);
-    if (!mounted) return; // Add mounted check
+    if (!mounted) return; 
     
     setState(() {
       isDropdownOpen = false;
@@ -703,7 +1065,7 @@ class _EnhancedSearchableDropdownState extends State<EnhancedSearchableDropdown>
 
   @override
   Widget build(BuildContext context) {
-    if (!mounted) return const SizedBox.shrink(); // Safety check
+    if (!mounted) return const SizedBox.shrink();
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

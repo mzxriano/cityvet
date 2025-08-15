@@ -49,15 +49,15 @@
                     <select name="role" class="border border-gray-300 px-3 py-2 rounded-md">
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            <option value="{{ $role->id }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
                         @endforeach
                     </select>
 
-                    <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
+                    {{-- <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
                         <option value="">All Genders</option>
                         <option value="male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                         <option value="female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                    </select>
+                    </select> --}}
 
                     <button type="submit" 
                             class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
@@ -94,7 +94,7 @@
                         <td class="px-4 py-2">{{ $user->id }}</td>
                         <td class="px-4 py-2">{{ $user->first_name }}</td>
                         <td class="px-4 py-2">{{ $user->last_name }}</td>
-                        <td class="px-4 py-2">{{ $user->role->name }}</td>
+                        <td class="px-4 py-2">{{ ucwords(str_replace('_', ' ', $user->role->name)) }}</td>
                         <td class="px-4 py-2">{{ $user->phone_number }}</td>
                         <td class="px-4 py-2">{{ $user->email }}</td>
                         <td class="px-4 py-2 text-center">

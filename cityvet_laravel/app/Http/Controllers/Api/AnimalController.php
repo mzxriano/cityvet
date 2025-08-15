@@ -244,6 +244,7 @@ class AnimalController
                 'id' => $animal->id,
                 'qr_code' => $animal->code,
                 'name' => $animal->name,
+                'birth_date' => $animal->birth_date,
                 'type' => $animal->type,
                 'breed' => $animal->breed,
                 'color' => $animal->color,

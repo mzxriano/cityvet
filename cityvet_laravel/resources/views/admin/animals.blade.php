@@ -106,8 +106,8 @@
             <td class="px-4 py-2">{{ $animal->type }}</td>
             <td class="px-4 py-2">{{ $animal->name }}</td>
             <td class="px-4 py-2">{{ $animal->breed }}</td>
-            <td class="px-4 py-2">{{ $animal->birth_date }}</td>
-            <td class="px-4 py-2">{{ $animal->gender }}</td>
+            <td class="px-4 py-2">{{ $animal->birth_date  ? \Carbon\Carbon::parse($animal->birth_date)->format('F j, Y') : 'Unknown' }}</td>
+            <td class="px-4 py-2">{{ ucwords($animal->gender) }}</td>
             <td class="px-4 py-2">{{ $animal->color }}</td>
             <td class="px-4 py-2">{{ $animal->user->first_name }} {{ $animal->user->last_name }}</td>
             <td class="px-4 py-2 text-center">
@@ -237,7 +237,7 @@
             ✕
           </button>
         </div>
-        <form method="POST" :action="`admin/animals/${currentAnimal?.id}`" class="px-6 py-4 space-y-4">
+        <form method="POST" :action="`{{ url('admin/animals') }}/${currentAnimal?.id}`" class="px-6 py-4 space-y-4">
           @csrf
           @method('PUT')
 

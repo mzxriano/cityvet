@@ -127,6 +127,8 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
         animal = AnimalModel.fromJson(response.data['data']);
       });
 
+      print(response.data);
+
       // Stop camera before navigation
       await _safelyStopController();
       
@@ -139,7 +141,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
         MaterialPageRoute(
           builder: (_) => VaccinationPage(
             animalModel: animal!,
-            activityId: widget.activityId, // Pass the activityId from QR scanner
+            activityId: widget.activityId,
           ),
         ),
       );

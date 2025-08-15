@@ -1,3 +1,4 @@
+import 'package:cityvet_app/firebase_options.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
@@ -8,7 +9,9 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     MultiProvider(
       providers: [
@@ -18,9 +21,6 @@ void main() async {
       child: const MainApp(),
     ),
   );
-}
-
-class DefaultFirebaseOptions {
 }
 
 class MainApp extends StatelessWidget {

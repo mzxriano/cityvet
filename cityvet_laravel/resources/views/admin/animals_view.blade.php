@@ -65,7 +65,7 @@
           <div class="flex items-center">
             <span class="text-gray-500 w-20 text-sm">Birthday:</span>
             <span class="text-gray-700">
-              {{ $animal->birthday ? \Carbon\Carbon::parse($animal->birthday)->format('F j, Y') : 'Unknown' }}
+              {{ $animal->birth_date ? \Carbon\Carbon::parse($animal->birth_date)->format('F j, Y') : 'Unknown' }}
             </span>
           </div>
           

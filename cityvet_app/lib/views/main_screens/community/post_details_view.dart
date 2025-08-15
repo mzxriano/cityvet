@@ -203,8 +203,6 @@ class _PostDetailsViewState extends State<PostDetailsView> {
                             ),
                           ),
                           const SizedBox(height: 6), 
-                          RoleWidget()['Owner'],
-                          const SizedBox(height: 6), 
                           // Comment text
                           Text(
                             comment['content'] ?? '',

@@ -64,7 +64,10 @@ Route::prefix('auth')->group(function () {
             Route::post('/activity/{activityId}/vaccinate', [AnimalController::class, 'attachVaccinesToActivity']);
         });
         // Vaccines
-        Route::get('/vaccines', [\App\Http\Controllers\Api\VaccineController::class, 'index']);
+        Route::get('/vaccines', [VaccineController::class, 'index']);
+
+        // Fetch Veterinarians
+        Route::get('/veterinarians', [VaccineController::class, 'fetchVeterinarians']);
         
         // Community Engagement
         Route::get('/community', [CommunityController::class, 'index']);
