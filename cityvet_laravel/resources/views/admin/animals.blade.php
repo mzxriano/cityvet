@@ -152,12 +152,15 @@
             </select>
           </div>
 
-          <div>
-            <label class="block font-medium">Breed</label>
-            <select name="breed" id="modal-breed" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled selected>Select Breed</option>
-            </select>
-          </div>
+        <div>
+          <label class="block font-medium">Breed</label>
+          <select name="breed" x-model="currentAnimal?.breed" class="w-full border-gray-300 rounded-md p-3" required>
+            <option value="" disabled>Select Breed</option>
+            <template x-for="breed in (currentAnimal?.type ? breedData[currentAnimal.type] || [] : [])" :key="breed">
+              <option :value="breed" x-text="breed"></option>
+            </template>
+          </select>
+        </div>
 
           <div>
             <label class="block font-medium">Name</label>
@@ -347,8 +350,11 @@
 
         this.$watch('showEditModal', (value) => {
           if (value) {
-            this.setupEditModalBreedOptions();
-            setupOwnerAutocomplete('owner-search-edit', 'owner-id-edit', 'owner-suggestions-edit');
+            // Add a small delay to ensure DOM is ready
+            setTimeout(() => {
+              this.setupEditModalBreedOptions();
+              setupOwnerAutocomplete('owner-search-edit', 'owner-id-edit', 'owner-suggestions-edit');
+            }, 50);
           }
         });
       },
@@ -356,57 +362,91 @@
       resetAddModalBreedOptions() {
         const typeSelect = document.getElementById('modal-type');
         const breedSelect = document.getElementById('modal-breed');
+        if (!breedSelect) return;
+        
         breedSelect.innerHTML = '<option value="" disabled selected>Select Breed</option>';
 
-        typeSelect.addEventListener('change', () => {
-          const breeds = this.breedData[typeSelect.value] || [];
-          breedSelect.innerHTML = '<option value="" disabled selected>Select Breed</option>';
-          breeds.forEach(b => {
-            const option = document.createElement('option');
-            option.value = b;
-            option.textContent = b;
-            breedSelect.appendChild(option);
+        if (typeSelect) {
+          typeSelect.addEventListener('change', () => {
+            const breeds = this.breedData[typeSelect.value] || [];
+            breedSelect.innerHTML = '<option value="" disabled selected>Select Breed</option>';
+            breeds.forEach(b => {
+              const option = document.createElement('option');
+              option.value = b;
+              option.textContent = b;
+              breedSelect.appendChild(option);
+            });
           });
-        });
+        }
       },
 
       setupAddModalBreedListener() {
         const typeSelect = document.getElementById('modal-type');
         const breedSelect = document.getElementById('modal-breed');
-        typeSelect.addEventListener('change', () => {
-          breedSelect.value = '';
-        });
+        if (typeSelect && breedSelect) {
+          typeSelect.addEventListener('change', () => {
+            breedSelect.value = '';
+          });
+        }
       },
 
       setupEditModalBreedOptions() {
         const typeSelect = document.getElementById('modal-type-edit');
         const breedSelect = document.getElementById('modal-breed-edit');
 
-        const updateBreeds = () => {
-          const breeds = this.breedData[typeSelect.value] || [];
+        if (!typeSelect || !breedSelect || !this.currentAnimal) {
+          console.log('Missing elements for breed setup');
+          return;
+        }
+
+        const updateBreeds = (preserveCurrentBreed = true) => {
+          const selectedType = typeSelect.value || this.currentAnimal?.type;
+          const breeds = this.breedData[selectedType] || [];
+          const currentBreed = this.currentAnimal?.breed;
+          
+          console.log('Updating breeds for type:', selectedType);
+          console.log('Available breeds:', breeds);
+          console.log('Current animal breed:', currentBreed);
+          
+          // Clear and rebuild options
           breedSelect.innerHTML = '<option value="" disabled>Select Breed</option>';
-          breeds.forEach(b => {
+          
+          breeds.forEach(breed => {
             const option = document.createElement('option');
-            option.value = b;
-            option.textContent = b;
+            option.value = breed;
+            option.textContent = breed;
             breedSelect.appendChild(option);
           });
-          // if currentAnimal.breed not in breeds, reset
-          if (!breeds.includes(this.currentAnimal.breed)) {
+
+          // Set the current breed if it exists and is valid for this type
+          if (preserveCurrentBreed && currentBreed && breeds.includes(currentBreed)) {
+            // Use setTimeout to ensure Alpine.js has processed the x-model binding
+            setTimeout(() => {
+              breedSelect.value = currentBreed;
+              // Also update the Alpine.js model
+              this.currentAnimal.breed = currentBreed;
+            }, 0);
+          } else if (!preserveCurrentBreed) {
+            // Reset breed when type changes
             breedSelect.value = '';
+            if (this.currentAnimal) {
+              this.currentAnimal.breed = '';
+            }
           }
         };
 
-        updateBreeds();
+        // Initial setup when modal opens
+        updateBreeds(true);
 
+        // Handle type changes
         typeSelect.addEventListener('change', () => {
-          updateBreeds();
-          breedSelect.value = '';
+          updateBreeds(false); // Don't preserve breed when type changes
         });
       }
-    }));
+    })); // <-- MISSING CLOSING PARENTHESES AND BRACKETS
   });
 
+  // MOVED OUTSIDE of Alpine.data - this was inside which caused syntax error
   function setupOwnerAutocomplete(inputId, hiddenId, suggestionsId) {
       const ownerSearchInput = document.getElementById(inputId);
       const ownerSuggestions = document.getElementById(suggestionsId);

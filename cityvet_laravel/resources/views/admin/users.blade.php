@@ -99,8 +99,11 @@
                         <td class="px-4 py-2">{{ $user->email }}</td>
                         <td class="px-4 py-2 text-center">
                             <button type="button"
-                                    @click.stop="currentUser = @js($user); showEditModal = true"
-                                    class="text-blue-600 hover:underline">
+
+                                @click.stop="
+                                    currentUser = @js($user);
+                                    showEditModal = true;"
+                                class="text-blue-600 hover:underline">
                                 Edit
                             </button>
                         </td>
@@ -284,7 +287,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form x-bind:action="`{{ url('admin.users') }}/${currentUser.id}`" method="POST" class="p-4">
+                <form x-bind:action="`{{ url('admin/users') }}/${currentUser.id}`" method="POST" class="p-4">
                     @csrf
                     @method("PUT")
                     <div class="space-y-4">

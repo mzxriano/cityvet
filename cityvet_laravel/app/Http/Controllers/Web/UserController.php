@@ -120,7 +120,7 @@ class UserController
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, string $id)
+    public function update(Request $request, string $id)
     {
         $user = User::findOrFail($id);
 
@@ -132,17 +132,18 @@ class UserController
             'birth_date'   => 'sometimes|date',
             'barangay_id'  => 'sometimes|integer|exists:barangays,id',
             'street'       => 'sometimes|nullable|string',
+            'role_id'      => 'sometimes|integer|exists:roles,id',
         ]);
 
         $user->update($validated);
 
-        return redirect()->route('adminusers')->with('success', 'User successfully updated.');
+        return redirect()->route('admin.users')->with('success', 'User successfully updated.');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function edit(Request $request, string $id)
     {
         //
     }

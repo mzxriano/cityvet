@@ -75,7 +75,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('admin.users');
             Route::post('/', [UserController::class, 'store'])->name('admin.users.store');
             Route::get('/{id}/show', [UserController::class, 'show'])->name('admin.users.show');
-            Route::put('/{id}', [UserController::class, 'edit'])->name('users.edit');
+            Route::put('/{id}', [UserController::class, 'update'])->name('users.update');
             Route::get('/search', [AnimalController::class,'searchOwner'])->name('search.owner');
         });
 
