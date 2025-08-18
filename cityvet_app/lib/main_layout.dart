@@ -193,7 +193,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       {'label': 'Vaccination History', 'builder': (_) => const VaccinationHistoryView(), 'icon': Icons.vaccines},
   ];
   
-  // Rest of the _showCommandPalette method remains the same...
   String query = '';
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();

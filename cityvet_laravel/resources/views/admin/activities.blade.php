@@ -469,10 +469,7 @@ function activitiesManager() {
           <div>
             <label class="block font-medium mb-2">Status</label>
             <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-              <option value="completed">Completed</option>
-              <option value="on_going">On Going</option>
               <option value="up_coming" selected>Up Coming</option>
-              <option value="failed">Failed</option>
             </select>
           </div>
 
@@ -576,9 +573,8 @@ function activitiesManager() {
               x-model="currentActivity.status"
               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
               required>
-              <option value="completed">Completed</option>
               <option value="on_going">On Going</option>
-              <option value="up_coming">Up Coming</option>
+              <option value="completed">Completed</option>
               <option value="failed">Failed</option>
             </select>
           </div>
