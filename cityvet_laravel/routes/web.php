@@ -1,14 +1,15 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\EnsureAdminSession;
 use App\Http\Controllers\Web\ActivityController;
 use App\Http\Controllers\Web\AnimalController;
 use App\Http\Controllers\Web\BarangayController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\DashboardController;
-use App\Http\Middleware\EnsureAdminSession;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\VaccineController;
+use App\Http\Controllers\Web\ReportController;
 
 
 Route::get('/successful-verification', function () {
@@ -107,9 +108,8 @@ Route::prefix('admin')->group(function () {
         Route::patch('/community/{id}/review', [\App\Http\Controllers\Web\CommunityController::class, 'review'])->name('admin.community.review');
         Route::get('/community/approved-posts', [\App\Http\Controllers\Web\CommunityController::class, 'approved'])->name('admin.community.approved');
 
-        Route::get('/reports', function () {
-            return view('admin.reports');
-        })->name('admin.reports');
+        Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
+        Route::post('/reports/generate-vaccination', [ReportController::class, 'generateVaccinationReport'])->name('reports.generate-vaccination');
 
         Route::get('/archives', function () {
             return view('admin.archives');

@@ -88,12 +88,12 @@
       <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
         <tr>
           <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
-          <th class="px-4 py-2 font-medium">Type</th>
+          <th class="px-4 py-2 font-medium">Animal Code</th>
+          <th class="px-4 py-2 font-medium">Species</th>
           <th class="px-4 py-2 font-medium">Name</th>
           <th class="px-4 py-2 font-medium">Breed</th>
           <th class="px-4 py-2 font-medium">Birth Date</th>
           <th class="px-4 py-2 font-medium">Gender</th>
-          <th class="px-4 py-2 font-medium">Color</th>
           <th class="px-4 py-2 font-medium">Owner</th>
           <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
         </tr>
@@ -103,12 +103,12 @@
           <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
               onClick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'">
             <td class="px-4 py-2">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
+            <td class="px-4 py-2">{{ $animal->code }}</td>
             <td class="px-4 py-2">{{ $animal->type }}</td>
             <td class="px-4 py-2">{{ $animal->name }}</td>
             <td class="px-4 py-2">{{ $animal->breed }}</td>
             <td class="px-4 py-2">{{ $animal->birth_date  ? \Carbon\Carbon::parse($animal->birth_date)->format('F j, Y') : 'Unknown' }}</td>
             <td class="px-4 py-2">{{ ucwords($animal->gender) }}</td>
-            <td class="px-4 py-2">{{ $animal->color }}</td>
             <td class="px-4 py-2">{{ $animal->user->first_name }} {{ $animal->user->last_name }}</td>
             <td class="px-4 py-2 text-center">
               <button
