@@ -29,92 +29,107 @@
     showEditModal: false,
     currentUser: null
 }">
-    <h1 class="title-style mb-[2rem]">Users</h1>
+    <h1 class="title-style mb-4 sm:mb-8">Users</h1>
 
     <!-- Add User Button -->
-    <div class="flex justify-end gap-5 mb-[2rem]">
+    <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
         <button type="button"
                 x-on:click="showAddModal = true"
-                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
-            + New user
+                class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
+            <span class="hidden sm:inline">+ New user</span>
+            <span class="sm:hidden">+ Add</span>
         </button>
     </div>
 
     <!-- Users Table Card -->
-    <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
+    <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
         <!-- Filter Form -->
         <div class="mb-4">
-            <form method="GET" action="{{ route('admin.users') }}" class="flex gap-4 items-center justify-end">
-                <div>
-                    <select name="role" class="border border-gray-300 px-3 py-2 rounded-md">
+            <form method="GET" action="{{ route('admin.users') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-end">
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <select name="role" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
                         @endforeach
                     </select>
 
-                    {{-- <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
-                        <option value="">All Genders</option>
-                        <option value="male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-                        <option value="female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                    </select> --}}
-
                     <button type="submit" 
-                            class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
+                            class="bg-[#d9d9d9] text-[#6F6969] px-3 py-2 sm:px-4 rounded hover:bg-green-600 hover:text-white text-sm">
                         Filter
                     </button>
                 </div>
-                <div>
+                <div class="w-full sm:w-auto">
                     <input type="text" 
                            name="search" 
                            value="{{ request('search') }}" 
                            placeholder="Search by name" 
-                           class="border border-gray-300 px-3 py-2 rounded-md">
+                           class="w-full border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
                 </div>
             </form>
         </div>
 
-        <!-- Users Table -->
-        <table class="table-auto w-full border-collapse">
-            <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
-                <tr>
-                    <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
-                    <th class="px-4 py-2 font-medium">First Name</th>
-                    <th class="px-4 py-2 font-medium">Last Name</th>
-                    <th class="px-4 py-2 font-medium">Role</th>
-                    <th class="px-4 py-2 font-medium">Contact Number</th>
-                    <th class="px-4 py-2 font-medium">Email</th>
-                    <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($users as $user)
-                    <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
-                        onClick="window.location.href = '{{ route('admin.users.show', $user->id) }}'">
-                        <td class="px-4 py-2">{{ $user->id }}</td>
-                        <td class="px-4 py-2">{{ $user->first_name }}</td>
-                        <td class="px-4 py-2">{{ $user->last_name }}</td>
-                        <td class="px-4 py-2">{{ ucwords(str_replace('_', ' ', $user->role->name)) }}</td>
-                        <td class="px-4 py-2">{{ $user->phone_number }}</td>
-                        <td class="px-4 py-2">{{ $user->email }}</td>
-                        <td class="px-4 py-2 text-center">
-                            <button type="button"
+        <!-- Table Container with horizontal scroll -->
+        <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <div class="inline-block min-w-full align-middle">
+                <table class="min-w-full border-collapse">
+                    <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                        <tr>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">First Name</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Last Name</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Role</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Contact</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Email</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($users as $user)
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+                                onClick="window.location.href = '{{ route('admin.users.show', $user->id) }}'">
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->id }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium">{{ $user->first_name }}</div>
+                                    <div class="text-gray-500 text-xs sm:hidden">{{ $user->last_name }}</div>
+                                    <div class="text-gray-500 text-xs md:hidden">{{ $user->phone_number }}</div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->last_name }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                                        {{ ucwords(str_replace('_', ' ', $user->role->name)) }}
+                                    </span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->phone_number }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="truncate max-w-[200px]" title="{{ $user->email }}">{{ $user->email }}</div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-center">
+                                    <button type="button"
+                                        @click.stop="
+                                            currentUser = @js($user);
+                                            showEditModal = true;"
+                                        class="text-blue-600 hover:underline text-xs sm:text-sm px-2 py-1 rounded hover:bg-blue-50">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-8 text-gray-500 text-sm">No user found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                                @click.stop="
-                                    currentUser = @js($user);
-                                    showEditModal = true;"
-                                class="text-blue-600 hover:underline">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-gray-500">No user found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <!-- Pagination (if applicable) -->
+        @if(method_exists($users, 'links'))
+            <div class="mt-4 sm:mt-6">
+                {{ $users->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Add User Modal -->
@@ -129,10 +144,10 @@
         
         <!-- Modal Content -->
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-lg max-w-md w-full" >
+            <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between p-4 border-b">
-                    <h3 class="text-xl font-semibold text-gray-900">Add New User</h3>
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Add New User</h3>
                     <button x-on:click="showAddModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">
@@ -145,20 +160,22 @@
                 <form action="{{ route('admin.users.store') }}" method="POST" class="p-4">
                     @csrf
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" 
-                                   name="first_name" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
-                            <input type="text" 
-                                   name="last_name" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">First Name</label>
+                                <input type="text" 
+                                       name="first_name" 
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                                <input type="text" 
+                                       name="last_name" 
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
                         </div>
 
                         <div>
@@ -166,7 +183,7 @@
                             <input type="date" 
                                    name="birth_date" 
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
                         <div>
@@ -174,7 +191,7 @@
                             <input type="email" 
                                    name="email" 
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
                         <div>
@@ -182,34 +199,36 @@
                             <input type="tel" 
                                    name="phone_number" 
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Barangay</label>
-                            <select name="barangay_id" 
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                                    <option value="" selected disabled>Select Barangay</option>
-                                @foreach($barangays as $barangay)
-                                    <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Barangay</label>
+                                <select name="barangay_id" 
+                                        required
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                                        <option value="" selected disabled>Select Barangay</option>
+                                    @foreach($barangays as $barangay)
+                                        <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Street</label>
-                            <input type="text" 
-                                   name="street" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Street</label>
+                                <input type="text" 
+                                       name="street" 
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Role</label>
                             <select name="role_id" 
                                     required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                                     <option value="" selected disabled>Select Role</option>
                                 @foreach($roles as $role)
                                     <option value="{{ $role->id }}">{{ $role->name }}</option>
@@ -217,43 +236,34 @@
                             </select>
                         </div>
 
-                        <!-- <div>
-                            <label class="block text-sm font-medium text-gray-700">Gender</label>
-                            <select name="gender" 
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                                <option value="" selected disabled>Select Gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div> -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Password</label>
+                                <input type="password" 
+                                       name="password" 
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Password</label>
-                            <input type="password" 
-                                   name="password" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                            <input type="password" 
-                                   name="password_confirmation" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                                <input type="password" 
+                                       name="password_confirmation" 
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
                         </div>
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="mt-6 flex justify-end space-x-3">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 sticky bottom-0 bg-white pt-4 border-t">
                         <button type="button" 
                                 @click="showAddModal = false"
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
+                                class="w-full sm:w-auto px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
                             Save User
                         </button>
                     </div>
@@ -274,10 +284,10 @@
         
         <!-- Modal Content -->
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-lg max-w-md w-full" >
+            <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between p-4 border-b">
-                    <h3 class="text-xl font-semibold text-gray-900">Edit User</h3>
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Edit User</h3>
                     <button x-on:click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">
@@ -291,22 +301,24 @@
                     @csrf
                     @method("PUT")
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" 
-                                   name="first_name"
-                                   x-model="currentUser.first_name"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
-                            <input type="text" 
-                                   name="last_name" 
-                                   x-model="currentUser.last_name"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">First Name</label>
+                                <input type="text" 
+                                       name="first_name"
+                                       x-model="currentUser.first_name"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                                <input type="text" 
+                                       name="last_name" 
+                                       x-model="currentUser.last_name"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
                         </div>
 
                         <div>
@@ -315,7 +327,7 @@
                                    name="birth_date" 
                                    x-model="currentUser.birth_date"
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
                         <div>
@@ -324,7 +336,7 @@
                                    name="email" 
                                    x-model="currentUser.email"
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
                         <div>
@@ -333,29 +345,31 @@
                                    name="phone_number"
                                    x-model="currentUser.phone_number" 
                                    required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Barangay</label>
-                            <select name="barangay_id" 
-                                    required
-                                    x-model="currentUser.barangay_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                                    <option value="" selected disabled>Select Barangay</option>
-                                @foreach($barangays as $barangay)
-                                    <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Barangay</label>
+                                <select name="barangay_id" 
+                                        required
+                                        x-model="currentUser.barangay_id"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                                        <option value="" selected disabled>Select Barangay</option>
+                                    @foreach($barangays as $barangay)
+                                        <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Street</label>
-                            <input type="text" 
-                                   name="street" 
-                                   x-model="currentUser.street"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Street</label>
+                                <input type="text" 
+                                       name="street" 
+                                       x-model="currentUser.street"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                            </div>
                         </div>
 
                         <div>
@@ -363,36 +377,25 @@
                             <select name="role_id" 
                                     required
                                     x-model="currentUser.role_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                                     <option value="" selected disabled>Select Role</option>
                                 @foreach($roles as $role)
                                     <option value="{{ $role->id }}">{{ $role->name }}</option>
                                 @endforeach
                             </select>
                         </div>
-
-                        <!-- <div>
-                            <label class="block text-sm font-medium text-gray-700">Gender</label>
-                            <select name="gender" 
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
-                                <option value="" selected disabled>Select Gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div> -->
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="mt-6 flex justify-end space-x-3">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 sticky bottom-0 bg-white pt-4 border-t">
                         <button type="button" 
                                 @click="showEditModal = false"
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
-                            Edit User
+                                class="w-full sm:w-auto px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
+                            Update User
                         </button>
                     </div>
                 </form>

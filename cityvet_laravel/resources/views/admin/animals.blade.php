@@ -33,194 +33,230 @@
 @endphp
 
 <div x-data="animalModals" x-init="init()">
-  <h1 class="title-style mb-[2rem]">Animals</h1>
+  <h1 class="title-style mb-4 sm:mb-8">Animals</h1>
 
-  <!-- Top Bar -->
-  <div class="flex justify-end gap-5 mb-[2rem]">
-    <button @click="showAddModal = true" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
-      + New animal
+  <!-- Add Animal Button -->
+  <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
+    <button @click="showAddModal = true" class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
+      <span class="hidden sm:inline">+ New animal</span>
+      <span class="sm:hidden">+ Add</span>
     </button>
   </div>
 
   <!-- Breed Data -->
   <input type="hidden" id="breed-data" value='@json($breedOptions)' />
 
-  <!-- Animal Table Filter -->
-  <div class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
-    <div class="mb-4">
-      <form method="GET" action="{{ route('admin.animals') }}" class="flex gap-4 items-center justify-end">
-        <div>
-          <select name="type" id="type-select" class="border border-gray-300 px-3 py-2 rounded-md">
-            <option value="">All Types</option>
-            @foreach(array_keys($breedOptions) as $type)
-              <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-            @endforeach
-          </select>
+<!-- Add this wrapper around your filter form and table section -->
+<!-- Replace the existing Filter Form and Table Container sections with this: -->
 
-          <!-- <select name="breed" id="breed-select" class="border border-gray-300 px-3 py-2 rounded-md">
-            <option value="">All Breeds</option>
-            @if(request('type') && isset($breedOptions[request('type')]))
-              @foreach($breedOptions[request('type')] as $breed)
-                <option value="{{ $breed }}" {{ request('breed') == $breed ? 'selected' : '' }}>{{ $breed }}</option>
-              @endforeach
-            @endif
-          </select> -->
+<!-- Animals Table Card -->
+<div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+  <!-- Filter Form -->
+  <div class="mb-4">
+    <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-end">
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <select name="type" id="type-select" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
+          <option value="">All Types</option>
+          @foreach(array_keys($breedOptions) as $type)
+            <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
+          @endforeach
+        </select>
 
-          <select name="gender" class="border border-gray-300 px-3 py-2 rounded-md">
-            <option value="">All Genders</option>
-            <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
-            <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
-          </select>
+        <select name="gender" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
+          <option value="">All Genders</option>
+          <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
+          <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
+        </select>
 
-          <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-4 py-2 rounded hover:bg-green-600 hover:text-white">
-            Filter
-          </button>
-        </div>
+        <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-3 py-2 sm:px-4 rounded hover:bg-green-600 hover:text-white text-sm">
+          Filter
+        </button>
+      </div>
 
-        <div>
-          <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name" class="border border-gray-300 px-3 py-2 rounded-md">
-        </div>
-      </form>
-    </div>
+      <div class="w-full sm:w-auto">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name" class="w-full border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
+      </div>
+    </form>
+  </div>
 
-    <!-- Animal Table -->
-    <table class="table-auto w-full border-collapse">
-      <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
-        <tr>
-          <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
-          <th class="px-4 py-2 font-medium">Animal Code</th>
-          <th class="px-4 py-2 font-medium">Species</th>
-          <th class="px-4 py-2 font-medium">Name</th>
-          <th class="px-4 py-2 font-medium">Breed</th>
-          <th class="px-4 py-2 font-medium">Birth Date</th>
-          <th class="px-4 py-2 font-medium">Gender</th>
-          <th class="px-4 py-2 font-medium">Owner</th>
-          <th class="px-4 py-2 rounded-tr-xl font-medium">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($animals as $index => $animal)
-          <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
-              onClick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'">
-            <td class="px-4 py-2">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
-            <td class="px-4 py-2">{{ $animal->code }}</td>
-            <td class="px-4 py-2">{{ $animal->type }}</td>
-            <td class="px-4 py-2">{{ $animal->name }}</td>
-            <td class="px-4 py-2">{{ $animal->breed }}</td>
-            <td class="px-4 py-2">{{ $animal->birth_date  ? \Carbon\Carbon::parse($animal->birth_date)->format('F j, Y') : 'Unknown' }}</td>
-            <td class="px-4 py-2">{{ ucwords($animal->gender) }}</td>
-            <td class="px-4 py-2">{{ $animal->user->first_name }} {{ $animal->user->last_name }}</td>
-            <td class="px-4 py-2 text-center">
-              <button
-                @click.stop="showEditModal = true; currentAnimal = @js($animal)" 
-                class="text-blue-600 hover:underline">Edit</button>
-            </td>
-          </tr>
-        @empty
+  <!-- Table Container with horizontal scroll -->
+  <div class="overflow-x-auto -mx-2 sm:mx-0">
+    <div class="inline-block min-w-full align-middle">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
           <tr>
-              <td colspan="11" class="text-center py-4 text-gray-500">No animal found.</td>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Code</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Type</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Breed</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Birth Date</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Gender</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Owner</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
           </tr>
-        @endforelse
-      </tbody>
-    </table>
+        </thead>
+        <tbody class="bg-white">
+          @forelse($animals as $index => $animal)
+           <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
+                onClick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'">
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <span class="font-mono text-gray-600">{{ $animal->code }}</span>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <div class="font-medium text-gray-900">{{ $animal->name }}</div>
+                <!-- Mobile-only additional info -->
+                <div class="text-gray-500 text-xs sm:hidden">
+                  <div>{{ $animal->type }} - {{ $animal->breed }}</div>
+                  @if($animal->birth_date)
+                    <div>{{ \Carbon\Carbon::parse($animal->birth_date)->format('M j, Y') }}</div>
+                  @endif
+                  <div>{{ ucwords($animal->gender) }}</div>
+                </div>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
+                  {{ $animal->type }}
+                </span>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <span class="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">
+                  {{ $animal->breed }}
+                </span>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                {{ $animal->birth_date ? \Carbon\Carbon::parse($animal->birth_date)->format('M j, Y') : 'Unknown' }}
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                  {{ ucwords($animal->gender) }}
+                </span>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                <div class="truncate max-w-[150px]" title="{{ $animal->user->first_name }} {{ $animal->user->last_name }}">
+                  {{ $animal->user->first_name }} {{ $animal->user->last_name }}
+                </div>
+              </td>
+              <td class="px-2 py-2 sm:px-4 sm:py-3 text-center">
+                <button
+                  @click.stop="showEditModal = true; currentAnimal = @js($animal)" 
+                  class="text-blue-600 hover:underline text-xs sm:text-sm px-2 py-1 rounded hover:bg-blue-50">
+                  Edit
+                </button>
+              </td>
+            </tr>          @empty
+            <tr>
+                <td colspan="9" class="text-center py-8 text-gray-500 text-sm">No animal found.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="mt-4">
-    {{ $animals->links() }}
-  </div>
+
+  <!-- Pagination -->
+  @if(method_exists($animals, 'links'))
+    <div class="mt-4 sm:mt-6">
+      {{ $animals->links() }}
+    </div>
+  @endif
+</div>
 
   <!-- Add Animal Modal -->
   <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-xl w-full shadow-lg">
-        <div class="flex justify-between items-center px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold">Add New Animal</h2>
-          <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700">
+      <div class="relative bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
+        <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
+          <h2 class="text-lg sm:text-xl font-semibold">Add New Animal</h2>
+          <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
         </div>
-        <form method="POST" action="{{ route('admin.animals.store') }}" class="px-6 py-4 space-y-4">
+        <form method="POST" action="{{ route('admin.animals.store') }}" class="px-4 sm:px-6 py-4 space-y-4">
           @csrf
 
-          <div>
-            <label class="block font-medium">Type</label>
-            <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled selected>Select Type</option>
-              @foreach(array_keys($breedOptions) as $type)
-                <option value="{{ $type }}">{{ $type }}</option>
-              @endforeach
-            </select>
-          </div>
-
-        <div>
-          <label class="block font-medium">Breed</label>
-          <select name="breed" x-model="currentAnimal?.breed" class="w-full border-gray-300 rounded-md p-3" required>
-            <option value="" disabled>Select Breed</option>
-            <template x-for="breed in (currentAnimal?.type ? breedData[currentAnimal.type] || [] : [])" :key="breed">
-              <option :value="breed" x-text="breed"></option>
-            </template>
-          </select>
-        </div>
-
-          <div>
-            <label class="block font-medium">Name</label>
-            <input type="text" name="name" class="w-full border-gray-300 rounded-md p-3" required>
-          </div>
-
-          <div>
-            <label class="block font-medium">Birth Date</label>
-            <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-3">
-          </div>
-
-          <div>
-            <label class="block font-medium">Gender</label>
-            <select name="gender" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled selected>Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-
-          <div class="flex gap-4">
-            <div class="w-1/2">
-              <label class="block font-medium">Weight (kg)</label>
-              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Type</label>
+              <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled selected>Select Type</option>
+                @foreach(array_keys($breedOptions) as $type)
+                  <option value="{{ $type }}">{{ $type }}</option>
+                @endforeach
+              </select>
             </div>
 
-            <div class="w-1/2">
-              <label class="block font-medium">Height (cm)</label>
-              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-3">
+            <div>
+              <label class="block font-medium text-sm">Breed</label>
+              <select name="breed" id="modal-breed" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled selected>Select Breed</option>
+              </select>
             </div>
           </div>
 
           <div>
-            <label class="block font-medium">Color</label>
-            <input type="text" name="color" class="w-full border-gray-300 rounded-md p-3" required>
+            <label class="block font-medium text-sm">Name</label>
+            <input type="text" name="name" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Birth Date</label>
+              <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+
+            <div>
+              <label class="block font-medium text-sm">Gender</label>
+              <select name="gender" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Weight (kg)</label>
+              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+
+            <div>
+              <label class="block font-medium text-sm">Height (cm)</label>
+              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-medium text-sm">Color</label>
+            <input type="text" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <!-- Owner autocomplete input -->
-          <div class="relative w-full max-w-md">
-            <label for="owner-search" class="block font-medium mb-1">Owner</label>
+          <div class="relative w-full">
+            <label for="owner-search" class="block font-medium text-sm mb-1">Owner</label>
             <input
               type="text"
               id="owner-search"
               placeholder="Search owner by name or email"
               autocomplete="off"
-              class="w-full border border-gray-300 rounded-md p-3"
+              class="w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm"
               required
             />
             <input type="hidden" id="owner-id" name="user_id" required />
             <div
               id="owner-suggestions"
-              class="border border-gray-300 bg-white absolute w-full max-h-40 overflow-y-auto hidden z-10"
+              class="border border-gray-300 bg-white absolute w-full max-h-40 overflow-y-auto hidden z-10 rounded-md shadow-lg"
             ></div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" @click="showAddModal = false" class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t sticky bottom-0 bg-white">
+            <button type="button" @click="showAddModal = false" class="w-full sm:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm">
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
               Save Animal
             </button>
           </div>
@@ -233,94 +269,98 @@
   <div x-show="showEditModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-xl w-full shadow-lg">
-        <div class="flex justify-between items-center px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold">Edit Animal</h2>
-          <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700">
+      <div class="relative bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
+        <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
+          <h2 class="text-lg sm:text-xl font-semibold">Edit Animal</h2>
+          <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
         </div>
-        <form method="POST" :action="`{{ url('admin/animals') }}/${currentAnimal?.id}`" class="px-6 py-4 space-y-4">
+        <form method="POST" :action="`{{ url('admin/animals') }}/${currentAnimal?.id}`" class="px-4 sm:px-6 py-4 space-y-4">
           @csrf
           @method('PUT')
 
-          <div>
-            <label class="block font-medium">Type</label>
-            <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled>Select Type</option>
-              @foreach(array_keys($breedOptions) as $type)
-                <option value="{{ $type }}">{{ $type }}</option>
-              @endforeach
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-medium">Breed</label>
-            <select name="breed" x-model="currentAnimal?.breed" id="modal-breed-edit" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled>Select Breed</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-medium">Name</label>
-            <input type="text" x-model="currentAnimal.name" name="name" class="w-full border-gray-300 rounded-md p-3" required>
-          </div>
-
-          <div>
-            <label class="block font-medium">Birth Date</label>
-            <input type="date" x-model="currentAnimal.birth_date" name="birth_date" class="w-full border-gray-300 rounded-md p-3">
-          </div>
-
-          <div>
-            <label class="block font-medium">Gender</label>
-            <select name="gender" x-model="currentAnimal.gender" class="w-full border-gray-300 rounded-md p-3" required>
-              <option value="" disabled>Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-
-          <div class="flex gap-4">
-            <div class="w-1/2">
-              <label class="block font-medium">Weight (kg)</label>
-              <input type="number" step="0.01" x-model="currentAnimal.weight" name="weight" class="w-full border-gray-300 rounded-md p-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Type</label>
+              <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled>Select Type</option>
+                @foreach(array_keys($breedOptions) as $type)
+                  <option value="{{ $type }}">{{ $type }}</option>
+                @endforeach
+              </select>
             </div>
 
-            <div class="w-1/2">
-              <label class="block font-medium">Height (cm)</label>
-              <input type="number" step="0.01" x-model="currentAnimal.height" name="height" class="w-full border-gray-300 rounded-md p-3">
+            <div>
+              <label class="block font-medium text-sm">Breed</label>
+              <select name="breed" x-model="currentAnimal?.breed" id="modal-breed-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled>Select Breed</option>
+              </select>
             </div>
           </div>
 
           <div>
-            <label class="block font-medium">Color</label>
-            <input type="text" x-model="currentAnimal.color" name="color" class="w-full border-gray-300 rounded-md p-3" required>
+            <label class="block font-medium text-sm">Name</label>
+            <input type="text" x-model="currentAnimal.name" name="name" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Birth Date</label>
+              <input type="date" x-model="currentAnimal.birth_date" name="birth_date" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+
+            <div>
+              <label class="block font-medium text-sm">Gender</label>
+              <select name="gender" x-model="currentAnimal.gender" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+                <option value="" disabled>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm">Weight (kg)</label>
+              <input type="number" step="0.01" x-model="currentAnimal.weight" name="weight" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+
+            <div>
+              <label class="block font-medium text-sm">Height (cm)</label>
+              <input type="number" step="0.01" x-model="currentAnimal.height" name="height" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-medium text-sm">Color</label>
+            <input type="text" x-model="currentAnimal.color" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <!-- Owner autocomplete input for edit modal -->
-          <div class="relative w-full max-w-md">
-            <label for="owner-search-edit" class="block font-medium mb-1">Owner</label>
+          <div class="relative w-full">
+            <label for="owner-search-edit" class="block font-medium text-sm mb-1">Owner</label>
             <input
               type="text"
               id="owner-search-edit"
               placeholder="Search owner by name or email"
               autocomplete="off"
               x-model="currentAnimal.user.first_name + ' ' + currentAnimal.user.last_name" 
-              class="w-full border border-gray-300 rounded-md p-3"
+              class="w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm"
               required
             />
             <input type="hidden" id="owner-id-edit" name="user_id" :value="currentAnimal.user_id" required />
             <div
               id="owner-suggestions-edit"
-              class="border border-gray-300 bg-white absolute w-full max-h-40 hidden overflow-y-auto z-10"
+              class="border border-gray-300 bg-white absolute w-full max-h-40 hidden overflow-y-auto z-10 rounded-md shadow-lg"
             ></div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" @click="showEditModal = false" class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t sticky bottom-0 bg-white">
+            <button type="button" @click="showEditModal = false" class="w-full sm:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm">
               Cancel
             </button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
               Update Animal
             </button>
           </div>
@@ -338,7 +378,6 @@
       currentAnimal: null,
       breedData: JSON.parse(document.getElementById('breed-data').value),
 
-      // Setup breeds options when type changes on add modal
       init() {
         this.$watch('showAddModal', (value) => {
           if (value) {
@@ -350,7 +389,6 @@
 
         this.$watch('showEditModal', (value) => {
           if (value) {
-            // Add a small delay to ensure DOM is ready
             setTimeout(() => {
               this.setupEditModalBreedOptions();
               setupOwnerAutocomplete('owner-search-edit', 'owner-id-edit', 'owner-suggestions-edit');
@@ -395,7 +433,6 @@
         const breedSelect = document.getElementById('modal-breed-edit');
 
         if (!typeSelect || !breedSelect || !this.currentAnimal) {
-          console.log('Missing elements for breed setup');
           return;
         }
 
@@ -404,11 +441,6 @@
           const breeds = this.breedData[selectedType] || [];
           const currentBreed = this.currentAnimal?.breed;
           
-          console.log('Updating breeds for type:', selectedType);
-          console.log('Available breeds:', breeds);
-          console.log('Current animal breed:', currentBreed);
-          
-          // Clear and rebuild options
           breedSelect.innerHTML = '<option value="" disabled>Select Breed</option>';
           
           breeds.forEach(breed => {
@@ -418,16 +450,12 @@
             breedSelect.appendChild(option);
           });
 
-          // Set the current breed if it exists and is valid for this type
           if (preserveCurrentBreed && currentBreed && breeds.includes(currentBreed)) {
-            // Use setTimeout to ensure Alpine.js has processed the x-model binding
             setTimeout(() => {
               breedSelect.value = currentBreed;
-              // Also update the Alpine.js model
               this.currentAnimal.breed = currentBreed;
             }, 0);
           } else if (!preserveCurrentBreed) {
-            // Reset breed when type changes
             breedSelect.value = '';
             if (this.currentAnimal) {
               this.currentAnimal.breed = '';
@@ -435,28 +463,19 @@
           }
         };
 
-        // Initial setup when modal opens
         updateBreeds(true);
 
-        // Handle type changes
         typeSelect.addEventListener('change', () => {
-          updateBreeds(false); // Don't preserve breed when type changes
+          updateBreeds(false);
         });
       }
-    })); // <-- MISSING CLOSING PARENTHESES AND BRACKETS
+    }));
   });
 
-  // MOVED OUTSIDE of Alpine.data - this was inside which caused syntax error
   function setupOwnerAutocomplete(inputId, hiddenId, suggestionsId) {
       const ownerSearchInput = document.getElementById(inputId);
       const ownerSuggestions = document.getElementById(suggestionsId);
       const ownerIdInput = document.getElementById(hiddenId);
-
-      // Debug: Check if elements exist
-      console.log('Setting up autocomplete for:', inputId);
-      console.log('Input element:', ownerSearchInput);
-      console.log('Suggestions element:', ownerSuggestions);
-      console.log('Hidden input element:', ownerIdInput);
 
       if (!ownerSearchInput || !ownerSuggestions || !ownerIdInput) {
           console.error('One or more elements not found for autocomplete setup');
@@ -467,12 +486,10 @@
 
       ownerSearchInput.addEventListener('input', () => {
           const query = ownerSearchInput.value.trim();
-          console.log('Search query:', query);
 
           clearTimeout(debounceTimeout);
 
           if (query.length < 2) {
-              console.log('Query too short, clearing suggestions');
               ownerSuggestions.innerHTML = '';
               ownerSuggestions.classList.add('hidden');
               ownerIdInput.value = '';
@@ -480,40 +497,28 @@
           }
 
           debounceTimeout = setTimeout(() => {
-              console.log('Making fetch request for:', query);
-              
               fetch(`/admin/users/search?q=${encodeURIComponent(query)}`)
                   .then(response => {
-                      console.log('Response status:', response.status);
-                      console.log('Response headers:', response.headers);
-                      
                       if (!response.ok) {
                           throw new Error(`HTTP error! status: ${response.status}`);
                       }
-                      
                       return response.json();
                   })
                   .then(users => {
-                      console.log('Users received:', users);
-                      
                       ownerSuggestions.innerHTML = '';
                       
                       if (users.length === 0) {
-                          console.log('No users found');
                           ownerSuggestions.classList.add('hidden');
                           ownerIdInput.value = '';
                           return;
                       }
 
                       users.forEach(user => {
-                          console.log('Adding user to suggestions:', user);
-                          
                           const div = document.createElement('div');
                           div.textContent = `${user.name} (${user.email})`;
                           div.classList.add('p-2', 'cursor-pointer', 'hover:bg-gray-200');
                           
                           div.addEventListener('click', () => {
-                              console.log('User selected:', user);
                               ownerSearchInput.value = user.name;
                               ownerIdInput.value = user.id;
                               ownerSuggestions.innerHTML = '';
@@ -534,7 +539,6 @@
           }, 300);
       });
 
-      // Close suggestions if clicking outside
       document.addEventListener('click', (e) => {
           if (!ownerSuggestions.contains(e.target) && e.target !== ownerSearchInput) {
               ownerSuggestions.innerHTML = '';

@@ -9,7 +9,7 @@
     </div>
 
     <!-- Animal Profile Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <!-- Animal Info Card -->
       <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex flex-col items-center text-center mb-4">
@@ -19,7 +19,7 @@
           </span>
           
           <!-- Animal Image -->
-          <div class="w-48 h-48 mb-4 relative">
+          <div class="w-32 h-32 sm:w-48 sm:h-48 mb-4 relative">
             @if($animal->image_url)
               <img src="{{ $animal->image_url }}" 
                    alt="{{ $animal->name }}" 
@@ -47,41 +47,41 @@
         
         <!-- Animal Details -->
         <div class="space-y-3 text-left">
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Name:</span>
-            <span class="text-gray-900 font-medium text-lg">{{ $animal->name ?? 'Unknown' }}</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Name:</span>
+            <span class="text-gray-900 font-medium text-lg break-words">{{ $animal->name ?? 'Unknown' }}</span>
           </div>
           
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Breed:</span>
-            <span class="text-gray-700">{{ $animal->breed ?? 'Unknown' }}</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Breed:</span>
+            <span class="text-gray-700 break-words">{{ $animal->breed ?? 'Unknown' }}</span>
           </div>
           
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Gender:</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Gender:</span>
             <span class="text-gray-700">{{ ucwords($animal->gender ?? 'Unknown') }}</span>
           </div>
           
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Birthday:</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Birthday:</span>
             <span class="text-gray-700">
               {{ $animal->birth_date ? \Carbon\Carbon::parse($animal->birth_date)->format('F j, Y') : 'Unknown' }}
             </span>
           </div>
           
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Weight:</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Weight:</span>
             <span class="text-gray-700">{{ $animal->weight ?? 'Unknown' }}</span>
           </div>
           
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Height:</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Height:</span>
             <span class="text-gray-700">{{ $animal->height ?? 'Unknown' }}</span>
           </div>
 
-          <div class="flex items-center">
-            <span class="text-gray-500 w-20 text-sm">Code:</span>
-            <span class="text-gray-700">{{ $animal->code ?? 'Unknown' }}</span>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <span class="text-gray-500 text-sm min-w-[80px]">Code:</span>
+            <span class="text-gray-700 break-words">{{ $animal->code ?? 'Unknown' }}</span>
           </div>
           
           <div class="pt-2">
@@ -90,7 +90,7 @@
               @if($animal->vaccines && $animal->vaccines->count() > 0)
                 <div class="flex flex-wrap gap-1">
                   @foreach($animal->vaccines->take(4) as $vaccine)
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded break-words">
                       {{ $vaccine->name ?? 'Unknown' }}
                     </span>
                   @endforeach
@@ -106,12 +106,12 @@
         </div>
       </div>
 
-      <!-- user Info Card -->
+      <!-- Owner Info Card -->
       <div class="bg-white rounded-lg shadow-lg p-6">
         <h3 class="text-lg text-[#858585] mb-4">Owner</h3>
         
         <div class="mb-6">
-          <h2 class="text-2xl font-semibold text-[#524F4F]">
+          <h2 class="text-2xl font-semibold text-[#524F4F] break-words">
             {{ $animal->user->first_name ?? 'Unknown' }} {{ $animal->user->last_name ?? '' }}
           </h2>
         </div>
@@ -119,7 +119,7 @@
         <div class="space-y-4">
           <div>
             <h4 class="text-sm font-medium text-gray-900 mb-2">Address</h4>
-            <p class="text-gray-600">
+            <p class="text-gray-600 break-words">
               {{ $animal->user->street ?? '' }}
               @if($animal->user->barangay)
                 {{ $animal->user->street ? ', ' : '' }}{{ $animal->user->barangay->name }}
@@ -134,10 +134,10 @@
             <h4 class="text-sm font-medium text-gray-900 mb-2">Contact Information</h4>
             <div class="space-y-1">
               @if($animal->user->phone_number)
-                <p class="text-gray-600">{{ $animal->user->phone_number }}</p>
+                <p class="text-gray-600 break-words">{{ $animal->user->phone_number }}</p>
               @endif
               @if($animal->user->email)
-                <p class="text-gray-600">{{ $animal->user->email }}</p>
+                <p class="text-gray-600 break-words">{{ $animal->user->email }}</p>
               @endif
             </div>
           </div>
@@ -156,16 +156,16 @@
         <div class="space-y-4">
           @foreach($animal->vaccines->sortByDesc('pivot.date_given') as $vaccine)
             <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <!-- Left Section: Vaccine Info -->
-                <div class="flex items-center space-x-6">
+                <div class="flex flex-wrap items-start gap-4">
                   <!-- Vaccine Name -->
                   <div class="min-w-0 flex-1">
-                    <h3 class="text-lg font-semibold text-gray-900">
+                    <h3 class="text-lg font-semibold text-gray-900 break-words">
                       {{ $vaccine->name ?? 'Unknown Vaccine' }}
                     </h3>
                     @if($vaccine->description)
-                      <p class="text-sm text-gray-500 mt-1">{{ Str::limit($vaccine->description, 80) }}</p>
+                      <p class="text-sm text-gray-500 mt-1 break-words">{{ Str::limit($vaccine->description, 80) }}</p>
                     @endif
                   </div>
 
@@ -187,7 +187,7 @@
                     </svg>
                     <div>
                       <span class="text-xs text-gray-500">Administered by</span>
-                      <p class="text-sm font-semibold text-gray-900">{{ $vaccine->pivot->administrator ?? 'Unknown' }}</p>
+                      <p class="text-sm font-semibold text-gray-900 break-words">{{ $vaccine->pivot->administrator ?? 'Unknown' }}</p>
                     </div>
                   </div>
 
@@ -205,27 +205,20 @@
                   </div>
 
                   <!-- Status Badge -->
-                  @php
-                    $status = 'completed';
-                    $statusClass = 'bg-green-100 text-green-800';
-                  @endphp
                   <div>
-                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ $statusClass }}">
-                      {{ ucfirst($status) }}
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      Completed
                     </span>
                   </div>
                 </div>
 
-                <!-- Right Section: Actions -->
-                <div class="flex items-center space-x-3">
-                  @if($vaccine->protect_against)
-                    <div class="text-right">
-                      <span class="text-xs text-gray-500">Protects against</span>
-                      <p class="text-sm font-medium text-gray-900">{{ Str::limit($vaccine->protect_against, 30) }}</p>
-                    </div>
-                  @endif
-                  
-                </div>
+                <!-- Right Section: Protects Against -->
+                @if($vaccine->protect_against)
+                  <div class="text-left md:text-right">
+                    <span class="text-xs text-gray-500">Protects against</span>
+                    <p class="text-sm font-medium text-gray-900 break-words">{{ Str::limit($vaccine->protect_against, 30) }}</p>
+                  </div>
+                @endif
               </div>
             </div>
           @endforeach
