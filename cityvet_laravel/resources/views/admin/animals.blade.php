@@ -56,7 +56,7 @@
     <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-end">
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <select name="type" id="type-select" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
-          <option value="">All Types</option>
+          <option value="">All Species</option>
           @foreach(array_keys($breedOptions) as $type)
             <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
           @endforeach
@@ -88,7 +88,7 @@
             <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Code</th>
             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
-            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Type</th>
+            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Species</th>
             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Breed</th>
             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Birth Date</th>
             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Gender</th>
@@ -179,9 +179,9 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Type</label>
+              <label class="block font-medium text-sm">Species</label>
               <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-                <option value="" disabled selected>Select Type</option>
+                <option value="" disabled selected>Select Species</option>
                 @foreach(array_keys($breedOptions) as $type)
                   <option value="{{ $type }}">{{ $type }}</option>
                 @endforeach
@@ -282,9 +282,9 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Type</label>
+              <label class="block font-medium text-sm">Species</label>
               <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-                <option value="" disabled>Select Type</option>
+                <option value="" disabled>Select Species</option>
                 @foreach(array_keys($breedOptions) as $type)
                   <option value="{{ $type }}">{{ $type }}</option>
                 @endforeach

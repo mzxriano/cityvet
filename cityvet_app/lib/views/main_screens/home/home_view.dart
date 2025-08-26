@@ -1,10 +1,13 @@
 import 'package:cityvet_app/components/card.dart';
+import 'package:cityvet_app/models/aew_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/home_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/home/all_activities_page.dart';
 import 'package:cityvet_app/views/main_screens/home/all_aew_page.dart';
 import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
+import 'package:cityvet_app/views/main_screens/home/breeding_info_page.dart';
+import 'package:cityvet_app/views/main_screens/home/nutrition_guide_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -18,8 +21,9 @@ class HomeView extends StatefulWidget {
 
 class HomeViewState extends State<HomeView> {
   final TextEditingController _activitySearchController = TextEditingController();
-  String _activitySearchQuery = '';
   late HomeViewModel _homeViewModel;
+  List<AewModel> _aewUsers = [];
+  bool _isLoadingAEW = false;
 
   @override
   void initState() {
@@ -30,6 +34,8 @@ class HomeViewState extends State<HomeView> {
       _homeViewModel.fetchUpcomingActivities();
       _homeViewModel.fetchOngoingActivities();
       _homeViewModel.fetchRecentActivities();
+      _homeViewModel.fetchAEWUsers();
+      _fetchAEWUsers();
     });
   }
 
@@ -45,11 +51,11 @@ class HomeViewState extends State<HomeView> {
     Config().init(context);
 
     final List<Map<String, String>> animals = [
-      {'image': 'assets/images/logo.png', 'label': 'Dog'},
-      {'image': 'assets/images/logo.png', 'label': 'Cat'},
-      {'image': 'assets/images/logo.png', 'label': 'Goat'},
-      {'image': 'assets/images/logo.png', 'label': 'Cattle'},
-      {'image': 'assets/images/logo.png', 'label': 'Chicken'},
+      {'image': 'assets/images/dog.png', 'label': 'Dog'},
+      {'image': 'assets/images/cat.png', 'label': 'Cat'},
+      {'image': 'assets/images/goat.png', 'label': 'Goat'},
+      {'image': 'assets/images/cattle.png', 'label': 'Cattle'},
+      {'image': 'assets/images/chicken.png', 'label': 'Chicken'},
     ];
 
     return ChangeNotifierProvider.value(
@@ -77,7 +83,6 @@ class HomeViewState extends State<HomeView> {
                               fontWeight: Config.fontW600,
                             ),
                           ),
-                          Icon(Icons.arrow_forward),
                         ],
                       ),
                       Config.heightSmall,
@@ -138,6 +143,32 @@ class HomeViewState extends State<HomeView> {
         );
       },
     );
+  }
+
+  Future<void> _fetchAEWUsers() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingAEW = true;
+      });
+    }
+
+    try {
+      final result = await _homeViewModel.fetchAEWUsers();
+      
+      if (mounted) {
+        setState(() {
+          _aewUsers = result;
+          _isLoadingAEW = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching AEW users: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingAEW = false;
+        });
+      }
+    }
   }
 
   Widget _buildSingleUpcomingActivity(HomeViewModel homeViewModel) {
@@ -574,30 +605,6 @@ class HomeViewState extends State<HomeView> {
   }
 
 Widget _buildAEWSection() {
-  // Mock data for 2 AEWs to display in home view
-  final List<Map<String, dynamic>> homeAEWs = [
-    {
-      'id': 1,
-      'name': 'John Doe',
-      'position': 'AEW',
-      'barangay': 'Barangay 1',
-      'contact': '+63 912 345 6789',
-      'email': 'john.doe@cityvet.gov',
-      'specialization': 'Agricultural Extension Worker',
-      'yearsOfService': 5,
-    },
-    {
-      'id': 2,
-      'name': 'Jane Smith',
-      'position': 'AEW',
-      'barangay': 'Barangay 2',
-      'contact': '+63 923 456 7890',
-      'email': 'jane.smith@cityvet.gov',
-      'specialization': 'Agricultural Extension Worker',
-      'yearsOfService': 3,
-    },
-  ];
-
   return Column(
     children: [
       Row(
@@ -625,211 +632,153 @@ Widget _buildAEWSection() {
         ],
       ),
       Config.heightSmall,
-      Column(
-        children: homeAEWs.map((aew) => Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: GestureDetector(
-            onTap: () => _showAEWDetails(context, aew),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+      
+      if (_isLoadingAEW)
+        const Center(child: CircularProgressIndicator())
+      else if (_aewUsers.isEmpty)
+        Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(Icons.person_outline, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              Text(
+                'No AEW available',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: Config.fontSmall,
+                  color: Colors.grey[600],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name and position
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundColor: const Color(0xFF8ED968),
-                        child: Text(
-                          aew['name'].split(' ').map((n) => n[0]).take(2).join(''),
-                          style: const TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: Config.fontSmall,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+            ],
+          ),
+        )
+      else
+        Column(
+          children: _aewUsers.take(2).map((aew) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: GestureDetector(
+              onTap: () => _showAEWDetails(context, aew),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 25,
+                          backgroundColor: const Color(0xFF8ED968),
+                          child: Text(
+                            aew.name.split(' ').map((n) => n[0]).take(2).join(''),
+                            style: const TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontSmall,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              aew['name'],
-                              style: const TextStyle(
-                                fontFamily: Config.primaryFont,
-                                fontSize: Config.fontMedium,
-                                fontWeight: Config.fontW600,
-                                color: Color(0xFF524F4F),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                aew.name,
+                                style: const TextStyle(
+                                  fontFamily: Config.primaryFont,
+                                  fontSize: Config.fontMedium,
+                                  fontWeight: Config.fontW600,
+                                  color: Color(0xFF524F4F),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              aew['position'],
-                              style: const TextStyle(
-                                fontFamily: Config.primaryFont,
-                                fontSize: Config.fontSmall,
-                                color: Config.tertiaryColor,
+                              const SizedBox(height: 2),
+                              Text(
+                                aew.position,
+                                style: const TextStyle(
+                                  fontFamily: Config.primaryFont,
+                                  fontSize: Config.fontSmall,
+                                  color: Config.tertiaryColor,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Years of service badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${aew['yearsOfService']} yrs',
-                          style: const TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: 10,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w500,
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Specialization
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8ED968).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      ],
                     ),
-                    child: Text(
-                      aew['specialization'],
-                      style: const TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontSmall,
-                        color: Color(0xFF6BB54A),
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8ED968).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Contact info
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        aew['barangay'],
+                      child: Text(
+                        aew.specialization,
                         style: const TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,
-                          color: Colors.grey,
+                          color: Color(0xFF6BB54A),
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      
-                      const SizedBox(width: 16),
-                      
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          aew['contact'],
-                          style: const TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: Config.fontSmall,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(aew.barangay.toString(), style: const TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Colors.grey)),
+                        const SizedBox(width: 16),
+                        const Icon(Icons.phone_outlined, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Expanded(child: Text(aew.contact, style: const TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Colors.grey))),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        )).toList(),
-      ),
+          )).toList(),
+        ),
     ],
   );
 }
 
-void _showAEWDetails(BuildContext context, Map<String, dynamic> aew) {
+void _showAEWDetails(BuildContext context, AewModel aew) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Column(
           children: [
             CircleAvatar(
               radius: 35,
               backgroundColor: const Color(0xFF8ED968),
               child: Text(
-                aew['name'].split(' ').map((n) => n[0]).take(2).join(''),
-                style: const TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: Config.fontMedium,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                aew.name.split(' ').map((n) => n[0]).take(2).join(''),
+                style: const TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontMedium, fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              aew['name'],
-              style: const TextStyle(
-                fontFamily: Config.primaryFont,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              aew['position'],
-              style: const TextStyle(
-                fontFamily: Config.primaryFont,
-                fontSize: Config.fontSmall,
-                color: Colors.grey,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            Text(aew.name, style: const TextStyle(fontFamily: Config.primaryFont, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            Text(aew.position, style: const TextStyle(fontFamily: Config.primaryFont, fontSize: Config.fontSmall, color: Colors.grey), textAlign: TextAlign.center),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow(Icons.work_outline, 'Specialization', aew['specialization']),
-            _buildDetailRow(Icons.location_on_outlined, 'Barangay', aew['barangay']),
-            _buildDetailRow(Icons.phone_outlined, 'Contact', aew['contact']),
-            _buildDetailRow(Icons.email_outlined, 'Email', aew['email']),
-            _buildDetailRow(Icons.timeline_outlined, 'Years of Service', '${aew['yearsOfService']} years'),
+            _buildDetailRow(Icons.work_outline, 'Specialization', aew.specialization),
+            _buildDetailRow(Icons.location_on_outlined, 'Barangay', aew.barangay.toString()),
+            _buildDetailRow(Icons.phone_outlined, 'Contact', aew.contact),
+            _buildDetailRow(Icons.email_outlined, 'Email', aew.email),
           ],
         ),
         actions: [
@@ -839,7 +788,7 @@ void _showAEWDetails(BuildContext context, Map<String, dynamic> aew) {
                 child: TextButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    _chatWithAew(aew['contact']);
+                    _chatWithAew(aew.contact);
                   },
                   icon: const Icon(Icons.message),
                   label: const Text('Chat'),
@@ -849,10 +798,7 @@ void _showAEWDetails(BuildContext context, Map<String, dynamic> aew) {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Close',
-              style: TextStyle(fontFamily: Config.primaryFont),
-            ),
+            child: const Text('Close', style: TextStyle(fontFamily: Config.primaryFont)),
           ),
         ],
       );
@@ -860,7 +806,6 @@ void _showAEWDetails(BuildContext context, Map<String, dynamic> aew) {
   );
 }
 
-// Add this helper method for detail rows
 Widget _buildDetailRow(IconData icon, String label, String value) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -899,13 +844,7 @@ Widget _buildDetailRow(IconData icon, String label, String value) {
 
 void _chatWithAew(String phoneNumber) {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Opening a chat box')),
-  );
-}
-
-void _sendEmail(String email) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Opening email to $email...')),
+    SnackBar(content: Text('Chatting system will be implemented soon!')),
   );
 }
 
@@ -932,41 +871,225 @@ void _sendEmail(String email) {
     );
   }
 
-  void _navigateToAllAEWs(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AllAEWsView()),
-    );
-  }
+void _navigateToAllAEWs(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AllAEWsView(aewUsers: _aewUsers),
+    ),
+  );
+}
 
   // Animal card widget
   Widget _animalCard(String imageUrl, String label) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF8ED968),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Image.asset(
-              imageUrl,
-              fit: BoxFit.contain,
-            ),
+    return GestureDetector(
+      onTap: () => _showAnimalOptionsDialog(context, label),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.2),
+            width: 1,
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: Config.primaryFont,
-              fontSize: Config.fontMedium,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animal icon/image
+            Container(
+              child: Image.asset(
+                imageUrl,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            
+            // Animal name
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontSmall,
+                fontWeight: Config.fontW600,
+                color: Color(0xFF524F4F),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _showAnimalOptionsDialog(BuildContext context, String animalType) {
+  // Mock data for animal-related options
+  final List<Map<String, dynamic>> animalOptions = [
+    {
+      'title': 'Breeding Info',
+      'subtitle': 'Breeding guidelines & tips',
+      'icon': Icons.pets,
+      'color': Colors.orange,
+    },
+    {
+      'title': 'Nutrition Guide',
+      'subtitle': 'Feeding recommendations',
+      'icon': Icons.restaurant,
+      'color': Colors.purple,
+    },
+  ];
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8ED968).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.pets,
+                      color: Color(0xFF8ED968),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          animalType,
+                          style: const TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontMedium,
+                            fontWeight: Config.fontW600,
+                            color: Color(0xFF524F4F),
+                          ),
+                        ),
+                        Text(
+                          'Select an option',
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const Divider(height: 1),
+            
+            // Options list
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: animalOptions.length,
+              itemBuilder: (context, index) {
+                final option = animalOptions[index];
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: option['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      option['icon'],
+                      color: option['color'],
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    option['title'],
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      fontWeight: Config.fontW600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    option['subtitle'],
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _handleAnimalOptionTap(animalType, option['title']);
+                  },
+                );
+              },
+            ),
+            
+            // Bottom padding
+            const SizedBox(height: 20),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+  void _handleAnimalOptionTap(String animalType, String option) {
+    switch (option) {
+      case 'Breeding Info':
+        Navigator.push(context, MaterialPageRoute(builder: (_) => BreedingInfoPage(animalType: animalType,)));
+        break;
+      case 'Nutrition Guide':
+        Navigator.push(context, MaterialPageRoute(builder: (_) => NutritionGuidePage(animalType: animalType,)));
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$option for $animalType - Feature coming soon!'),
+            backgroundColor: const Color(0xFF8ED968),
+          ),
+        );
+    }
   }
 
   Widget _activityDetailsPopup(dynamic activity) {

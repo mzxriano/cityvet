@@ -118,12 +118,92 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
   }
 
-  // New method specifically for QR scanner navigation
-  void _openQrScanner() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const QrScannerPage()),
+  // Added confirmation dialog before logout
+  Future<void> _showLogoutConfirmation() async {
+    final bool? shouldLogout = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.logout,
+                color: Config.primaryColor,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Confirm Logout',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Config.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to logout? You will need to sign in again to access your account.',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: 16,
+              color: Colors.grey[700],
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Logout',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
+
+    // If user confirmed logout, proceed with logout
+    if (shouldLogout == true) {
+      await _handleLogout();
+    }
   }
 
   Future<void> _handleLogout() async {
@@ -611,7 +691,7 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
         const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
         _buildDrawerItem(
           'Logout',
-          _handleLogout,
+          _showLogoutConfirmation, // Changed to show confirmation first
           isLoading: _isLoading,
         ),
       ],

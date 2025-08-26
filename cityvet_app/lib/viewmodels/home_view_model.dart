@@ -1,5 +1,7 @@
 import 'package:cityvet_app/models/activity_model.dart';
+import 'package:cityvet_app/models/aew_model.dart';
 import 'package:cityvet_app/services/activity_service.dart';
+import 'package:cityvet_app/services/aew_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:dio/dio.dart';
@@ -104,7 +106,6 @@ class HomeViewModel extends ChangeNotifier {
 
       final activity = await _activityService.fetchUpcomingActivity(token);
       if (_disposed) return;
-      print('Upcoming activity: $activity');
       setUpcomingActivity(activity);
       
     } on DioException catch (e) {
@@ -137,7 +138,6 @@ class HomeViewModel extends ChangeNotifier {
 
       final activity = await _activityService.fetchOngoingActivity(token);
       if (_disposed) return;
-      print('Ongoing activity: $activity');
       setOngoingActivity(activity);
       
     } on DioException catch (e) {
@@ -170,7 +170,6 @@ class HomeViewModel extends ChangeNotifier {
 
       final activities = await _activityService.fetchRecentActivities(token);
       if (_disposed) return;
-      print('Recent activities: $activities');
       setRecentActivities(activities);
       
     } on DioException catch (e) {
@@ -234,5 +233,40 @@ class HomeViewModel extends ChangeNotifier {
       fetchOngoingActivity(),
       fetchRecentActivities(),
     ]);
+  }
+
+  // Aew service
+    bool _isLoadingAEW = false;
+  bool get isLoadingAew => _isLoadingAEW;
+
+  setLoadingAew(bool val) {
+    _isLoadingAEW = val;
+    notifyListeners();
+  }
+
+  Future<List<AewModel>> fetchAEWUsers() async {
+    setLoadingAew(true);
+
+    final token = await AuthStorage().getToken();
+
+    if (token == null) return [];
+
+    try {
+      final response = await AewService().fetchAEWUsers(token);
+
+      print(response);
+
+      if (response.data['aew_users'] != null) {
+        final List<dynamic> aewList = response.data['aew_users'];
+        return aewList.map((json) => AewModel.fromJson(json)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error fetching AEW users: $e');
+      return [];
+    } finally {
+      setLoadingAew(false);
+    }
   }
 }

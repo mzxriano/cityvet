@@ -77,7 +77,6 @@ class _ProfileView extends State<ProfileView> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              // Replace your CircleAvatar in the CustomCard with this improved version
                               CircleAvatar(
                                 radius: 40,
                                 backgroundColor: Colors.grey[300],
@@ -171,7 +170,6 @@ class _ProfileView extends State<ProfileView> {
                   ),
                 ),
 
-                // Tabs that take remaining space
                 DefaultTabController(
                   length: 2,
                   child: Container(
@@ -221,16 +219,86 @@ class _ProfileView extends State<ProfileView> {
                           child: TabBarView(
                             children: [
                               animals.isEmpty ? Center(
-                                child: Text("No Animals yet.", style: TextStyle(fontFamily: Config.primaryFont, color: Config.secondaryColor),),
-                              ) : ListView.builder(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.pets_outlined,
+                                      size: 48,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "No Animals yet.",
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: Config.fontMedium,
+                                        color: Config.secondaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ) : ListView.separated(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: animals.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 8),
                                 itemBuilder: (context, index) {
                                   final animal = animals[index];
-                                  return ListTile(
-                                    title: Text(animal.name),
-                                    subtitle: Text(animal.breed!),
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Animal avatar
+                                        CircleAvatar(
+                                          radius: 20,
+                                          backgroundColor: const Color(0xFF8ED968).withOpacity(0.1),
+                                          child: Icon(
+                                            Icons.pets,
+                                            size: 20,
+                                            color: const Color(0xFF8ED968),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        
+                                        // Animal info
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                animal.name,
+                                                style: const TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: Config.fontSmall,
+                                                  fontWeight: Config.fontW600,
+                                                  color: Color(0xFF524F4F),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                animal.breed ?? 'Unknown breed',
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   );
-                                }
+                                },
                               ),
 
                               Center(child: Text("No Pictures yet.", style: TextStyle(fontFamily: Config.primaryFont, color: Config.secondaryColor),)),

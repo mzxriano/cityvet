@@ -39,6 +39,11 @@ flutter:
     - assets/images/default_avatar.png
     - assets/images/sample_dog.png
     - assets/images/qr_code.png
+    - assets/images/cat.png
+    - assets/images/dog.png
+    - assets/images/cattle.png
+    - assets/images/goat.png
+    - assets/images/chicken.png
 
   fonts:
     - family: Poppins

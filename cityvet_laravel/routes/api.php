@@ -68,6 +68,9 @@ Route::prefix('auth')->group(function () {
 
         // Fetch Veterinarians
         Route::get('/veterinarians', [VaccineController::class, 'fetchVeterinarians']);
+
+        // Fetch Aews
+        Route::get('/aew', [UserController::class, 'fetchAew']);
         
         // Community Engagement
         Route::get('/community', [CommunityController::class, 'index']);

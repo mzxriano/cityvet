@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Cloudinary\Cloudinary;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -176,6 +177,59 @@ class UserController extends Controller
     }
 
     /**
+     * Fetch aew users.
+     */
+    public function fetchAew()
+    {
+        try {
+            $aewUsers = DB::table('users')
+                ->join('roles', 'users.role_id', '=', 'roles.id')
+                ->leftJoin('barangays', 'users.barangay_id', '=', 'barangays.id')
+                ->where('roles.name', 'aew')
+                ->select([
+                    'users.id',
+                    'users.first_name',
+                    'users.last_name',
+                    'users.email',
+                    'users.phone_number',
+                    'users.created_at',
+                    'roles.name as role_name',
+                    'barangays.name as barangay_name'
+                ])
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'position' => $user->role_name ?? 'N/A',
+                        'barangay' => $user->barangay_name ?? 'N/A',
+                        'contact' => $user->phone_number,
+                        'email' => $user->email,
+                        'specialization' => 'Agricultural Extension Worker',
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'aew_users' => $aewUsers
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching AEW users', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching AEW users',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+
+    /**
      * Update the specified resource in storage.
      */
     public function edit(Request $request, string $id)
@@ -190,4 +244,6 @@ class UserController extends Controller
     {
         //
     }
+
+
 }
