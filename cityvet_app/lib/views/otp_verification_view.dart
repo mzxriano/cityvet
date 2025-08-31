@@ -107,10 +107,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
 
   Future<void> _resendOtp() async {
     try {
-      // Add your resend OTP service call here
-      // await AuthService().resendOtp(email: widget.email);
       
-      // Check mounted before showing SnackBar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('OTP resent successfully')),

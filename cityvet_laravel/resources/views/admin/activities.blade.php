@@ -65,6 +65,21 @@ function activitiesManager() {
       return new Date(this.currentYear, this.currentMonth, 1).getDay();
     },
     
+    // Helper method to check if a date is in the past
+    isDateInPast(day) {
+      const selectedDate = new Date(this.currentYear, this.currentMonth, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+      return selectedDate < today;
+    },
+    
+    // Helper method to check if a date is today
+    isToday(day) {
+      const selectedDate = new Date(this.currentYear, this.currentMonth, day);
+      const today = new Date();
+      return selectedDate.toDateString() === today.toDateString();
+    },
+    
     // Calendar navigation methods
     previousMonth() {
       if (this.currentMonth === 0) {
@@ -86,6 +101,11 @@ function activitiesManager() {
     
     // Date selection and formatting
     selectDate(day) {
+      // Prevent selection of past dates
+      if (this.isDateInPast(day)) {
+        return;
+      }
+      
       const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       this.selectedDate = dateStr;
 
@@ -480,10 +500,13 @@ function activitiesManager() {
             <template x-for="day in daysInMonth" :key="day">
               <button 
                 @click="selectDate(day);"
-                class="h-8 md:h-10 w-8 md:w-10 flex items-center justify-center rounded hover:bg-blue-100 hover:text-blue-600 transition-colors text-sm"
+                :disabled="isDateInPast(day)"
+                class="h-8 md:h-10 w-8 md:w-10 flex items-center justify-center rounded transition-colors text-sm"
                 :class="{ 
-                  'bg-blue-500 text-white': new Date(currentYear, currentMonth, day).toDateString() === new Date().toDateString(),
-                  'hover:bg-blue-500 hover:text-white': new Date(currentYear, currentMonth, day) >= new Date(new Date().setHours(0,0,0,0))
+                  'bg-blue-500 text-white': isToday(day),
+                  'hover:bg-blue-100 hover:text-blue-600 cursor-pointer': !isDateInPast(day),
+                  'text-gray-300 cursor-not-allowed bg-gray-50': isDateInPast(day),
+                  'hover:bg-blue-500 hover:text-white': !isDateInPast(day) && !isToday(day)
                 }"
                 x-text="day">
               </button>
@@ -722,6 +745,5 @@ function activitiesManager() {
       </div>
     </div>
   </div>
-
 </div>
 @endsection
