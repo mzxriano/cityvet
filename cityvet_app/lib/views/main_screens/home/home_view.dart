@@ -8,6 +8,7 @@ import 'package:cityvet_app/views/main_screens/home/all_aew_page.dart';
 import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
 import 'package:cityvet_app/views/main_screens/home/breeding_info_page.dart';
 import 'package:cityvet_app/views/main_screens/home/nutrition_guide_page.dart';
+import 'package:cityvet_app/views/chat_screen_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -444,18 +445,57 @@ class HomeViewState extends State<HomeView> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8ED968),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.event,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                activity.reason,
+                style: const TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Activity Details',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: Config.fontSmall,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          title: Text(
-            activity.reason,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow(Icons.description_outlined, 'Details', activity.details),
+              _buildDetailRow(Icons.calendar_today_outlined, 'Date', DateFormat('MMMM d, yyyy').format(activity.date)),
+              _buildDetailRow(Icons.access_time_outlined, 'Time', DateFormat('h:mm a').format(activity.time)),
+              _buildDetailRow(Icons.location_on_outlined, 'Location', activity.barangay.toString()),
+            ],
           ),
-          content: _activityDetailsPopup(activity),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: const Text(
+                'Close',
+                style: TextStyle(fontFamily: Config.primaryFont),
+              ),
             ),
           ],
         );
@@ -843,9 +883,7 @@ Widget _buildDetailRow(IconData icon, String label, String value) {
 }
 
 void _chatWithAew(String phoneNumber) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Chatting system will be implemented soon!')),
-  );
+  Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen()));
 }
 
   void _navigateToAllActivities(BuildContext context, HomeViewModel homeViewModel) {

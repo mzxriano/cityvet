@@ -10,7 +10,7 @@
         <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
           Total Users
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
           {{ $totalUsers }}
         </div>
       </div>
@@ -18,7 +18,7 @@
         <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
           Total Registered Animals
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
           {{ $totalAnimals }}
         </div>
       </div>
@@ -26,7 +26,7 @@
         <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
           Total Vaccinated Animals
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
           {{ $totalVaccinatedAnimals }}
         </div>
       </div>

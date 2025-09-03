@@ -18,6 +18,7 @@ class SignupView extends StatefulWidget {
 class _SignupViewState extends State<SignupView> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _suffixController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
@@ -26,6 +27,7 @@ class _SignupViewState extends State<SignupView> {
 
   final FocusNode _firstNameNode = FocusNode();
   final FocusNode _lastNameNode = FocusNode();
+  final FocusNode _suffixNode = FocusNode();
   final FocusNode _phoneNumberNode = FocusNode();
   final FocusNode _emailNode = FocusNode();
   final FocusNode _streetNode = FocusNode();
@@ -34,6 +36,7 @@ class _SignupViewState extends State<SignupView> {
 
   bool _isFirstNameFocused = false;
   bool _isLastNameFocused = false;
+  bool _isSuffixFocused = false;
   bool _isPhoneNumberFocused = false;
   bool _isEmailFocused = false;
   bool _isStreetFocused = false;
@@ -54,6 +57,11 @@ class _SignupViewState extends State<SignupView> {
     _lastNameNode.addListener(() {
       setState(() {
         _isLastNameFocused = _lastNameNode.hasFocus;
+      });
+    });
+    _suffixNode.addListener(() {
+      setState(() {
+        _isSuffixFocused = _suffixNode.hasFocus;
       });
     });
     _phoneNumberNode.addListener(() {
@@ -87,6 +95,7 @@ class _SignupViewState extends State<SignupView> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _suffixController.dispose();
     _phoneNumberController.dispose();
     _emailController.dispose();
     _streetController.dispose();
@@ -95,6 +104,7 @@ class _SignupViewState extends State<SignupView> {
 
     _firstNameNode.dispose();
     _lastNameNode.dispose();
+    _suffixNode.dispose();
     _phoneNumberNode.dispose();
     _emailNode.dispose();
     _streetNode.dispose();
@@ -164,6 +174,19 @@ class _SignupViewState extends State<SignupView> {
                         ),
                         Config.heightMedium,
 
+                        // Suffix (Jr., Sr., III, etc.)
+                        LabelText(label: 'Suffix', isRequired: false),
+                        CustomTextField(
+                          controller: _suffixController,
+                          node: _suffixNode,
+                          textInputType: TextInputType.name,
+                          isObscured: false,
+                          isFocused: _isSuffixFocused,
+                          errorText: signup.getFieldError('suffix'),
+                          //hintText: 'Jr., Sr., III, etc. (Optional)',
+                        ),
+                        Config.heightMedium,
+
                         // Birth Date
                         LabelText(label: 'Birth Date ', isRequired: true),
                         InkWell(
@@ -194,14 +217,77 @@ class _SignupViewState extends State<SignupView> {
 
                         // Phone Number
                         LabelText(label: 'Phone Number ', isRequired: true),
-                        CustomTextField(
-                          controller: _phoneNumberController,
-                          node: _phoneNumberNode,
-                          textInputType: TextInputType.phone,
-                          isObscured: false,
-                          isFocused: _isPhoneNumberFocused,
-                          errorText: signup.getFieldError('phone_number'),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Config.secondaryColor,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: signup.getFieldError('phone_number') != null 
+                                  ? Colors.red 
+                                  : (_isPhoneNumberFocused ? Config.primaryColor : Colors.transparent),
+                              width: _isPhoneNumberFocused ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      '🇵🇭',
+                                      style: TextStyle(fontSize: 18),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      '+63',
+                                      style: TextStyle(
+                                        fontFamily: Config.primaryFont,
+                                        fontSize: Config.fontSmall,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Phone number input
+                              Expanded(
+                                child: TextField(
+                                  controller: _phoneNumberController,
+                                  focusNode: _phoneNumberNode,
+                                  keyboardType: TextInputType.phone,
+                                  style: const TextStyle(
+                                    fontFamily: Config.primaryFont,
+                                    fontSize: Config.fontSmall,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter phone number',
+                                    hintStyle: TextStyle(
+                                      fontFamily: Config.primaryFont,
+                                      fontSize: Config.fontSmall,
+                                      color: Colors.grey[500],
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        if (signup.getFieldError('phone_number') != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            signup.getFieldError('phone_number').toString(),
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ],
                         Config.heightMedium,
 
                         // Email
@@ -338,6 +424,7 @@ class _SignupViewState extends State<SignupView> {
                             await signup.register(
                               firstName: _firstNameController.text,
                               lastName: _lastNameController.text,
+                              //suffix: _suffixController.text.trim().isNotEmpty ? _suffixController.text.trim() : null,
                               birthDate: signup.formattedBDate!,
                               barangay_id: int.parse(signup.selectedBarangay!),
                               street: _streetController.text.trim(),
@@ -367,7 +454,6 @@ class _SignupViewState extends State<SignupView> {
                               );
                             }
                           },
-
                         ),
                         Config.heightMedium,
 
@@ -415,4 +501,24 @@ class _SignupViewState extends State<SignupView> {
       ),
     );
   }
+}
+
+class TrianglePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
