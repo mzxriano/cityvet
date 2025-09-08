@@ -28,7 +28,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'street',
         'email',
         'password',
-        'role_id',
         'image_url',
         'image_public_id'
     ];
@@ -63,8 +62,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->belongsTo(Barangay::class);
     }
 
-    public function role(){
-        return $this->belongsTo(Role::class);
+    public function roles(){
+        return $this->belongsToMany(Role::class, 'user_roles');
     }
 
     public function deviceTokens()

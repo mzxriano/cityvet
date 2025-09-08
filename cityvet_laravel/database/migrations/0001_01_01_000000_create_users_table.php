@@ -40,7 +40,6 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
 

@@ -97,7 +97,11 @@
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->last_name }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
-                                        {{ ucwords(str_replace('_', ' ', $user->role->name)) }}
+                                        @foreach($user->roles as $role)
+                                            <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs mr-1">
+                                                {{ ucwords(str_replace('_', ' ', $role->name)) }}
+                                            </span>
+                                        @endforeach
                                     </span>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->phone_number }}</td>

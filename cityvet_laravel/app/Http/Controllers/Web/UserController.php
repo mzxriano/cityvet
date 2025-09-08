@@ -16,9 +16,9 @@ class UserController
      */
     public function index(Request $request)
     {
-        $query = User::with(["role", "barangay"]);
+        $query = User::with(["roles", "barangay"]);
 
-        if($request->filled('role')){
+        if($request->filled('roles')){
             $query->where('role_id', $request->role);
         }
 
@@ -63,7 +63,8 @@ class UserController
             "phone_number" => "required|string|unique:users,phone_number",
             "barangay_id" => "required|integer|exists:barangays,id",
             "street" => "required|string|max:255",
-            "role_id" => "required|integer|exists:roles,id",
+            "role_ids" => "required|array",
+            "role_ids.*" => "exists:roles,id",
             "password" => "required|string|min:8|confirmed"
         ]);
 
@@ -74,7 +75,8 @@ class UserController
         $validated = $validate->validated();
         $validated["password"] = Hash::make($validated["password"]);
 
-        User::create($validated);
+        $user = User::create($validated);
+        $user->roles()->attach($validated['role_ids']);
 
         return redirect()->route("admin.users")->with("success", "User Successfully Created.");
 
@@ -132,10 +134,15 @@ class UserController
             'birth_date'   => 'sometimes|date',
             'barangay_id'  => 'sometimes|integer|exists:barangays,id',
             'street'       => 'sometimes|nullable|string',
-            'role_id'      => 'sometimes|integer|exists:roles,id',
+            'role_ids' => 'sometimes|array',
+            'role_ids.*' => 'exists:roles,id',
         ]);
 
         $user->update($validated);
+
+        if ($request->filled('role_ids')) {
+            $user->roles()->sync($validated['role_ids']);
+        }
 
         return redirect()->route('admin.users')->with('success', 'User successfully updated.');
     }
