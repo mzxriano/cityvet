@@ -18,6 +18,11 @@ class DashboardController
         $totalUsers = User::count();
         $totalAnimals = Animal::count();
         $totalVaccinatedAnimals = Animal::whereHas('vaccines')->distinct()->count('id');
+        $userTypeCounts = DB::table('user_roles')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->select('roles.name', DB::raw('COUNT(user_roles.user_id) as count'))
+            ->groupBy('roles.name')
+            ->pluck('count', 'roles.name');
         $animalsPerCategory = Animal::select('type', DB::raw('COUNT(*) as total'))
             ->groupBy('type')
             ->get();
@@ -28,7 +33,7 @@ class DashboardController
         }])->get();
 
         return view(
-            "admin.dashboard", compact("totalUsers","totalAnimals", "totalVaccinatedAnimals", "animalsPerCategory", "barangays"));
+            "admin.dashboard", compact("totalUsers","totalAnimals", "totalVaccinatedAnimals", "animalsPerCategory", "barangays", "userTypeCounts"));
     }
 
     /**

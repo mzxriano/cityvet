@@ -18,15 +18,18 @@ class UserController
     {
         $query = User::with(["roles", "barangay"]);
 
-        if($request->filled('roles')){
-            $query->where('role_id', $request->role);
+        if ($request->filled('role')) {
+            $roleId = $request->input('role');
+            $query->whereHas('roles', function ($q) use ($roleId) {
+                $q->where('id', $roleId);
+            });
         }
 
-        if($request->filled('search')){
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like',"%{$search}%");
+                ->orWhere('last_name', 'like', "%{$search}%");
             });
         }
 
@@ -39,8 +42,8 @@ class UserController
             "roles",
             "barangays",
         ]));
-
     }
+
 
     /**
      * Show the form for creating a new resource.

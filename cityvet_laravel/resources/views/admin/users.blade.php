@@ -33,8 +33,8 @@
 
     <!-- Add User Button -->
     <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
-        <button type="button"
-                x-on:click="showAddModal = true"
+                        <button type="button"
+                x-on:click="showAddModal = true; selectedRoles = []"
                 class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
             <span class="hidden sm:inline">+ New user</span>
             <span class="sm:hidden">+ Add</span>
@@ -50,7 +50,9 @@
                     <select name="role" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                            <option value="{{ $role->id }}" {{ request('role') == $role->id ? 'selected' : '' }}>
+                                {{ ucwords(str_replace('_', ' ', $role->name)) }}
+                            </option>
                         @endforeach
                     </select>
 
@@ -96,13 +98,13 @@
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->last_name }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                    <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                                    <div class="flex flex-col gap-1">
                                         @foreach($user->roles as $role)
-                                            <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs mr-1">
+                                            <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs w-fit">
                                                 {{ ucwords(str_replace('_', ' ', $role->name)) }}
                                             </span>
                                         @endforeach
-                                    </span>
+                                    </div>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->phone_number }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
@@ -235,7 +237,7 @@
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
                                     <option value="" selected disabled>Select Role</option>
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                    <option value="{{ $role->id }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -377,16 +379,20 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Role</label>
-                            <select name="role_id" 
-                                    required
-                                    x-model="currentUser.role_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
-                                    <option value="" selected disabled>Select Role</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Roles</label>
+                            <div class="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" 
+                                               name="role_ids[]" 
+                                               value="{{ $role->id }}"
+                                               x-bind:checked="currentUser && currentUser.roles && currentUser.roles.some(userRole => userRole.id == {{ $role->id }})"
+                                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
+                                    </label>
                                 @endforeach
-                            </select>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
                         </div>
                     </div>
 

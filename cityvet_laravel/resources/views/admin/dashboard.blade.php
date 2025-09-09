@@ -6,7 +6,11 @@
   <section class="mb-6 lg:mb-[2rem]">
     <!-- Stats Cards - Stack on mobile, flex on desktop -->
     <div class="flex flex-col lg:flex-row justify-between gap-4 lg:gap-[5rem] mb-6 lg:mb-[2rem]">
-      <div class="bg-white flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
+      <div 
+        class="bg-white flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
+        data-modal-target="userRoleModal" 
+        data-modal-toggle="userRoleModal"
+      >
         <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
           Total Users
         </div>
@@ -32,6 +36,27 @@
       </div>
     </div>
   </section>
+
+  <!-- Modal -->
+  <div id="userRoleModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">User Role Breakdown</h2>
+        <ul class="space-y-2 text-sm text-gray-600">
+            <li>Owner: <span class="font-semibold">{{ $userTypeCounts['owner'] ?? 0 }}</span></li>
+            <li>Staff: <span class="font-semibold">{{ $userTypeCounts['staff'] ?? 0 }}</span></li>
+            <li>Veterinarian: <span class="font-semibold">{{ $userTypeCounts['veterinarian'] ?? 0 }}</span></li>
+            <li>Aew: <span class="font-semibold">{{ $userTypeCounts['aew'] ?? 0 }}</span></li>
+            <li>Sub Admin: <span class="font-semibold">{{ $userTypeCounts['sub_admin'] ?? 0 }}</span></li>
+            <li>Barangay Personel: <span class="font-semibold">{{ $userTypeCounts['barangay_personel'] ?? 0 }}</span></li>
+        </ul>
+        <button 
+          class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl" 
+          onclick="document.getElementById('userRoleModal').classList.add('hidden')"
+        >&times;</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Case Report Section -->
   <section class="mb-6 lg:mb-[2rem]">
@@ -266,6 +291,16 @@
         console.log('Selected Barangay:', selectedBarangay);
       });
     });
+
+    // Modal for detailed user counts
+    document.querySelectorAll('[data-modal-toggle]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const target = this.getAttribute('data-modal-target');
+        const modal = document.getElementById(target);
+        if (modal) modal.classList.remove('hidden');
+      });
+    });
+
   </script>
 
 @endsection
