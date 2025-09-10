@@ -4,6 +4,7 @@ import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
+import 'package:cityvet_app/views/animals_view.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
@@ -105,9 +106,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     final canUseQrScanner = isVet || isStaff;
     final navItems = _getNavigationItems(canUseQrScanner);
     
-    // Fixed: Allow navigation to valid indices with proper pageIndex
     if (index >= navItems.length || navItems[index].pageIndex == null) {
-      return; // Invalid index
+      return; 
     }
 
     if (_currentIndex != index) {
@@ -672,14 +672,16 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
             MaterialPageRoute(builder: (_) => const ProfileView()),
           ),
         ),
-        _buildDrawerItem(
-          'Archives',
-          () {
-            Navigator.pop(context);
-            _onTabSelected(1);
-          },
-        ),
-        // Add vaccination history for staff and vets only
+        if (canAccessVaccination)
+          _buildDrawerItem(
+            'Animals',
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AnimalManagementView()),
+              );
+            },
+          ),
         if (canAccessVaccination)
           _buildDrawerItem(
             'Vaccination History',

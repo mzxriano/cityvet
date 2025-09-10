@@ -72,6 +72,22 @@ class AnimalService {
     print(response);
     return response;
   }
+
+    Future<Response> fetchAllAnimals() async {
+    final token = await storage.getToken();
+    
+    final response = await _dio.get(
+      '/animals/all',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        }
+      )
+    );
+    print(response);
+    return response;
+  }
     
   Future<Response> updateAnimal(AnimalModel animalModel, {File? imageFile}) async {
     final token = await storage.getToken();

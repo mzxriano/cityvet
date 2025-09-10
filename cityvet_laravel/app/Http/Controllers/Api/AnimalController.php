@@ -31,6 +31,7 @@ class AnimalController
      */
     public function index()
     {
+
         $animals = Animal::where("user_id", auth()->id())->get();
 
         $data = $animals->map(function ($animal) {
@@ -222,6 +223,58 @@ class AnimalController
             ],
         ]);
     }
+
+    public function fetchAllAnimals()
+    {
+        $animals = Animal::with(['user:id,first_name,last_name', 'vaccines'])->get();
+
+        $data = $animals->map(function ($animal) {
+            return [
+                'id' => $animal->id,
+                'type' => $animal->type,
+                'name' => $animal->name,
+                'breed' => $animal->breed,
+                'birth_date' => $animal->birth_date,
+                'gender' => $animal->gender,
+                'weight' => $animal->weight,
+                'height' => $animal->height,
+                'color' => $animal->color,
+                'code' => $animal->code,
+                'image_url' => $animal->image_url,
+                'owner' => $animal->user
+                    ? "{$animal->user->first_name} {$animal->user->last_name}"
+                    : null,
+                'qr_code_base64' => $this->generateQrCodeBase64($animal),
+                'qr_code_url' => $animal->getQrCodeUrl(),
+                'vaccinations' => $animal->vaccines->map(function ($v) {
+                    return [
+                        'id' => $v->id,
+                        'vaccine' => [
+                            'id' => $v->id,
+                            'name' => $v->name,
+                            'description' => $v->description,
+                            'stock' => $v->stock,
+                            'image_url' => $v->image_url,
+                            'image_public_id' => $v->image_public_id,
+                            'protect_against' => $v->protect_against,
+                            'affected' => $v->affected,
+                            'schedule' => $v->schedule,
+                            'expiration_date' => $v->expiration_date,
+                        ],
+                        'dose' => $v->pivot->dose,
+                        'date_given' => $v->pivot->date_given,
+                        'administrator' => $v->pivot->administrator,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'message' => 'All animals retrieved successfully.',
+            'data' => $data
+        ]);
+    }
+
 
     /**
      * Display animal by QR code (public route)

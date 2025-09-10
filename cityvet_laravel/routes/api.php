@@ -56,6 +56,7 @@ Route::prefix('auth')->group(function () {
         Route::prefix('animals')->group(function () {
             Route::post('/', [AnimalController::class,'store']);
             Route::get('/', [AnimalController::class,'index']);
+            Route::get('/all', [AnimalController::class,'fetchAllAnimals']);
             Route::get('/{qrCode}', [AnimalController::class,'showByQrCode']);
             Route::put('/{id}', [AnimalController::class,'update']);
             Route::post('/{id}', [AnimalController::class,'update']);
@@ -63,6 +64,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/{animalId}/vaccines', [AnimalController::class, 'attachVaccines']);
             Route::post('/activity/{activityId}/vaccinate', [AnimalController::class, 'attachVaccinesToActivity']);
         });
+
         // Vaccines
         Route::get('/vaccines', [VaccineController::class, 'index']);
 

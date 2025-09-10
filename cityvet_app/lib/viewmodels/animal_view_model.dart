@@ -10,6 +10,7 @@ class AnimalViewModel extends ChangeNotifier{
   final AnimalService _animalService = AnimalService();
 
   List<AnimalModel> _animals = [];
+  List<AnimalModel> _allAnimals = [];
   String? _errors;
   bool _isLoading = false;
   String? _message;
@@ -17,6 +18,7 @@ class AnimalViewModel extends ChangeNotifier{
 
   String? get errors => _errors;
   List<AnimalModel> get animals => _animals;
+  List<AnimalModel> get allAnimals => _allAnimals;
   bool get isLoading => _isLoading;
   String? get message => _message;
 
@@ -29,6 +31,12 @@ class AnimalViewModel extends ChangeNotifier{
   setAnimals(List<AnimalModel> animals) {
     if (_disposed) return;
     _animals = animals;
+    notifyListeners();
+  }
+
+  setAllAnimals(List<AnimalModel> animals) {
+    if (_disposed) return;
+    _allAnimals = animals;
     notifyListeners();
   }
 
@@ -49,6 +57,45 @@ class AnimalViewModel extends ChangeNotifier{
     _message = message;
     notifyListeners();
   }
+
+Future<void> fetchAllAnimals() async {
+  if (_disposed) return;
+  try {
+    setLoading(true);
+
+    final response = await _animalService.fetchAllAnimals();
+    if (_disposed) return;
+
+    if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+      final responseData = response.data as Map<String, dynamic>;
+      final List<dynamic> jsonList = responseData['data'];
+
+      final animalsList = jsonList
+          .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      setAllAnimals(animalsList);
+    } else {
+      print('Unexpected response format: ${response.data}');
+    }
+  } on DioException catch (e) {
+    if (_disposed) return;
+    final data = e.response?.data;
+
+    print(data);
+    if (data is Map<String, dynamic> && data['errors'] != null) {
+      print('Server-side errors: ${data['errors']}');
+    } else {
+      setMessage(DioExceptionHandler.handleException(e));
+    }
+  } catch (e) {
+    if (_disposed) return;
+    print('Unexpected error: $e');
+  } finally {
+    if (_disposed) return;
+    setLoading(false);
+  }
+}
 
 
 Future<void> fetchAnimals() async {
