@@ -53,6 +53,14 @@
                 console.error('Error:', error);
                 alert('Error loading vaccine data');
             });
+    },
+    updateStock(id) {
+    fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            this.currentVaccine = data;
+            this.showStockModal = true;
+        });
     }
 }">
     <h1 class="title-style mb-4 sm:mb-8">Vaccines</h1>
@@ -243,6 +251,10 @@
                             </td>
                             <td class="px-2 py-2 sm:px-4 sm:py-3 text-center" onclick="event.stopPropagation()">
                                 <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                    <button @click="updateStock({{ $vaccine->id }})"
+                                            class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition">
+                                        Stock
+                                    </button>
                                     <button @click="editVaccine({{ $vaccine->id }})"
                                             class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
                                         Edit
@@ -368,6 +380,84 @@
                         <button type="submit"
                                 class="w-full sm:w-auto px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
                             Update Vaccine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Update Modal -->
+    <div x-show="showStockModal" 
+        x-cloak
+        x-transition
+        class="fixed inset-0 z-50 overflow-y-auto"
+        @keydown.escape.window="showStockModal = false">
+        
+        <div class="fixed inset-0 bg-black opacity-50" @click="showStockModal = false"></div>
+        
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg w-full max-w-sm">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-4 py-3 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">Update Stock</h3>
+                    <button @click="showStockModal = false" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}/stock`" method="POST" class="p-4">
+                    @csrf
+                    @method('PATCH')
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock: 
+                                <span x-text="currentVaccine.stock" class="font-bold"></span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+                            <select name="action" 
+                                    x-model="stockAction"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="add">Add Stock</option>
+                                <option value="remove">Remove Stock</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                            <input type="number" 
+                                name="quantity"
+                                min="1"
+                                required
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
+                            <textarea name="reason" 
+                                    rows="2"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+                        <button type="button" 
+                                @click="showStockModal = false"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                            Update Stock
                         </button>
                     </div>
                 </form>

@@ -6,61 +6,80 @@ import 'package:dio/dio.dart';
 
 class UserService {
 
-Future<Map<String, dynamic>> fetchUser(String token) async {
+  Future<Map<String, dynamic>> fetchUser(String token) async {
 
-  final Dio dio = Dio(BaseOptions(
-    baseUrl: ApiConstant.baseUrl,
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-  ));
+    final Dio dio = Dio(BaseOptions(
+      baseUrl: ApiConstant.baseUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
 
-  final user = await dio.get('/user');
+    final user = await dio.get('/user');
 
-  print(user.data);
+    print(user.data);
 
-  return user.data;
+    return user.data;
 
-}
+  }
 
-Future<Response> editProfile(String token, UserModel user, {File? imageFile}) async {
-  final Dio dio = Dio(BaseOptions(
-    baseUrl: ApiConstant.baseUrl,
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-  ));
+  Future<Response> editProfile(String token, UserModel user, {File? imageFile}) async {
+    final Dio dio = Dio(BaseOptions(
+      baseUrl: ApiConstant.baseUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ));
 
-  dynamic requestData;
+    dynamic requestData;
 
-      if (imageFile != null) {
-      // Use FormData for image upload
-      FormData formData = FormData.fromMap({
-        'first_name': user.firstName,
-        'last_name': user.lastName,
-        'phone_number': user.phoneNumber,
-        'barangay_id': user.barangay?.id,
-        'street': user.street,
-        'birth_date': user.birthDate,
-      });
-      
-      // Add image
-      formData.files.add(MapEntry('image', await MultipartFile.fromFile(imageFile.path)));
-            
-      requestData = formData;
-    } else {
-      // Use regular form data (no image)
-      requestData = user.toJson();
-      
-    }
+        if (imageFile != null) {
+        // Use FormData for image upload
+        FormData formData = FormData.fromMap({
+          'first_name': user.firstName,
+          'last_name': user.lastName,
+          'phone_number': user.phoneNumber,
+          'barangay_id': user.barangay?.id,
+          'street': user.street,
+          'birth_date': user.birthDate,
+        });
+        
+        // Add image
+        formData.files.add(MapEntry('image', await MultipartFile.fromFile(imageFile.path)));
+              
+        requestData = formData;
+      } else {
+        // Use regular form data (no image)
+        requestData = user.toJson();
+        
+      }
 
-  final response = await dio.post('/user/edit', data: requestData);
+    final response = await dio.post('/user/edit', data: requestData);
 
-  print('user response ${response.data}');
+    print('user response ${response.data}');
 
-  return response;
-}
+    return response;
+  }
+
+  Future<Response> changePassword({
+    required String password,
+    required String passwordConfirmation,
+    required String token,
+  }) async {
+    final Dio dio = Dio(BaseOptions(
+      baseUrl: ApiConstant.baseUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+    ));
+    final response = await dio.post('/force-change-password', data: {
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+    });
+    return response;
+  }
 
 }

@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Notifications\NewUserCredentials;
 
 class UserController
 {
@@ -66,9 +68,8 @@ class UserController
             "phone_number" => "required|string|unique:users,phone_number",
             "barangay_id" => "required|integer|exists:barangays,id",
             "street" => "required|string|max:255",
-            "role_ids" => "required|array",
+            "role_ids" => "required|array|min:1",
             "role_ids.*" => "exists:roles,id",
-            "password" => "required|string|min:8|confirmed"
         ]);
 
         if($validate->fails()) {
@@ -76,10 +77,16 @@ class UserController
         }
 
         $validated = $validate->validated();
-        $validated["password"] = Hash::make($validated["password"]);
+
+        // Generate a random password for the user
+        $password = Str::random(10);
+        $validated["password"] = Hash::make($password);
+        $validated["force_password_change"] = true;
 
         $user = User::create($validated);
         $user->roles()->attach($validated['role_ids']);
+
+        $user->notify(new NewUserCredentials($password));
 
         return redirect()->route("admin.users")->with("success", "User Successfully Created.");
 

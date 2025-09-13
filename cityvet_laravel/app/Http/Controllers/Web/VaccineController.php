@@ -131,4 +131,25 @@ class VaccineController
         
         return redirect()->route('admin.vaccines')->with('success', 'Vaccine deleted successfully!');
     }
+
+    public function updateStock(Request $request, Vaccine $vaccine)
+    {
+        $validated = $request->validate([
+            'action' => 'required|in:add,remove',
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $quantity = $validated['quantity'];
+        if ($validated['action'] === 'remove') {
+            $quantity = -$quantity;
+        }
+
+        $newStock = max(0, $vaccine->stock + $quantity);
+        $vaccine->stock = $newStock;
+        $vaccine->save();
+
+        return back()->with('success', 'Stock updated successfully');
+    }
+    
 }

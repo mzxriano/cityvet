@@ -114,6 +114,176 @@ class _SignupViewState extends State<SignupView> {
     super.dispose();
   }
 
+  // Privacy Protection Dialog
+  void _showPrivacyProtectionDialog() {
+    bool isAgreed = false;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.privacy_tip,
+                    color: Config.primaryColor,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Privacy Protection',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              content: Container(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Before proceeding, please review and agree to our Privacy Protection policy.',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        height: 200,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: const SingleChildScrollView(
+                          child: Text(
+                            '[Privacy Protection Policy content will be added here]',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: isAgreed,
+                            onChanged: (bool? value) {
+                              setDialogState(() {
+                                isAgreed = value ?? false;
+                              });
+                            },
+                            activeColor: Config.primaryColor,
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Text(
+                                'I have read and agree to the Privacy Protection policy.',
+                                style: TextStyle(
+                                  fontFamily: Config.primaryFont,
+                                  fontSize: Config.fontSmall,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() => _isLoading = false);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      color: Colors.grey[600],
+                      fontSize: Config.fontSmall,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isAgreed
+                      ? () {
+                          Navigator.of(context).pop();
+                          _proceedToEmailVerification();
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Config.primaryColor,
+                    disabledBackgroundColor: Colors.grey[300],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Agree & Continue',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      color: isAgreed ? Colors.white : Colors.grey[600],
+                      fontSize: Config.fontSmall,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _proceedToEmailVerification() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Consumer<SignupViewModel>(
+          builder: (context, signup, _) {
+            return Text(signup.successMessage.toString());
+          },
+        ),
+      ),
+    );
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EmailVerificationPage(
+          email: _emailController.text,
+        ),
+      ),
+    );
+    
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     Config().init(context);
@@ -434,24 +604,23 @@ class _SignupViewState extends State<SignupView> {
                               passwordConfirmation: _confirmPasswordController.text.trim(),
                             );
 
-                            setState(() => _isLoading = false);
-
-                            if (signup.fieldErrors.isNotEmpty) return;
+                            if (signup.fieldErrors.isNotEmpty) {
+                              setState(() => _isLoading = false);
+                              return;
+                            }
 
                             if (signup.error?.isNotEmpty ?? false) {
+                              setState(() => _isLoading = false);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(signup.error!)),
                               );
+                              return;
                             }
 
                             if (signup.success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(signup.successMessage.toString())),
-                              );
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => EmailVerificationPage(email: _emailController.text,)),
-                              );
+                              _showPrivacyProtectionDialog();
+                            } else {
+                              setState(() => _isLoading = false);
                             }
                           },
                         ),

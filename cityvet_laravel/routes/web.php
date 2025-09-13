@@ -97,7 +97,10 @@ Route::prefix('admin')->group(function () {
             Route::get('/{id}/edit', [VaccineController::class, 'edit'])->name('admin.vaccines.edit');
             Route::put('/{id}', [VaccineController::class, 'update'])->name('admin.vaccines.update');
             Route::delete('/{id}', [VaccineController::class, 'destroy'])->name('admin.vaccines.destroy');
+            Route::patch('/{vaccine}/stock', [VaccineController::class, 'updateStock'])->name('admin.vaccines.stock');
         });
+
+
 
         Route::get('/community', function () {
             return view('admin.community');

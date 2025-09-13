@@ -31,6 +31,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 
     Route::middleware(['auth:api'])->group(function () {
+
+    Route::post('/force-change-password', [UserController::class, 'changePassword']);
+
         // User
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class,'show']);

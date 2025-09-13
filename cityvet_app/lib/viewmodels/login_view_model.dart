@@ -71,26 +71,27 @@ Future<void> login(String email, String password) async
     final result = await AuthService().login(email, password);
     final token = result.data['token'];
 
-    if(token != null){
+    if(token != null) {
       await storage.saveToken(token);
-
-
       final userResponse = await UserService().fetchUser(token);
       
       if(userResponse.containsKey('user')) {
         final userData = userResponse['user'];
-        print(userResponse['user']);
+        print('User Data: $userData'); 
+        
         final user = UserModel.fromJson(userData);
         setUser(user);
-        setLogin(true);
-        print('user id ${user.id}');
+
+        print('Force Password Change: ${user.forcePasswordChange}'); 
+                
         if (userData['id'] != null) {
           await storage.saveUserId(userData['id'].toString());
         }
+
+        setLogin(true);
+
       }
-
     }
-
   } 
 
   on DioException catch (e) 

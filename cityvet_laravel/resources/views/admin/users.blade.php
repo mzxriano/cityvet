@@ -5,6 +5,10 @@
 @if(session('success'))
 <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
   {{ session('success') }}
+    @if(session('password_sent'))
+        <br>
+        <span class="text-sm">Login credentials have been sent to the user's email address.</span>
+    @endif
 </div>
 @endif
 
@@ -87,10 +91,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($users as $user)
+                        @forelse($users as $index => $user)
                             <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
                                 onClick="window.location.href = '{{ route('admin.users.show', $user->id) }}'">
-                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->id }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <div class="font-medium">{{ $user->first_name }}</div>
                                     <div class="text-gray-500 text-xs sm:hidden">{{ $user->last_name }}</div>
@@ -231,32 +235,33 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Role</label>
-                            <select name="role_id" 
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
-                                    <option value="" selected disabled>Select Role</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Roles</label>
+                            <div class="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->id }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" 
+                                            name="role_ids[]" 
+                                            value="{{ $role->id }}"
+                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
+                                    </label>
                                 @endforeach
-                            </select>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Password</label>
-                                <input type="password" 
-                                       name="password" 
-                                       required
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                                <input type="password" 
-                                       name="password_confirmation" 
-                                       required
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        A temporary password will be generated and sent to the user's email address. They will be required to change it upon first login.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

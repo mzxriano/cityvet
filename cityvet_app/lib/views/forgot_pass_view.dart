@@ -16,7 +16,7 @@ class _ForgotPassViewState extends State<ForgotPassView> {
 
   final TextEditingController _forgotPassController = TextEditingController();
   final FocusNode _forgotPassNode = FocusNode();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Global key for form state
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); 
   bool _isForgotPassFocused = false;
   bool _isLoading = false;
   String? _errorMessage;
@@ -38,11 +38,10 @@ class _ForgotPassViewState extends State<ForgotPassView> {
     }
     // Regex to validate email
     final emailRegExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$');
-    // Check if the value looks like a valid email
     if (emailRegExp.hasMatch(value)) {
       return null;
     }
-    // Check if it's a valid phone number (simple length check for this example)
+    // Regex to validate phone number
     final phoneRegExp = RegExp(r'^\d{10}$');
     if (phoneRegExp.hasMatch(value)) {
       return null;
@@ -95,7 +94,6 @@ class _ForgotPassViewState extends State<ForgotPassView> {
                     ),
                   ),
                   Config.heightMedium,
-                  // Input field with better validation design
                   TextFormField(
                     controller: _forgotPassController,
                     focusNode: _forgotPassNode,

@@ -48,13 +48,14 @@ class AuthController extends Controller
 
         $validated = $validator->validate();
 
-        $roleId = Role::where('name','owner')->first()->id;
+        $role = Role::where('name','pet_owner')->first();
 
         $user = User::create([
             ...$validated, 
-            'role_id' => $roleId, 
             'password' => Hash::make($validated['password'])
         ]);
+
+       $user->roles()->attach($role->id); 
 
         try {
             Mail::to($user->email)->send(new VerifyEmail($user));
@@ -234,7 +235,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'otp' => 'required|digits:6',
+            'otp' => 'required|digits:4',
             'password' => 'required|min:8|confirmed',
         ]);
 
@@ -271,7 +272,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'otp' => 'required|digits:6',
+            'otp' => 'required|digits:4',
         ]);
 
         $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();

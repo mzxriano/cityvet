@@ -12,6 +12,7 @@ class UserModel {
   final String? street;
   final String? imageUrl;
   final String? imagePublicId;
+  bool forcePasswordChange;
 
   UserModel({
     required this.id,
@@ -25,9 +26,10 @@ class UserModel {
     this.role,
     this.imageUrl,
     this.imagePublicId,
+    this.forcePasswordChange = false,
   });
 
-  // Convert from JSON (after fetching user )
+  // Convert from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
@@ -42,11 +44,13 @@ class UserModel {
       : null,
       street: json['street'],
       imageUrl: json['image_url'],
-      imagePublicId: json['image_public_id']
+      imagePublicId: json['image_public_id'],
+      forcePasswordChange: json['force_password_change'] == 1 || 
+                         json['force_password_change'] == true,
     );
   }
 
-  // Convert to JSON (if needed, to update user )
+  // Convert to JSON 
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,

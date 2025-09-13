@@ -75,6 +75,7 @@ class UserController extends Controller
                 "barangay" => $user->barangay ?? null,
                 "image_url" => $user->image_url,
                 "image_public_id" => $user->image_public_id,
+                "force_password_change" => $user->force_password_change,
             ]
         ]);
     }
@@ -243,6 +244,43 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user->password = bcrypt($request->password);
+            $user->force_password_change = false;
+            $user->save();
+
+            return response()->json([
+                'message' => 'Password changed successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Password change failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to change password',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
     }
 
 

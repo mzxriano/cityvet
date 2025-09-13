@@ -91,9 +91,9 @@ return new class extends Migration
     {
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
-        Schema::dropIfExists(table: 'roles');
+        Schema::dropIfExists('animals');
         Schema::dropIfExists('users');
-        Schema::dropIfExists(table: 'animals');
-        Schema::dropIfExists(table: 'barangays');
+        Schema::dropIfExists('barangays');
+        Schema::dropIfExists('roles');
     }
 };

@@ -2,6 +2,7 @@ import 'package:cityvet_app/firebase_options.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
+import 'package:cityvet_app/views/force_password_change_view.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -29,9 +30,16 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Config().init(context);
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginView(),
+      home: Consumer<UserViewModel>(
+        builder: (context, userVM, _) {
+          if (userVM.user != null && userVM.needsPasswordChange) {
+            return const ForcePasswordChangeView();
+          }
+          return const LoginView();
+        },
+      ),
     );
   }
 }

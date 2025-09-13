@@ -610,7 +610,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       builder: (context, userViewModel, _) {
         final isVet = userViewModel.user?.role == Role.veterinarian;
         final isStaff = userViewModel.user?.role == Role.staff;
-        final canUseQrScanner = isVet || isStaff; // Allow both vets and staff
+        final canUseQrScanner = isVet || isStaff;
         final pages = _getPages(canUseQrScanner);
         final navItems = _getNavigationItems(canUseQrScanner);
         final selectedPageIndex = navItems[_currentIndex].pageIndex ?? 0;
@@ -658,7 +658,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 Drawer _buildDrawer(UserViewModel userViewModel) {
   final user = userViewModel.user;
   final userRole = user?.role ?? '';
-  final canAccessVaccination = userRole != 'owner';
+  final canAccessVaccination = userRole != 'pet_owner' && userRole != 'livestock_owner' && userRole != 'poultry_owner';
   
   return Drawer(
     child: ListView(
@@ -693,7 +693,7 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
         const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
         _buildDrawerItem(
           'Logout',
-          _showLogoutConfirmation, // Changed to show confirmation first
+          _showLogoutConfirmation,
           isLoading: _isLoading,
         ),
       ],

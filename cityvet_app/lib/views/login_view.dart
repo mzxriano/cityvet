@@ -5,6 +5,7 @@ import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/login_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
+import 'package:cityvet_app/views/force_password_change_view.dart';
 import 'package:cityvet_app/views/forgot_pass_view.dart';
 import 'package:cityvet_app/views/signup_view.dart';
 import 'package:flutter/material.dart';
@@ -226,40 +227,46 @@ class _LoginViewState extends State<LoginView> {
                                     );
 
                                     if (loginViewModel.error != null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(
-                                              content: Text(
-                                                  loginViewModel.error!)));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(loginViewModel.error!))
+                                      );
                                     }
 
-
                                     if(loginViewModel.isEmailVerified == false && loginViewModel.error == 'email_not_verified') {
-                                      Navigator.push(context, MaterialPageRoute(builder: (_) => EmailVerificationPage(email: _emailController.text)));
+                                      Navigator.push(context, MaterialPageRoute(
+                                        builder: (_) => EmailVerificationPage(email: _emailController.text)
+                                      ));
                                     }
 
                                     if (loginViewModel.isLogin) {
-                                      Provider.of<UserViewModel>(context,
-                                              listen: false)
-                                          .setUser(loginViewModel.user!);
+                                      final userVM = Provider.of<UserViewModel>(context, listen: false);
+                                      userVM.setUser(loginViewModel.user!);
+
+                                      // Check for force password change before FCM initialization
+                                      if (loginViewModel.user?.forcePasswordChange == true) {
+                                        Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(builder: (_) => const ForcePasswordChangeView()),
+                                        );
+                                        return; 
+                                      }
 
                                       // Initialize FCM after login
                                       if(loginViewModel.user?.id != null) {
                                         await FcmService().initialize(userId: loginViewModel.user!.id!);
-                                      }else {
-                                        print('Failed to initialize fire base');
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to initialize firebase.')));
+                                      } else {
+                                        print('Failed to initialize firebase');
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Failed to initialize firebase.'))
+                                        );
                                       }
 
                                       Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (_) => const MainLayout()),
+                                        MaterialPageRoute(builder: (_) => const MainLayout()),
                                       );
                                     }
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Login failed, Please try again!')),
+                                      const SnackBar(content: Text('Login failed, Please try again!')),
                                     );
                                   }
                                 },

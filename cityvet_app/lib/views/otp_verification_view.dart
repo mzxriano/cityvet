@@ -73,7 +73,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
         otp: otp
       );
       
-      // Check mounted after async operation
       if (!mounted) return;
       
       if (response.statusCode == 200) {
@@ -89,14 +88,13 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
         });
       }
     } catch (e) {
-      // Check mounted before setState
+      print('Detailed error: $e');
       if (mounted) {
         setState(() { 
           _errorMessage = 'Failed to verify OTP. Please check your connection and try again.'; 
         });
       }
     } finally {
-      // Check mounted before setState
       if (mounted) {
         setState(() { 
           _isLoading = false; 
@@ -114,7 +112,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
         );
       }
     } catch (e) {
-      // Check mounted before showing SnackBar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to resend OTP')),
@@ -179,7 +176,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                       ),
                       Config.heightBig,
                       
-                      // OTP Input Boxes - Fixed overflow issue
+                      // OTP Input Boxes
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -232,7 +229,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                                     if (index < 3 && value.isNotEmpty) {
                                       _focusNodes[index + 1].requestFocus();
                                     } else if (index == 3 && _otpCode.length == 4) {
-                                      // Auto-verify when last digit is entered
                                       _verifyOtp();
                                     }
                                   },
@@ -318,7 +314,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                 ),
               ],
               
-              SizedBox(height: 32), // Bottom padding
+              SizedBox(height: 32),
             ],
           ),
         ),

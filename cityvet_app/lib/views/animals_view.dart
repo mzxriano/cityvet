@@ -39,7 +39,9 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
   Widget build(BuildContext context) {
     return Consumer2<UserViewModel, AnimalViewModel>(
       builder: (context, userViewModel, animalViewModel, _) {
-        final isOwner = userViewModel.user?.role == Role.owner;
+        final isOwner = userViewModel.user?.role == Role.petOwner 
+        || userViewModel.user?.role == Role.livestockOwner || 
+        userViewModel.user?.role == Role.poultryOwner;
         final animals = animalViewModel.allAnimals ?? [];
 
         // Enhanced filtering logic with vaccination status
