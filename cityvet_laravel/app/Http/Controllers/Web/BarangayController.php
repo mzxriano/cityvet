@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Models\Barangay;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 
 class BarangayController extends Controller
 {
@@ -12,15 +13,18 @@ class BarangayController extends Controller
     {
         $query = Barangay::query();
         
-        // Search functionality
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
-        
-        // Load barangays with activities and apply ordering and pagination
+                
         $barangays = $query->with('activities')
-                          ->orderBy('name', 'asc')
-                          ->paginate(10);
+            ->withCount(['users as vaccinated_animals_count' => function ($query) {
+                $query->join('animals', 'users.id', '=', 'animals.user_id')
+                    ->join('animal_vaccine', 'animals.id', '=', 'animal_vaccine.animal_id')
+                    ->select(DB::raw('count(distinct animals.id)'));
+            }])
+            ->orderBy('name', 'asc')
+            ->paginate(10);
         
         return view("admin.barangay", compact("barangays"));
     }

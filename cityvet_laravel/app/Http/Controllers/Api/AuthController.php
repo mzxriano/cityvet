@@ -100,6 +100,15 @@ class AuthController extends Controller
             ], 404);
         }
 
+        // Check user status before allowing login
+        if ($user->status === 'banned') {
+            return response()->json([
+                'message' => 'Your account has been banned. Please contact support.',
+                'error' => 'banned_account',
+            ], 403);
+        }
+
+        // Check if email is verified
         if(!$user->hasVerifiedEmail()) 
         {
             return response()->json([

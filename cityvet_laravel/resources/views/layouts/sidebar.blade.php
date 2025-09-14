@@ -34,6 +34,7 @@
             'community' => ['label' => 'Community'],
             'reports' => ['label' => 'Reports'],
             'archives' => ['label' => 'Archives'],
+            'settings' => ['label' => 'Settings'],
         ];
     @endphp
     

@@ -70,6 +70,7 @@ class UserController
             "street" => "required|string|max:255",
             "role_ids" => "required|array|min:1",
             "role_ids.*" => "exists:roles,id",
+            "status" => "nullable|in:active,inactive,banned",
         ]);
 
         if($validate->fails()) {
@@ -77,6 +78,7 @@ class UserController
         }
 
         $validated = $validate->validated();
+        $validated["status"] = $validated["status"] ?? "active";
 
         // Generate a random password for the user
         $password = Str::random(10);
@@ -146,6 +148,7 @@ class UserController
             'street'       => 'sometimes|nullable|string',
             'role_ids' => 'sometimes|array',
             'role_ids.*' => 'exists:roles,id',
+            'status' => 'sometimes|in:active,inactive,banned',
         ]);
 
         $user->update($validated);

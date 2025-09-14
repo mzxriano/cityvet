@@ -17,6 +17,8 @@ class AnimalView extends StatefulWidget {
 class _AnimalViewState extends State<AnimalView> {
   final TextEditingController _animalSearchController = TextEditingController();
   String _animalSearchQuery = '';
+  String _selectedType = 'All';
+  final List<String> _animalTypes = ['All', 'Dog', 'Cat', 'Bird', 'Others'];
 
   @override
   void initState() {
@@ -113,13 +115,18 @@ class _AnimalViewState extends State<AnimalView> {
       );
     }
 
-    final filteredAnimals = animalViewModel.animals.where((animal) =>
-      _animalSearchQuery.isEmpty ||
-      animal.name.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
-      (animal.breed?.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ?? false) ||
-      animal.type.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
-      animal.color.toLowerCase().contains(_animalSearchQuery.toLowerCase())
-    ).toList();
+    final filteredAnimals = animalViewModel.animals.where((animal) {
+      final matchesSearch = _animalSearchQuery.isEmpty ||
+          animal.name.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
+          (animal.breed?.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ?? false) ||
+          animal.type.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
+          animal.color.toLowerCase().contains(_animalSearchQuery.toLowerCase());
+
+      final matchesType = _selectedType == 'All' || 
+          animal.type.toLowerCase() == _selectedType.toLowerCase();
+
+      return matchesSearch && matchesType;
+    }).toList();
 
     final animalCards = filteredAnimals
         .map((animal) => AnimalCard(
@@ -143,33 +150,99 @@ class _AnimalViewState extends State<AnimalView> {
         // Search bar for animals
         Container(
           width: double.infinity,
-          constraints: const BoxConstraints(maxWidth: 500),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _animalSearchController,
-            onChanged: (value) {
-              setState(() {
-                _animalSearchQuery = value;
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: 'Search animals...',
-              hintStyle: TextStyle(
-                fontFamily: Config.primaryFont,
-                fontSize: Config.fontSmall,
-                color: Colors.grey,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _animalSearchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _animalSearchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search animals...',
+                      hintStyle: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: Config.fontSmall,
+                        color: Colors.grey.shade500,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                    ),
+                    style: const TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                    ),
+                  ),
+                ),
               ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-              prefixIcon: Icon(Icons.search, color: Colors.grey),
-            ),
-            style: const TextStyle(
-              fontFamily: Config.primaryFont,
-              fontSize: Config.fontSmall,
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: ButtonTheme(
+                      alignedDropdown: true,
+                      child: DropdownButton<String>(
+                        value: _selectedType,
+                        isExpanded: true,
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
+                        items: _animalTypes.map((String type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(
+                              type,
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontSmall,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedType = newValue ?? 'All';
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),

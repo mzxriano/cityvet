@@ -115,7 +115,7 @@ class _SignupViewState extends State<SignupView> {
   }
 
   // Privacy Protection Dialog
-  void _showPrivacyProtectionDialog() {
+  void _showPrivacyProtectionDialog(SignupViewModel signup) {
     bool isAgreed = false;
     
     showDialog(
@@ -167,13 +167,12 @@ class _SignupViewState extends State<SignupView> {
                         height: 200,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey[300]!),
                         ),
                         child: const SingleChildScrollView(
                           child: Text(
-                            '[Privacy Protection Policy content will be added here]',
+                            'Privacy Protection Policy\n\n',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black87,
@@ -231,9 +230,39 @@ class _SignupViewState extends State<SignupView> {
                 ),
                 ElevatedButton(
                   onPressed: isAgreed
-                      ? () {
+                      ? () async {
                           Navigator.of(context).pop();
-                          _proceedToEmailVerification();
+                          setState(() => _isLoading = true);
+
+                          await signup.register(
+                            firstName: _firstNameController.text,
+                            lastName: _lastNameController.text,
+                            birthDate: signup.formattedBDate!,
+                            barangay_id: int.parse(signup.selectedBarangay!),
+                            street: _streetController.text.trim(),
+                            phoneNumber: _phoneNumberController.text.trim(),
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text.trim(),
+                            passwordConfirmation: _confirmPasswordController.text.trim(),
+                          );
+
+                          setState(() => _isLoading = false);
+
+                          if (signup.fieldErrors.isNotEmpty) {
+                            // Show errors if any
+                            return;
+                          }
+
+                          if (signup.error?.isNotEmpty ?? false) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(signup.error!)),
+                            );
+                            return;
+                          }
+
+                          if (signup.success) {
+                            _proceedToEmailVerification();
+                          }
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -570,7 +599,6 @@ class _SignupViewState extends State<SignupView> {
                         ),
                         Config.heightBig,
 
-                        // Sign Up Button
                         Button(
                           width: double.infinity,
                           title: 'Sign up',
@@ -587,41 +615,7 @@ class _SignupViewState extends State<SignupView> {
                               return;
                             }
 
-                            print(signup.selectedBarangay);
-
-                            setState(() => _isLoading = true);
-
-                            await signup.register(
-                              firstName: _firstNameController.text,
-                              lastName: _lastNameController.text,
-                              //suffix: _suffixController.text.trim().isNotEmpty ? _suffixController.text.trim() : null,
-                              birthDate: signup.formattedBDate!,
-                              barangay_id: int.parse(signup.selectedBarangay!),
-                              street: _streetController.text.trim(),
-                              phoneNumber: _phoneNumberController.text.trim(),
-                              email: _emailController.text.trim(),
-                              password: _passwordController.text.trim(),
-                              passwordConfirmation: _confirmPasswordController.text.trim(),
-                            );
-
-                            if (signup.fieldErrors.isNotEmpty) {
-                              setState(() => _isLoading = false);
-                              return;
-                            }
-
-                            if (signup.error?.isNotEmpty ?? false) {
-                              setState(() => _isLoading = false);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(signup.error!)),
-                              );
-                              return;
-                            }
-
-                            if (signup.success) {
-                              _showPrivacyProtectionDialog();
-                            } else {
-                              setState(() => _isLoading = false);
-                            }
+                            _showPrivacyProtectionDialog(signup);
                           },
                         ),
                         Config.heightMedium,

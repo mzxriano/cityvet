@@ -40,9 +40,9 @@ class VaccineController extends Controller
     
     public function fetchVeterinarians()
     {
-        $vets = User::whereHas('role', function ($query) {
+        $vets = User::whereHas('roles', function ($query) {
             $query->where('name', 'veterinarian');
-        })->with('role')->get();
+        })->with('roles')->get();
 
         return response()->json($vets);
     }

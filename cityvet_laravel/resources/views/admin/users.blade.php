@@ -87,6 +87,7 @@
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Role</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Contact</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Email</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Status</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
@@ -113,6 +114,20 @@
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $user->phone_number }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <div class="truncate max-w-[200px]" title="{{ $user->email }}">{{ $user->email }}</div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    @php
+                                        $statusClasses = match ($user->status) {
+                                            'active' => 'bg-green-100 text-green-800',
+                                            'inactive' => 'bg-yellow-100 text-yellow-800',
+                                            'banned' => 'bg-red-100 text-red-800',
+                                            default => 'bg-gray-100 text-gray-800',
+                                        };
+                                    @endphp
+
+                                    <span class="inline-block {{ $statusClasses }} px-2 py-1 rounded-full text-xs w-fit">
+                                        {{ ucfirst($user->status) }}
+                                    </span>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-center">
                                     <button type="button"
@@ -399,6 +414,19 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <select name="status"
+                                    x-model="currentUser.status"
+                                    required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+
                     </div>
 
                     <!-- Modal Footer -->

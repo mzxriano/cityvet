@@ -31,6 +31,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'image_url',
         'image_public_id',
         'force_password_change',
+        'status'
     ];
 
     /**
@@ -70,6 +71,21 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function deviceTokens()
     {
         return $this->hasMany(\App\Models\DeviceToken::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
+    public function scopeBanned($query)
+    {
+        return $query->where('status', 'banned');
     }
 
     /**

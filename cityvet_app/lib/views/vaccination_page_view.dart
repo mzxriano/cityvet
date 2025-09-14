@@ -89,12 +89,11 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       if (!mounted) return;
       
       setState(() {
-        // Assuming the API returns a list of user objects with name field
+
         veterinarians = List<Map<String, dynamic>>.from(fetchedVeterinarians);
       });
     } catch (e) {
       print('Error fetching veterinarians: $e');
-      // Don't show error for veterinarians as it's not critical
     }
   }
 
@@ -112,13 +111,12 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     print(doseController.text);
     print(adminController.text);
 
-    if (!mounted) return; // Check if widget is still mounted
+    if (!mounted) return; 
 
     if (selectedVaccine == null) {
       _showSnackBar('Please select a vaccine', Colors.orange);
       return;
     }
-    // Date is only required for regular vaccination (not activity-based)
     if (widget.activityId == null && selectedDate == null) {
       _showSnackBar('Please select a date', Colors.orange);
       return;
@@ -132,12 +130,12 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       return;
     }
     
-    if (!mounted) return; // Check before setState
+    if (!mounted) return;
     
     setState(() { isLoading = true; });
     final token = await AuthStorage().getToken();
      
-    if (!mounted) return; // Check after async operation
+    if (!mounted) return;
     
     if(token == null) {
       if (mounted) {
@@ -149,7 +147,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
 
     final api = ApiService();
     try {
-      // Use activity-based vaccination if activityId is provided
       if (widget.activityId != null) {
         await api.attachVaccinesToActivity(
           token,
@@ -164,7 +161,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
           ],
         );
       } else {
-        // Regular vaccination (existing functionality)
         await api.attachVaccinesToAnimal(
           token,
           widget.animalModel.id!,
@@ -184,7 +180,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       setState(() { isLoading = false; });
       _showSnackBar('Vaccination recorded successfully!', Colors.green);
       
-      // Add a small delay before navigation to ensure snackbar is shown
       await Future.delayed(const Duration(milliseconds: 500));
       
       if (mounted) {
@@ -196,7 +191,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       setState(() { isLoading = false; });
       print('error attach vaccine $e');
       
-      // Show more specific error message
       String errorMessage = 'Failed to record vaccination';
       if (e.toString().contains('422')) {
         errorMessage = 'Invalid vaccination data. Please check your inputs.';
@@ -213,7 +207,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
   }
 
   void _showSnackBar(String message, Color color) {
-    if (!mounted) return; // Check before showing snackbar
+    if (!mounted) return; 
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -351,7 +345,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
 
                 const SizedBox(height: 24),
 
-                // Enhanced Animal Information Card
+                // Animal Information Card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -484,7 +478,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                         veterinarians: veterinarians,
                         controller: adminController,
                         onChanged: (value) {
-                          // The controller is automatically updated
                         },
                       ),
                       const SizedBox(height: 16),
@@ -593,7 +586,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: isLoading ? null : _submit, // Disable button when loading
+                      onTap: isLoading ? null : _submit, 
                       borderRadius: BorderRadius.circular(16),
                       child: Center(
                         child: isLoading

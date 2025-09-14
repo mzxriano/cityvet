@@ -37,12 +37,10 @@ Route::post('/resend-verification', function (Request $request) {
     } catch (\Exception $e) {
         return back()->withErrors(['email' => 'Failed to send verification email']);
     }
-})->name('resend.verification');
+    })->name('resend.verification');
 
 Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('showLogin');
 Route::post('/login', [AdminAuthController::class, 'login'])->name('login');
-Route::get('/register', [AdminAuthController::class, 'showRegisterForm'])->name('showRegister');
-Route::post('/register', [AdminAuthController::class, 'register'])->name('register');
 
 // Admin Email Verification
 Route::prefix('admin')->group(function () {
@@ -117,6 +115,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/archives', function () {
             return view('admin.archives');
         })->name('admin.archives');
+
+        Route::get('/settings', function () {
+            return view('admin.settings');
+        })->name('admin.settings');
         
     });
 });

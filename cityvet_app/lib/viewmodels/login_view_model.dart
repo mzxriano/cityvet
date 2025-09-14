@@ -105,6 +105,12 @@ Future<void> login(String email, String password) async
       return;
     }
 
+    if(statusCode == 403 && data['error'] == 'banned_account') {
+      setError(data['error']);
+      setMessage(data['message']);
+      return;
+    }
+
     if(statusCode == 404 && data['error'] == 'user_not_found') {
       setError(data['error']);
       setMessage(data['message']);
@@ -120,7 +126,7 @@ Future<void> login(String email, String password) async
     if(statusCode == 400 && data['error'] == 'email_not_verified') {
       setEmailVerify(!true);
       setError(data['error']);
-      setMessage(data['message']);
+      setMessage('Email not verified. Please verify your email.');
       return;
     }
 

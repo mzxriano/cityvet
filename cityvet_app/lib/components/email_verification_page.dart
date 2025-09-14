@@ -11,23 +11,35 @@ class EmailVerificationPage extends StatelessWidget {
     try {
       final response = await AuthService.resendVerification(email);
       
-      // Show a confirmation message after resend
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Verification email resent!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Check response status or data
+      if (response.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification email resent successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to resend.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       print('Error resending verification email: $e');
       
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to resend verification email. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to resend verification email. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
