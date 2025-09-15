@@ -45,4 +45,19 @@ class CustomImagePicker {
       _isPickingImage = false;
     }
   }
+
+  Future<List<File>?> pickMultipleImages() async {
+    final picker = ImagePicker();
+    final pickedFiles = await picker.pickMultiImage();
+    List<File>? selectedImages = [];
+
+    if (pickedFiles.isNotEmpty) {
+        selectedImages.addAll(pickedFiles.map((e) => File(e.path)));
+        return selectedImages;
+    }
+
+    return null;
+
+  }
+
 }

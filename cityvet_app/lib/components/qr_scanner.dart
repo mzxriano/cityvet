@@ -1,6 +1,7 @@
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
+import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:cityvet_app/views/vaccination_page_view.dart';
 import 'package:dio/dio.dart';

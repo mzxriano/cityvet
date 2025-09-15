@@ -600,11 +600,12 @@ class AnimalController
             $allowedRoles = ['staff', 'veterinarian'];
             
             // Check permissions
-            if (!in_array($user->role->name, $allowedRoles)) {
+            if (!$user->roles()->pluck('name')->intersect($allowedRoles)->isNotEmpty()) {
                 return response()->json([
                     'message' => 'Only veterinarians and staff can perform vaccinations.'
                 ], 403);
             }
+
 
             $vaccines = $request->input('vaccines', []);
             $syncData = [];

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cityvet_app/services/api_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/components/qr_scanner.dart';
+import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
 
 class ActivityVaccinationReportView extends StatefulWidget {
@@ -22,6 +25,7 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
   bool isLoading = false;
   Map<String, dynamic>? report;
   String? errorMessage;
+  List<File> selectedImages = [];
 
   @override
   void initState() {
@@ -228,6 +232,105 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
               ],
             ),
           ),
+
+          // Upload Image Button
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final images = await CustomImagePicker().pickMultipleImages();
+                  
+                      if (images != null) {
+                        setState(() {
+                          selectedImages = images;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Upload Images'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+            
+                if (selectedImages.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: selectedImages.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final imageFile = selectedImages[index];
+                        return Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                imageFile,
+                                height: 120,
+                                width: 120,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedImages.removeAt(index);
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black54,
+                                  ),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  Config.heightSmall,
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: (){},
+                      icon: const Icon(Icons.upload),
+                      label: const Text('Submit'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ],
+            ),
+          ),
+
+          Config.heightSmall,
 
           // Animals List Section
           if (vaccinatedAnimals.isNotEmpty) ...[

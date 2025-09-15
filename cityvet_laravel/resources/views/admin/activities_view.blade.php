@@ -18,7 +18,7 @@
     <!-- Page Title -->
     <h1 class="text-3xl font-semibold text-gray-900 mb-8">Activities</h1>
 
-    <!-- Activities cards grid -->
+    <!-- Activities image grid -->
     <section aria-label="Activities cards" class="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
       <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
       <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
