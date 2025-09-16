@@ -1,10 +1,10 @@
 import 'package:cityvet_app/utils/config.dart';
 import 'package:flutter/material.dart';
 
-class BreedingInfoPage extends StatelessWidget {
+class DiseaseInfoPage extends StatelessWidget {
   final String animalType;
 
-  const BreedingInfoPage({super.key, required this.animalType});
+  const DiseaseInfoPage({super.key, required this.animalType});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class BreedingInfoPage extends StatelessWidget {
         leading: IconButton(onPressed: (){
           Navigator.pop(context);
         }, icon: Config.backButtonIcon),
-        title: Text('Breeding Info'),
+        title: Text("$animalType Diseases"),
       ),
       body: SafeArea(
         child: Center(

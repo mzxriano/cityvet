@@ -6,8 +6,7 @@ import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/home/all_activities_page.dart';
 import 'package:cityvet_app/views/main_screens/home/all_aew_page.dart';
 import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
-import 'package:cityvet_app/views/main_screens/home/breeding_info_page.dart';
-import 'package:cityvet_app/views/main_screens/home/nutrition_guide_page.dart';
+import 'package:cityvet_app/views/main_screens/home/disease_info_page.dart';
 import 'package:cityvet_app/views/chat_screen_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -507,9 +506,11 @@ class HomeViewState extends State<HomeView> {
   Widget _buildRoleBasedSection(HomeViewModel homeViewModel) {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     String userRole = userViewModel.user?.role ?? '';
+
+    print(userRole);
     
     // Check if user is veterinarian or staff to show ongoing activities
-    if (userRole != 'owner') {
+    if (userRole != 'pet_owner' && userRole != 'poultry_owner' && userRole != 'livestock_owner') {
       return _buildSingleOngoingActivity(homeViewModel);
     } else {
       return _buildAEWSection();
@@ -965,16 +966,10 @@ void _navigateToAllAEWs(BuildContext context) {
   // Mock data for animal-related options
   final List<Map<String, dynamic>> animalOptions = [
     {
-      'title': 'Breeding Info',
-      'subtitle': 'Breeding guidelines & tips',
-      'icon': Icons.pets,
-      'color': Colors.orange,
-    },
-    {
-      'title': 'Nutrition Guide',
-      'subtitle': 'Feeding recommendations',
-      'icon': Icons.restaurant,
-      'color': Colors.purple,
+      'title': 'Diseases',
+      'subtitle': 'Disease guidelines',
+      'icon': Icons.warning,
+      'color': Colors.red,
     },
   ];
 
@@ -1114,11 +1109,8 @@ void _navigateToAllAEWs(BuildContext context) {
 
   void _handleAnimalOptionTap(String animalType, String option) {
     switch (option) {
-      case 'Breeding Info':
-        Navigator.push(context, MaterialPageRoute(builder: (_) => BreedingInfoPage(animalType: animalType,)));
-        break;
-      case 'Nutrition Guide':
-        Navigator.push(context, MaterialPageRoute(builder: (_) => NutritionGuidePage(animalType: animalType,)));
+      case 'Diseases':
+        Navigator.push(context, MaterialPageRoute(builder: (_) => DiseaseInfoPage(animalType: animalType,)));
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(

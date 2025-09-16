@@ -30,6 +30,7 @@ return new class extends Migration
             $table->id();
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('suffix')->nullable();
             $table->date('birth_date');
             $table->enum('gender', ['male', 'female', 'other']);
             $table->string('phone_number')->unique();
@@ -57,6 +58,8 @@ return new class extends Migration
             $table->double('weight')->nullable();
             $table->double('height')->nullable();
             $table->string('color');
+            $table->string('unique_spot')->nullable();
+            $table->string('known_conditions')->nullable();
             $table->string('code')->unique();
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();

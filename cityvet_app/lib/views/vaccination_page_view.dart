@@ -245,6 +245,58 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     }
   }
 
+  Widget _buildVaccinationRecord(List<dynamic> vaccinations) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: vaccinations.asMap().entries.map<Widget>((entry) {
+        final index = entry.key;
+        final vaccination = entry.value;
+        return _buildVaccinationRecordCard(
+          vaccination,
+          index,
+          isLast: index == vaccinations.length - 1,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildVaccinationRecordCard(dynamic vaccination, int index, {bool isLast = false}) {
+    return Container(
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.vaccines, color: Config.primaryColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  vaccination?.vaccine?.name ?? 'Unknown Vaccine',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: Config.tertiaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow('Dose', vaccination?.dose?.toString() ?? 'N/A', Icons.numbers),
+          _buildInfoRow('Date Given', vaccination?.dateGiven ?? 'N/A', Icons.calendar_today),
+          _buildInfoRow('Administrator', vaccination?.administrator ?? 'N/A', Icons.person, isLast: true),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!mounted) return const SizedBox.shrink(); 
@@ -375,6 +427,71 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
 
                 const SizedBox(height: 24),
 
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Config.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.receipt_rounded,
+                              color: Config.primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Vaccination Records',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Config.tertiaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Builder(
+                        builder: (context) {
+                          final vaccinations = widget.animalModel.vaccinations ?? [];
+                          if (vaccinations.isNotEmpty) {
+                            return _buildVaccinationRecord(vaccinations);
+                          } else {
+                            return Text(
+                              'No vaccination records yet',
+                              style: TextStyle(
+                                color: Colors.grey[600], 
+                                fontStyle: FontStyle.italic
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
                 // Vaccination Form Section
                 Container(
                   width: double.infinity,
@@ -435,7 +552,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                         items: vaccines.map((vaccine) {
                           return DropdownMenuItem<VaccineModel>(
                             value: vaccine,
-                            child: Text(vaccine.name),
+                            child: Text("${vaccine.name} (${vaccine.stock} in stock)"),
                           );
                         }).toList(),
                         onChanged: (v) {
@@ -962,7 +1079,6 @@ class _SearchableAdministratorFieldState extends State<SearchableAdministratorFi
   }
 }
 
-// Enhanced Searchable Dropdown Widget (keeping the original for vaccine selection)
 class EnhancedSearchableDropdown extends StatefulWidget {
   final List<Map<String, dynamic>> items;
   final Map<String, dynamic>? selectedItem;

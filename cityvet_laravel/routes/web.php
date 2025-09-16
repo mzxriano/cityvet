@@ -99,7 +99,6 @@ Route::prefix('admin')->group(function () {
         });
 
 
-
         Route::get('/community', function () {
             return view('admin.community');
         })->name('admin.community');

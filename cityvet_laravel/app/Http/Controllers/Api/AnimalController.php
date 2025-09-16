@@ -8,6 +8,7 @@ use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\DB;
 
 class AnimalController
 {
@@ -45,6 +46,8 @@ class AnimalController
                 'weight' => $animal->weight,
                 'height' => $animal->height,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
@@ -85,14 +88,16 @@ class AnimalController
     public function store(Request $request)
     {
         $validate = Validator::make($request->all(), [
-            'type' => 'required|string|max:255',
-            'name' => 'nullable|string|max:255',
-            'breed' => 'required|string|max:255',
+            'type' => 'required|string|max:50',
+            'name' => 'nullable|string|max:100',
+            'breed' => 'required|string|max:100',
             'birth_date' => 'nullable|date',
             'gender' => 'required|string|in:male,female',
             'weight' => 'nullable|numeric|min:0',
             'height' => 'nullable|numeric|min:0',
-            'color' => 'required|string|max:255',
+            'color' => 'required|string|max:100',
+            'unique_spot' => 'nullable|string|max:255',
+            'known_conditions' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,heic|max:2048',
         ]);
 
@@ -156,6 +161,8 @@ class AnimalController
                 'weight' => $animal->weight,
                 'height' => $animal->height,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'image_public_id' => $animal->image_public_id,
@@ -195,6 +202,8 @@ class AnimalController
                 'weight' => $animal->weight,
                 'height' => $animal->height,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'owner' => $animal->user ? "{$animal->user->first_name} {$animal->user->last_name}" : null,
@@ -239,6 +248,8 @@ class AnimalController
                 'weight' => $animal->weight,
                 'height' => $animal->height,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'owner' => $animal->user
@@ -301,10 +312,32 @@ class AnimalController
                 'type' => $animal->type,
                 'breed' => $animal->breed,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'gender' => $animal->gender,
                 'age' => $animal->birth_date,
                 'image_url' => $animal->image_url,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
+                'vaccinations' => $animal->vaccines->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'vaccine' => [
+                            'id' => $v->id,
+                            'name' => $v->name,
+                            'description' => $v->description,
+                            'stock' => $v->stock,
+                            'image_url' => $v->image_url,
+                            'image_public_id' => $v->image_public_id,
+                            'protect_against' => $v->protect_against,
+                            'affected' => $v->affected,
+                            'schedule' => $v->schedule,
+                            'expiration_date' => $v->expiration_date,
+                        ],
+                        'dose' => $v->pivot->dose,
+                        'date_given' => $v->pivot->date_given,
+                        'administrator' => $v->pivot->administrator,
+                    ];
+                }),
             ],
         ]); 
     }
@@ -327,14 +360,16 @@ class AnimalController
         }
 
         $validate = Validator::make($request->all(), [
-            'type' => 'sometimes|string|max:255',
-            'name' => 'sometimes|nullable|string|max:255',
-            'breed' => 'sometimes|string|max:255',
+            'type' => 'sometimes|string|max:50',
+            'name' => 'sometimes|nullable|string|max:100',
+            'breed' => 'sometimes|string|max:100',
             'birth_date' => 'sometimes|nullable|date',
             'gender' => 'sometimes|string|in:male,female',
             'weight' => 'sometimes|nullable|numeric|min:0',
             'height' => 'sometimes|nullable|numeric|min:0',
-            'color' => 'sometimes|string|max:255',
+            'color' => 'sometimes|string|max:100',
+            'unique_spot' => 'somtimes|nullable|string|max:255',
+            'known_conditions' => 'sometimes|nullable|string|max:255',
             'image' => 'sometimes|image|mimes:jpg,jpeg,png,webp,heic|max:2048',
         ]);
 
@@ -408,6 +443,8 @@ class AnimalController
                 'weight' => $animal->weight,
                 'height' => $animal->height,
                 'color' => $animal->color,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'image_public_id' => $animal->image_public_id,
@@ -490,18 +527,7 @@ class AnimalController
             }
             
             $userRoles = $user->roles->pluck('name')->toArray();
-
-            \Log::info('Vaccination request received', [
-                'animalId' => $animalId,
-                'vaccines' => $request->input('vaccines'),
-                'user_id' => $user->id,
-                'user_roles' => $userRoles,
-                'animal_owner_id' => $animal->user_id
-            ]);
-
-            // Define roles that CAN perform vaccinations
             $allowedRoles = ['staff', 'veterinarian'];
-
             $hasPermission = !empty(array_intersect($allowedRoles, $userRoles));
             
             // Check permissions
@@ -519,34 +545,73 @@ class AnimalController
                     'message' => 'No vaccines provided.'
                 ], 400);
             }
-            
-            $syncData = [];
-            
-                        foreach ($vaccines as $vaccine) {
+
+            // Database transaction for stock management
+            return DB::transaction(function () use ($vaccines, $animal, $user) {
+                $syncData = [];
+                $stockUpdates = [];
+                
+                foreach ($vaccines as $vaccine) {
                     if (isset($vaccine['id'])) {
+                        $vaccineModel = \App\Models\Vaccine::find($vaccine['id']);
+                        
+                        if (!$vaccineModel) {
+                            throw new \Exception("Vaccine with ID {$vaccine['id']} not found.");
+                        }
+                        
+                        $dose = $vaccine['dose'] ?? 1;
+                        
+                        if ($vaccineModel->stock < $dose) {
+                            throw new \Exception("Insufficient stock for vaccine '{$vaccineModel->name}'. Available: {$vaccineModel->stock}, Required: {$dose}");
+                        }
+                        
                         $syncData[$vaccine['id']] = [
-                            'dose' => $vaccine['dose'] ?? 1,
+                            'dose' => $dose,
                             'date_given' => $vaccine['date_given'] ?? now()->toDateString(),
                             'administrator' => $vaccine['administrator'] ?? null,
                             'activity_id' => $vaccine['activity_id'] ?? null,
                         ];
+                        
+                        $stockUpdates[$vaccine['id']] = 1;
                     }
                 }
-            
-            if (empty($syncData)) {
+                
+                if (empty($syncData)) {
+                    throw new \Exception('No valid vaccines to attach.');
+                }
+                
+                // Attach vaccines to animal
+                \Log::info('Attaching vaccines', ['syncData' => $syncData]);
+                $animal->vaccines()->attach($syncData);
+                
+                // Decrease stock for each vaccine
+                foreach ($stockUpdates as $vaccineId => $decrement) {
+                    $vaccineModel = \App\Models\Vaccine::find($vaccineId);
+                    $vaccineModel->decrement('stock', $decrement);
+                    
+                    \Log::info('Stock updated', [
+                        'vaccine_id' => $vaccineId,
+                        'vial_used' => $decrement,
+                        'remaining_stock' => $vaccineModel->fresh()->stock
+                    ]);
+                    
+                    if ($vaccineModel->fresh()->stock <= 5) {
+                        \Log::warning('Low vaccine stock', [
+                            'vaccine_id' => $vaccineId,
+                            'vaccine_name' => $vaccineModel->name,
+                            'remaining_stock' => $vaccineModel->fresh()->stock
+                        ]);
+                    }
+                }
+                
+                \Log::info('Vaccines attached successfully with stock updates');
+                
                 return response()->json([
-                    'message' => 'No valid vaccines to attach.'
-                ], 400);
-            }
-            
-            \Log::info('Attaching vaccines', ['syncData' => $syncData]);
-            $animal->vaccines()->attach($syncData);
-            
-            \Log::info('Vaccines attached successfully');
-            return response()->json([
-                'message' => 'Vaccines attached successfully.',
-                'data' => $syncData
-            ], 200);
+                    'message' => 'Vaccines attached successfully and stock updated.',
+                    'data' => $syncData,
+                    'stock_updates' => $stockUpdates
+                ], 200);
+            });
             
         } catch (\Exception $e) {
             \Log::error('Error attaching vaccines: ' . $e->getMessage(), [
@@ -596,7 +661,7 @@ class AnimalController
                 ], 404);
             }
             
-            // Define roles that CAN perform vaccinations
+            // roles that CAN perform vaccinations
             $allowedRoles = ['staff', 'veterinarian'];
             
             // Check permissions
@@ -606,40 +671,80 @@ class AnimalController
                 ], 403);
             }
 
-
-            $vaccines = $request->input('vaccines', []);
-            $syncData = [];
-            
-            foreach ($vaccines as $vaccine) {
-                if (isset($vaccine['id'])) {
-                    $syncData[$vaccine['id']] = [
-                        'dose' => $vaccine['dose'] ?? 1,
-                        'date_given' => $activity->date,
-                        'administrator' => $vaccine['administrator'] ?? $user->first_name . ' ' . $user->last_name,
-                        'activity_id' => $activityId,
-                    ];
+            // database transaction for stock management
+            return DB::transaction(function () use ($request, $activity, $animal, $user, $activityId) {
+                $vaccines = $request->input('vaccines', []);
+                $syncData = [];
+                $stockUpdates = [];
+                
+                foreach ($vaccines as $vaccine) {
+                    if (isset($vaccine['id'])) {
+                        $vaccineModel = \App\Models\Vaccine::find($vaccine['id']);
+                        
+                        if (!$vaccineModel) {
+                            throw new \Exception("Vaccine with ID {$vaccine['id']} not found.");
+                        }
+                        
+                        $dose = $vaccine['dose'] ?? 1;
+                        
+                        if ($vaccineModel->stock < $dose) {
+                            throw new \Exception("Insufficient stock for vaccine '{$vaccineModel->name}'. Available: {$vaccineModel->stock}, Required: {$dose}");
+                        }
+                        
+                        $syncData[$vaccine['id']] = [
+                            'dose' => $dose,
+                            'date_given' => $activity->date,
+                            'administrator' => $vaccine['administrator'] ?? $user->first_name . ' ' . $user->last_name,
+                            'activity_id' => $activityId,
+                        ];
+                        
+                        $stockUpdates[$vaccine['id']] = $dose;
+                    }
                 }
-            }
-            
-            if (empty($syncData)) {
+                
+                if (empty($syncData)) {
+                    throw new \Exception('No valid vaccines to attach.');
+                }
+                
+                \Log::info('Attaching vaccines to activity', [
+                    'activity_id' => $activityId,
+                    'animal_id' => $animal->id,
+                    'syncData' => $syncData
+                ]);
+                
+                // Attach vaccines to animal
+                $animal->vaccines()->attach($syncData);
+                
+                // Decrease stock for each vaccine
+                foreach ($stockUpdates as $vaccineId => $doseUsed) {
+                    $vaccineModel = \App\Models\Vaccine::find($vaccineId);
+                    $vaccineModel->decrement('stock', $doseUsed);
+                    
+                    \Log::info('Stock updated for activity', [
+                        'activity_id' => $activityId,
+                        'vaccine_id' => $vaccineId,
+                        'dose_used' => $doseUsed,
+                        'remaining_stock' => $vaccineModel->fresh()->stock
+                    ]);
+                    
+                    if ($vaccineModel->fresh()->stock <= 5) {
+                        \Log::warning('Low vaccine stock after activity', [
+                            'activity_id' => $activityId,
+                            'vaccine_id' => $vaccineId,
+                            'vaccine_name' => $vaccineModel->name,
+                            'remaining_stock' => $vaccineModel->fresh()->stock
+                        ]);
+                    }
+                }
+                
+                \Log::info('Vaccines attached to activity successfully with stock updates');
+                
                 return response()->json([
-                    'message' => 'No valid vaccines to attach.'
-                ], 400);
-            }
-            
-            \Log::info('Attaching vaccines to activity', [
-                'activity_id' => $activityId,
-                'animal_id' => $animal->id,
-                'syncData' => $syncData
-            ]);
-            
-            $animal->vaccines()->attach($syncData);
-            
-            \Log::info('Vaccines attached to activity successfully');
-            return response()->json([
-                'message' => 'Vaccines attached successfully to activity.',
-                'data' => $syncData
-            ], 200);
+                    'message' => 'Vaccines attached successfully to activity and stock updated.',
+                    'data' => $syncData,
+                    'stock_updates' => $stockUpdates
+                ], 200);
+            });
             
         } catch (\Exception $e) {
             \Log::error('Error attaching vaccines to activity: ' . $e->getMessage(), [

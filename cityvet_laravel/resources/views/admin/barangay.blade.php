@@ -87,6 +87,18 @@
                     
                     <div class="grid grid-cols-3 gap-4 text-center">
                         <div class="bg-white rounded-lg p-3 border">
+                            <div class="text-2xl font-bold text-pink-600">{{ $barangay->pet_owners_count }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Pet Owners</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border">
+                            <div class="text-2xl font-bold text-orange-600">{{ $barangay->livestock_owners_count }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Livestock Owners</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border">
+                            <div class="text-2xl font-bold text-yellow-600">{{ $barangay->poultry_owners_count }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Poultry Owners</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border">
                             <div class="text-2xl font-bold text-blue-600">{{ $barangay->activities->count() }}</div>
                             <div class="text-xs text-gray-600 mt-1">Activities</div>
                         </div>
@@ -132,6 +144,9 @@
                         <tr>
                             <th class="px-6 py-4 rounded-tl-xl font-semibold">No.</th>
                             <th class="px-6 py-4 font-semibold">Name</th>
+                            <th class="px-6 py-4 font-semibold text-center">Pet Owners</th>
+                            <th class="px-6 py-4 font-semibold text-center">Livestock Owners</th>
+                            <th class="px-6 py-4 font-semibold text-center">Poultry Owners</th>
                             <th class="px-6 py-4 font-semibold text-center">Activities</th>
                             <th class="px-6 py-4 font-semibold text-center">Vaccinated Animals</th>
                             <th class="px-6 py-4 rounded-tr-xl font-semibold text-center">Bite Case Reports</th>
@@ -151,6 +166,24 @@
                                             {{ $barangay->name }}
                                         @endif
                                     </div>
+                                </td>
+                                <!-- Pet Owners -->
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800">
+                                        {{ $barangay->pet_owners_count }}
+                                    </span>
+                                </td>
+                                <!-- Livestock Owners -->
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                        {{ $barangay->livestock_owners_count }}
+                                    </span>
+                                </td>
+                                <!-- Poultry Owners -->
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        {{ $barangay->poultry_owners_count }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">

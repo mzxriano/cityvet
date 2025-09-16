@@ -43,7 +43,9 @@
       <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">User Role Breakdown</h2>
         <ul class="space-y-2 text-sm text-gray-600">
-            <li>Owner: <span class="font-semibold">{{ $userTypeCounts['owner'] ?? 0 }}</span></li>
+            <li>Pet Owner: <span class="font-semibold">{{ $userTypeCounts['pet_owner'] ?? 0 }}</span></li>
+            <li>Livestock Owner: <span class="font-semibold">{{ $userTypeCounts['livestock_owner'] ?? 0 }}</span></li>
+            <li>Poultry Owner: <span class="font-semibold">{{ $userTypeCounts['poultry_owner'] ?? 0 }}</span></li>
             <li>Staff: <span class="font-semibold">{{ $userTypeCounts['staff'] ?? 0 }}</span></li>
             <li>Veterinarian: <span class="font-semibold">{{ $userTypeCounts['veterinarian'] ?? 0 }}</span></li>
             <li>Aew: <span class="font-semibold">{{ $userTypeCounts['aew'] ?? 0 }}</span></li>
@@ -108,7 +110,6 @@
         Vaccinated Animal Per Barangay
       </div>
       
-      <!-- Make this scrollable -->
       <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
         @forelse($barangays as $barangay)
         <div class="flex justify-between items-center py-2">

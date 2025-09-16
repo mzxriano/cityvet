@@ -841,7 +841,6 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
     if (!canUseQrScanner) return null;
 
     return FloatingActionButton(
-      // Fixed: Changed to use the tab selection method that now works
       onPressed: () => _onTabSelected(2),
       backgroundColor: Colors.white,
       splashColor: Config.primaryColor,
@@ -869,9 +868,8 @@ BottomAppBar _buildBottomNavigationBar(List<NavigationItem> navItems, bool canUs
               showBadge: navItems[i].showBadge,
             ),
         
-        // Spacer for FAB (only for users who can use QR scanner)
         if (canUseQrScanner) 
-          const SizedBox(width: 60), // Adjusted width
+          const SizedBox(width: 60), 
         
         // Remaining items (Animals, Notifications)
         for (int i = canUseQrScanner ? 3 : 2; i < navItems.length; i++)

@@ -228,7 +228,7 @@ class _LoginViewState extends State<LoginView> {
 
                                     if (loginViewModel.error != null) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(loginViewModel.message!))
+                                        SnackBar(content: Text(loginViewModel.message))
                                       );
                                     }
 

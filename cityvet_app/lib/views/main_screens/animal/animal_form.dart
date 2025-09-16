@@ -39,9 +39,13 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
+  final TextEditingController uniqueSpotController = TextEditingController();
+  final TextEditingController knownConditionsController = TextEditingController();
   final FocusNode petNameNode = FocusNode();
   final FocusNode weightNode = FocusNode();
   final FocusNode heightNode = FocusNode();
+  final FocusNode uniqueSpotNode = FocusNode();
+  final FocusNode knownConditionsNode = FocusNode();
 
   String? selectedPetType;
   String? selectedBreed;
@@ -50,16 +54,18 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   String? selectedColor;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['Aspin','Labrador', 'Poodle', 'Bulldog'],
-    'Cat': ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
+    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Mixed-Breed'],
+    'Cat': ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair', 'Mixed-Breed'],
   };
 
-  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray'];
+  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Orange'];
 
   Future<bool> _onWillPop() async {
     final isFormDirty = petNameController.text.isNotEmpty ||
                         weightController.text.isNotEmpty ||
                         heightController.text.isNotEmpty ||
+                        uniqueSpotController.text.isNotEmpty ||
+                        knownConditionsController.text.isNotEmpty ||
                         selectedPetType != null ||
                         selectedBreed != null ||
                         selectedGender != null ||
@@ -148,7 +154,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       ),
 
                       /// Pet Type
-                      LabelText(label: 'Pet Type ', isRequired: true),
+                      LabelText(label: 'Species ', isRequired: true),
                       DropdownButtonFormField<String>(
                         value: selectedPetType,
                         decoration: InputDecoration(
@@ -185,7 +191,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Breed
-                      LabelText(label: 'Pet Breed ', isRequired: true),
+                      LabelText(label: 'Breed ', isRequired: true),
                       DropdownButtonFormField<String>(
                         value: selectedBreed,
                         decoration: InputDecoration(
@@ -223,7 +229,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Pet Name
-                      LabelText(label: 'Pet Name ', isRequired: true),
+                      LabelText(label: 'Name ', isRequired: true),
                       CustomTextField(
                         controller: petNameController,
                         node: petNameNode,
@@ -234,7 +240,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Date of Birth
-                      LabelText(label: 'Pet Birthdate ', isRequired: false),
+                      LabelText(label: 'Birthdate ', isRequired: false),
                       InkWell(
                         onTap: formRef.isLoading ? null : () async {
                           final date = await showDatePicker(
@@ -266,7 +272,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Gender
-                     LabelText(label: 'Pet Gender ', isRequired: true),
+                     LabelText(label: 'Gender ', isRequired: true),
                       Row(
                         children: ['Male', 'Female'].map((gender) {
                           return Row(
@@ -293,7 +299,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Weight
-                      LabelText(label: 'Pet Weight (kg) ', isRequired: false),
+                      LabelText(label: 'Weight (kg) ', isRequired: false),
                       CustomTextField(
                         controller: weightController,
                         node: weightNode,
@@ -304,7 +310,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Height
-                      LabelText(label: 'Pet Height (cm) ', isRequired: false),
+                      LabelText(label: 'Height (cm) ', isRequired: false),
                       CustomTextField(
                         controller: heightController,
                         node: heightNode,
@@ -315,7 +321,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                       const SizedBox(height: 12),
 
                       /// Color
-                      LabelText(label: 'Pet Color ', isRequired: true),
+                      LabelText(label: 'Color ', isRequired: true),
                       DropdownButtonFormField<String>(
                         value: selectedColor,
                         decoration: InputDecoration(
@@ -347,6 +353,29 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                             selectedColor = value;
                           });
                         },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      /// Unique Spot
+                      LabelText(label: 'Unique Spot ', isRequired: false),
+                      CustomTextField(
+                        controller: uniqueSpotController,
+                        node: uniqueSpotNode,
+                        textInputType: TextInputType.text,
+                        isObscured: false,
+                        isFocused: uniqueSpotNode.hasFocus,
+                      ),
+                      const SizedBox(height: 12),
+
+                      /// Known Condition
+                      LabelText(label: 'Known Conditions ', isRequired: false),
+                      CustomTextField(
+                        controller: knownConditionsController,
+                        node: knownConditionsNode,
+                        textInputType: TextInputType.text,
+                        isObscured: false,
+                        isFocused: knownConditionsNode.hasFocus,
                       ),
                       const SizedBox(height: 24),
 
@@ -381,7 +410,9 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                             gender: selectedGender!.toLowerCase(), 
                             weight: double.tryParse(weightController.text), 
                             height: double.tryParse(heightController.text), 
-                            color: selectedColor!
+                            color: selectedColor!,
+                            uniqueSpot: uniqueSpotController.text,
+                            knownConditions: knownConditionsController.text,
                           );
 
                           await formRef.createAnimal(animal);

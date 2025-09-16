@@ -157,7 +157,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
       if (!mounted) return;
       final exception = e.response?.data;
       print(exception);
-      _showErrorSnackBar(DioExceptionHandler.handleException(e));
+      _showErrorSnackBar(exception['message']);
     } catch (e) {
       if (!mounted) return;
       print('Unexpected error: $e');
@@ -329,10 +329,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
 
                   if (uri != null && uri.pathSegments.isNotEmpty) {
                     final extractedCode = uri.pathSegments.last;
-                    print("Scanned code: $extractedCode");
-                    _showSuccessSnackBar('QR Code detected!');
-                    await fetchData(extractedCode);
-                    print('Show by qr code: $animal');
+                    final response = await fetchData(extractedCode);
                   } else {
                     _showErrorSnackBar("Invalid QR code format");
                     if (mounted) {

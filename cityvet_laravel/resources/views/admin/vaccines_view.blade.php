@@ -11,8 +11,14 @@
 <!-- Main Content Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
   <!-- Vaccine Image -->
-  <div class="bg-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm h-56 sm:h-72">
-    Image Not Available
+  <div class="bg-gray-100 rounded-lg flex items-center justify-center h-56 sm:h-72 overflow-hidden">
+    @if($vaccine->image_url)
+      <img src="{{ $vaccine->image_url }}" 
+          alt="{{ $vaccine->name }}" 
+          class="object-cover w-full h-full">
+    @else
+      <span class="text-gray-500 text-sm">No Image Provided</span>
+    @endif
   </div>
   
   <!-- Right Column Container -->
@@ -26,12 +32,12 @@
     </div>
     
     <!-- Affected and Stock Cards -->
-    <div class="grid grid-cols-2 gap-4 sm:gap-6">
+    <div class="grid gap-4 sm:gap-6">
       <!-- Affected Card -->
-      <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+      {{-- <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
         <div class="text-[#858585] text-sm mb-2">Affected</div>
         <div class="text-[#2C2A2A] text-lg font-medium">{{ $vaccine->affected }}</div>
-      </div>
+      </div> --}}
       
       <!-- Stock Card -->
       <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
@@ -43,7 +49,7 @@
 </div>
 
 <!-- Information Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 gap-6">
   <!-- Description Card -->
   <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
     <h3 class="text-sm sm:text-base font-semibold text-[#858585] mb-3 sm:mb-4">Description</h3>
@@ -53,7 +59,7 @@
   </div>
   
   <!-- Protection Card -->
-  <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+  {{-- <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
     <h3 class="text-sm sm:text-base font-semibold text-[#858585] mb-3 sm:mb-4">Protect Against</h3>
     @if($vaccine->protect_against)
       <ul class="space-y-2">
@@ -67,14 +73,14 @@
     @else
       <div class="text-gray-500 text-sm">No data provided.</div>
     @endif
-  </div>
+  </div> --}}
 </div>
 
 <!-- Schedule Card -->
-<div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mt-6 sm:mt-8">
+{{-- <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mt-6 sm:mt-8">
   <h3 class="text-sm sm:text-base font-semibold text-[#858585] mb-3 sm:mb-4">Schedule</h3>
   <div class="text-gray-600 text-sm leading-relaxed">
     {{ $vaccine->schedule ?? 'No schedule information provided.' }}
   </div>
-</div>
+</div> --}}
 @endsection

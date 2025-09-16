@@ -36,23 +36,24 @@
         expiration_date: ''
     },
     editVaccine(id) {
-        fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
-            .then(response => response.json())
-            .then(data => {
-                this.currentVaccine = {
-                    id: data.id,
-                    name: data.name,
-                    affected: data.affected,
-                    stock: data.stock,
-                    description: data.description || '',
-                    expiration_date: data.expiration_date || ''
-                };
-                this.showEditModal = true;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error loading vaccine data');
-            });
+    fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            this.currentVaccine = {
+                id: data.id,
+                name: data.name,
+                affected: data.affected,
+                stock: data.stock,
+                description: data.description || '',
+                expiration_date: data.expiration_date || '',
+                image_url: data.image_url || null
+            };
+            this.showEditModal = true;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading vaccine data');
+        });
     },
     updateStock(id) {
     fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
@@ -101,21 +102,6 @@
 
                 <!-- Filters -->
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center sm:flex-wrap">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Animal:</label>
-                        <select name="affected" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                            <option value="">All Animals</option>
-                            <option value="Dog" {{ request('affected') == 'Dog' ? 'selected' : '' }}>Dog</option>
-                            <option value="Cat" {{ request('affected') == 'Cat' ? 'selected' : '' }}>Cat</option>
-                            <option value="Cattle" {{ request('affected') == 'Cattle' ? 'selected' : '' }}>Cattle</option>
-                            <option value="Goat" {{ request('affected') == 'Goat' ? 'selected' : '' }}>Goat</option>
-                            <option value="Duck" {{ request('affected') == 'Duck' ? 'selected' : '' }}>Duck</option>
-                            <option value="Chicken" {{ request('affected') == 'Chicken' ? 'selected' : '' }}>Chicken</option>
-                            <option value="Swine" {{ request('affected') == 'Swine' ? 'selected' : '' }}>Swine</option>
-                            <option value="Other" {{ request('affected') == 'Other' ? 'selected' : '' }}>Other</option>
-                        </select>
-                    </div>
-
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Stock:</label>
                         <select name="stock_status" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
@@ -187,7 +173,6 @@
                         <tr>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden md:table-cell">Affected</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden lg:table-cell">Expiration</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Stock</th>
                             <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Status</th>
@@ -223,11 +208,6 @@
                                         @endif
                                     </div>
                                 </div>
-                            </td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden md:table-cell">
-                                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                                    {{ $vaccine->affected }}
-                                </span>
                             </td>
                             <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden lg:table-cell">
                                 @if($vaccine->expiration_date)
@@ -315,7 +295,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}`" method="POST" class="px-4 sm:px-6 py-4 space-y-4">
+                <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}`" enctype="multipart/form-data" method="POST" class="px-4 sm:px-6 py-4 space-y-4">
                     @csrf
                     @method('PUT')
                     <div>
@@ -324,33 +304,6 @@
                                name="name"
                                x-model="currentVaccine.name"
                                required
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Affected Animal</label>
-                        <select name="affected" 
-                                required
-                                x-model="currentVaccine.affected"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
-                            <option value="" disabled>Select Animal</option>
-                            <option value="Dog">Dog</option>
-                            <option value="Cat">Cat</option>
-                            <option value="Cattle">Cattle</option>
-                            <option value="Goat">Goat</option>
-                            <option value="Duck">Duck</option>
-                            <option value="Chicken">Chicken</option>
-                            <option value="Swine">Swine</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Stock Quantity</label>
-                        <input type="number" 
-                               name="stock"
-                               x-model="currentVaccine.stock"
-                               min="0"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
                     </div>
 
@@ -368,6 +321,33 @@
                                name="expiration_date"
                                x-model="currentVaccine.expiration_date"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Current Image</label>
+                        <div x-show="currentVaccine.image_url" class="mb-3">
+                            <img :src="currentVaccine.image_url" 
+                                :alt="currentVaccine.name"
+                                class="w-24 h-24 object-cover rounded-lg border">
+                            <p class="text-xs text-gray-500 mt-1">Current vaccine image</p>
+                        </div>
+                        <div x-show="!currentVaccine.image_url" class="mb-3">
+                            <div class="w-24 h-24 bg-gray-100 rounded-lg border flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">No image</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Update Image (Optional)</label>
+                        <input type="file" 
+                            name="image"
+                            accept="image/*"
+                            class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md">
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, JPEG, WEBP up to 2MB</p>
                     </div>
 
                     <!-- Modal Footer -->
@@ -416,6 +396,7 @@
                 <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}/stock`" 
                     method="POST" 
                     class="p-6"
+                    enctype="multipart/form-data"
                     x-data="{ 
                         action: 'add',
                         quantity: 1,

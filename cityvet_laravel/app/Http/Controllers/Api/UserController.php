@@ -68,6 +68,7 @@ class UserController extends Controller
                 "role" => $user->roles->pluck('name')->first(),
                 "first_name" => $user->first_name,
                 "last_name" => $user->last_name,
+                "suffix" => $user->suffix,
                 "email" => $user->email,
                 "phone_number" => $user->phone_number,
                 "birth_date" => $user->birth_date,
@@ -98,8 +99,9 @@ class UserController extends Controller
         $user = auth()->user();
 
         $validator = Validator::make($request->all(), rules: [
-            'first_name'   => 'sometimes|string|max:255',
-            'last_name'    => 'sometimes|string|max:255',
+            'first_name'   => 'sometimes|string|max:100',
+            'last_name'    => 'sometimes|string|max:100',
+            'suffix'       => 'sometimes|nullable|string|max:50',
             'email'        => 'sometimes|email|unique:users,email,' . $user->id,
             'phone_number' => 'sometimes|string|unique:users,phone_number,' . $user->id,
             'birth_date'   => 'sometimes|date',
@@ -162,6 +164,7 @@ class UserController extends Controller
             'user'    => [
                 'first_name'=> $user->first_name,
                 'last_name'=> $user->last_name,
+                'suffix' => $user->suffix,
                 'role' => $user->role->name,
                 'email'=> $user->email,
                 'phone_number'=> $user->phone_number,
@@ -191,6 +194,7 @@ class UserController extends Controller
                     'users.id',
                     'users.first_name',
                     'users.last_name',
+                    'users.suffix',
                     'users.email',
                     'users.phone_number',
                     'users.created_at',

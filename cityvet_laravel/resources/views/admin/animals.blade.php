@@ -62,12 +62,6 @@
           @endforeach
         </select>
 
-        <select name="gender" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
-          <option value="">All Genders</option>
-          <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Male</option>
-          <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Female</option>
-        </select>
-
         <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-3 py-2 sm:px-4 rounded hover:bg-green-600 hover:text-white text-sm">
           Filter
         </button>

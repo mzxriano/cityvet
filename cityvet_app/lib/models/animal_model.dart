@@ -11,6 +11,8 @@ class AnimalModel {
   final double? weight;
   final double? height;
   final String color;
+  final String? uniqueSpot;
+  final String? knownConditions;
   final String? code;
   final String? qrCode;
   final String? qrCodeUrl;
@@ -25,6 +27,8 @@ class AnimalModel {
     required this.breed,
     required this.color,
     required this.gender,
+    this.uniqueSpot,
+    this.knownConditions,
     this.owner,
     this.code,
     this.qrCode,
@@ -48,6 +52,8 @@ class AnimalModel {
       weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
       height: json['height'] != null ? (json['height'] as num).toDouble() : null,
       color: json['color'],
+      uniqueSpot: json['unique_spot'],
+      knownConditions: json['known_conditions'],
       code: json['code'],
       qrCode: json['qr_code_base64'],
       qrCodeUrl: json['qr_code_url'],
@@ -72,6 +78,8 @@ class AnimalModel {
       'weight': weight,
       'height': height,
       'color': color,
+      'unique_spot': uniqueSpot,
+      'known_conditions': knownConditions,
       'owner': owner,
       'code': code,
       'qr_code_base64': qrCode,

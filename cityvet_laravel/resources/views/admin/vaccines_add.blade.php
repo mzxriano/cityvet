@@ -68,35 +68,12 @@
                     </div>
                     
                     <div>
-                        <label for="schedule" class="block text-sm font-medium text-gray-700 mb-2">Schedule</label>
-                        <input type="text" name="schedule" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter schedule" value="{{ old('schedule') }}">
-                    </div>
-                    
-                    <div>
-                        <label for="protect-against" class="block text-sm font-medium text-gray-700 mb-2">Protect Against</label>
-                        <input type="text" name="protect_against" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter diseases (comma separated)" value="{{ old('protect_against') }}">
-                    </div>
-                    
-                    <div>
                         <label for="expiration_date" class="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
                         <input type="date" id="expiration_date" name="expiration_date" value="{{ old('expiration_date') }}" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 
                 <div class="space-y-6">
-                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Affected</h3>
-                        <select name="affected" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="Dog" {{ old('affected') == 'Dog' ? 'selected' : '' }}>Dog</option>
-                            <option value="Cat" {{ old('affected') == 'Cat' ? 'selected' : '' }}>Cat</option>
-                            <option value="Cattle" {{ old('affected') == 'Cattle' ? 'selected' : '' }}>Cattle</option>
-                            <option value="Goat" {{ old('affected') == 'Goat' ? 'selected' : '' }}>Goat</option>
-                            <option value="Duck" {{ old('affected') == 'Duck' ? 'selected' : '' }}>Duck</option>
-                            <option value="Chicken" {{ old('affected') == 'Chicken' ? 'selected' : '' }}>Chicken</option>
-                            <option value="Swine" {{ old('affected') == 'Swine' ? 'selected' : '' }}>Swine</option>
-                            <option value="Other" {{ old('affected') == 'Other' ? 'selected' : '' }}>Other</option>
-                        </select>
-                    </div>
                     
                     <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Add Stock</h3>
@@ -120,7 +97,6 @@
 
 @push('scripts')
 <script>
-// Optional: Form validation before submit
 document.getElementById('vaccine-form').addEventListener('submit', function(e) {
     const name = document.getElementById('vaccine-name').value.trim();
     if (!name) {
