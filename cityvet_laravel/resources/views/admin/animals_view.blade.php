@@ -106,7 +106,6 @@
         </div>
       </div>
 
-      <!-- Owner Info Card -->
       <div class="bg-white rounded-lg shadow-lg p-6">
         <h3 class="text-lg text-[#858585] mb-4">Owner</h3>
         
@@ -116,7 +115,7 @@
           </h2>
         </div>
         
-        <div class="space-y-4">
+        <div class="space-y-4 mb-7">
           <div>
             <h4 class="text-sm font-medium text-gray-900 mb-2">Address</h4>
             <p class="text-gray-600 break-words">
@@ -139,6 +138,26 @@
               @if($animal->user->email)
                 <p class="text-gray-600 break-words">{{ $animal->user->email }}</p>
               @endif
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg text-[#858585] mb-2">Additional Information</h3>
+
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 mb-2">Unique Spot</h4>
+            <p class="text-gray-600 break-words">
+              {{ $animal->unique_spot ?? 'No unique spot' }}
+            </p>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 mb-2">Known Conditions</h4>
+            <div class="space-y-1">
+              <p class="text-gray-600 break-words">
+                {{ $animal->known_conditions ?? 'No known conditions' }}
+              </p>
             </div>
           </div>
         </div>

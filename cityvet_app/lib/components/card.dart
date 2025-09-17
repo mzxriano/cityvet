@@ -29,14 +29,6 @@ class CustomCardState extends State<CustomCard> {
       decoration: BoxDecoration(
         color: widget.color,
         borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.25),
-            spreadRadius: 0,
-            blurRadius: 5,
-            offset: Offset(0, 0)
-          )
-        ]
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),

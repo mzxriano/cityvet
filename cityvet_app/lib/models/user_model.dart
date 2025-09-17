@@ -5,6 +5,7 @@ class UserModel {
   final String? role;
   final String? firstName;
   final String? lastName;
+  final String? suffix;
   final String? email;
   final String? phoneNumber;
   final String? birthDate;
@@ -23,6 +24,7 @@ class UserModel {
     required this.birthDate,
     required this.barangay,
     required this.street,
+    this.suffix,
     this.role,
     this.imageUrl,
     this.imagePublicId,
@@ -36,6 +38,7 @@ class UserModel {
       role: json['role'],
       firstName: json['first_name'],
       lastName: json['last_name'],
+      suffix: json['suffix'],
       email: json['email'],
       phoneNumber: json['phone_number'],
       birthDate: json['birth_date'],
@@ -57,6 +60,7 @@ class UserModel {
       if(role != null) 'role' : role,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
+      if (suffix != null) 'suffix': suffix,
       if (email != null) 'email': email,
       if (phoneNumber != null) 'phone_number': phoneNumber,
       if (birthDate != null) 'birth_date': birthDate,

@@ -54,7 +54,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   String? selectedColor;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Mixed-Breed'],
+    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever', 'Mixed-Breed'],
     'Cat': ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair', 'Mixed-Breed'],
   };
 

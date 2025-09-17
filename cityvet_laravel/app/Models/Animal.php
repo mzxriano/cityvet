@@ -20,6 +20,8 @@ class Animal extends Model
         'weight',
         'height',
         'color',
+        'unique_spot',
+        'known_conditions',
         'code',
         'image',
         'image_url',

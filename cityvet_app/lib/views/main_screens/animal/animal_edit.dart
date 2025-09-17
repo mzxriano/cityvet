@@ -21,9 +21,13 @@ class _AnimalEditState extends State<AnimalEdit> {
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
+  final TextEditingController uniqueSpotController = TextEditingController();
+  final TextEditingController knownConditionsController = TextEditingController();
   final FocusNode petNameNode = FocusNode();
   final FocusNode weightNode = FocusNode();
   final FocusNode heightNode = FocusNode();
+  final FocusNode uniqueSpotNode = FocusNode();
+  final FocusNode knownConditionsNode = FocusNode();
 
   String? selectedPetType;
   String? selectedBreed;
@@ -37,16 +41,18 @@ class _AnimalEditState extends State<AnimalEdit> {
   String? colorError;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['Aspin', 'Labrador', 'Poodle', 'Bulldog'],
-    'Cat': ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
+    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever', 'Mixed-Breed'],
+    'Cat': ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair', 'Mixed-Breed'],
   };
 
-  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray'];
+  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Orange'];
 
   Future<bool> _onWillPop() async {
     final isFormDirty = petNameController.text.isNotEmpty ||
         weightController.text.isNotEmpty ||
         heightController.text.isNotEmpty ||
+        uniqueSpotController.text.isNotEmpty ||
+        knownConditionsController.text.isNotEmpty ||
         selectedPetType != null ||
         selectedBreed != null ||
         selectedGender != null ||
@@ -69,6 +75,8 @@ class _AnimalEditState extends State<AnimalEdit> {
     petNameController.text = animal.name;
     weightController.text = animal.weight?.toString() ?? '';
     heightController.text = animal.height?.toString() ?? '';
+    uniqueSpotController.text = animal.uniqueSpot ?? '';
+    knownConditionsController.text = animal.knownConditions ?? '';
 
     selectedPetType = animal.type;
     selectedBreed = animal.breed;
@@ -404,6 +412,52 @@ class _AnimalEditState extends State<AnimalEdit> {
                           },
                         ),
 
+                        const SizedBox(height: 12),
+
+                        Text(
+                          'Unique Spot',
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontMedium,
+                          ),
+                        ),
+                        TextFormField(
+                          controller: uniqueSpotController,
+                          focusNode: uniqueSpotNode,
+                          keyboardType: TextInputType.text,
+                          decoration: _buildInputDecoration(),
+                          enabled: !ref.isLoading,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return null;
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Text(
+                          'Known Conditions',
+                          style: TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontMedium,
+                          ),
+                        ),
+                        TextFormField(
+                          controller: knownConditionsController,
+                          focusNode: knownConditionsNode,
+                          keyboardType: TextInputType.text,
+                          decoration: _buildInputDecoration(),
+                          enabled: !ref.isLoading,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return null;
+                            }
+                            return null;
+                          },
+                        ),
+
                         const SizedBox(height: 24),
 
                         /// Submit Button
@@ -437,11 +491,13 @@ class _AnimalEditState extends State<AnimalEdit> {
                               type: selectedPetType!,
                               breed: selectedBreed,
                               name: petNameController.text.trim(),
-                              birthDate: formattedDate, // Use formatted date instead of ISO string
+                              birthDate: formattedDate,
                               gender: selectedGender!,
                               weight: double.tryParse(weightController.text.trim()),
                               height: double.tryParse(heightController.text.trim()),
                               color: selectedColor!,
+                              uniqueSpot: uniqueSpotController.text,
+                              knownConditions: knownConditionsController.text,
                               owner: widget.animalModel.owner,
                               code: widget.animalModel.code,
                               qrCode: widget.animalModel.qrCode,

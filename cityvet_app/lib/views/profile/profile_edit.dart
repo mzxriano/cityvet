@@ -21,18 +21,21 @@ class _ProfileEditState extends State<ProfileEdit> {
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _suffixController = TextEditingController();
 
   final FocusNode _firstNameNode = FocusNode();
   final FocusNode _lastNameNode = FocusNode();
   final FocusNode _phoneNumberNode = FocusNode();
   final FocusNode _emailNode = FocusNode();
   final FocusNode _streetNode = FocusNode();
+  final FocusNode _suffixNode = FocusNode();
 
   bool _isFirstNameFocused = false;
   bool _isLastNameFocused = false;
   bool _isPhoneNumberFocused = false;
   bool _isEmailFocused = false;
   bool _isStreetFocused = false;
+  bool _isSuffixFocused = false;
 
   @override
   void initState() {
@@ -54,6 +57,11 @@ class _ProfileEditState extends State<ProfileEdit> {
     _lastNameNode.addListener(() {
       setState(() {
         _isLastNameFocused = _lastNameNode.hasFocus;
+      });
+    });
+      _suffixNode.addListener(() {
+      setState(() {
+        _isStreetFocused = _suffixNode.hasFocus;
       });
     });
     _phoneNumberNode.addListener(() {
@@ -80,12 +88,14 @@ class _ProfileEditState extends State<ProfileEdit> {
     _phoneNumberController.dispose();
     _emailController.dispose();
     _streetController.dispose();
+    _suffixController.dispose();
 
     _firstNameNode.dispose();
     _lastNameNode.dispose();
     _phoneNumberNode.dispose();
     _emailNode.dispose();
     _streetNode.dispose();
+    _suffixNode.dispose();
 
     super.dispose();
   }
@@ -188,6 +198,22 @@ class _ProfileEditState extends State<ProfileEdit> {
                     textInputType: TextInputType.name,
                     isObscured: false,
                     isFocused: _isLastNameFocused,
+                  ),
+                  Config.heightMedium,
+
+                  Text(
+                    'Suffix',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontMedium,
+                    ),
+                  ),
+                  CustomTextField(
+                    controller: _suffixController,
+                    node: _suffixNode,
+                    textInputType: TextInputType.name,
+                    isObscured: false,
+                    isFocused: _isSuffixFocused,
                   ),
                   Config.heightMedium,
 
@@ -358,6 +384,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                         profileViewModel.formattedBDate,
                         profileViewModel.selectedBarangay,
                         _streetController.text,
+                        _suffixController.text,
                       );
 
                       if (profileViewModel.isSuccessful) {

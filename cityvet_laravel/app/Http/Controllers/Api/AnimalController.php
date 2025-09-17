@@ -368,7 +368,7 @@ class AnimalController
             'weight' => 'sometimes|nullable|numeric|min:0',
             'height' => 'sometimes|nullable|numeric|min:0',
             'color' => 'sometimes|string|max:100',
-            'unique_spot' => 'somtimes|nullable|string|max:255',
+            'unique_spot' => 'sometimes|nullable|string|max:255',
             'known_conditions' => 'sometimes|nullable|string|max:255',
             'image' => 'sometimes|image|mimes:jpg,jpeg,png,webp,heic|max:2048',
         ]);

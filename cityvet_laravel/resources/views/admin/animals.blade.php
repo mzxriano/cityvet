@@ -27,8 +27,8 @@
 
 @php
   $breedOptions = [
-    'Dog' => ['Aspin','Labrador', 'Poodle', 'Bulldog'],
-    'Cat' => ['Persian', 'Siamese', 'Bengal', 'British Shorthair'],
+    'Dog' => ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever'],
+    'Cat' => ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair'],
   ];
 @endphp
 

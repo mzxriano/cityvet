@@ -167,6 +167,7 @@ class ProfileEditViewModel extends ChangeNotifier {
     String? birthDate,
     BarangayModel? barangay,
     String? street,
+    String? suffix,
   ) async {
     try {
       _isLoading = true;
@@ -182,6 +183,7 @@ class ProfileEditViewModel extends ChangeNotifier {
         id: _user?.id,
         firstName: firstName,
         lastName: lastName,
+        suffix: suffix,
         email: email,
         phoneNumber: phoneNumber,
         birthDate: birthDate,
