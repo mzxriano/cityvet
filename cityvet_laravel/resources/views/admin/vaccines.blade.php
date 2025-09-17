@@ -25,71 +25,101 @@
 @endif
 
 <div x-data="{
+    activeTab: 'summary',
     showAddModal: false,
     showEditModal: false,
+    showStockModal: false,
     currentVaccine: {
         id: null,
         name: '',
-        affected: '',
+        brand: '',
+        category: '',
         stock: 0,
         description: '',
+        received_date: '',
         expiration_date: ''
     },
     editVaccine(id) {
-    fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
-        .then(response => response.json())
-        .then(data => {
-            this.currentVaccine = {
-                id: data.id,
-                name: data.name,
-                affected: data.affected,
-                stock: data.stock,
-                description: data.description || '',
-                expiration_date: data.expiration_date || '',
-                image_url: data.image_url || null
-            };
-            this.showEditModal = true;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading vaccine data');
-        });
+        fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
+            .then(response => response.json())
+            .then(data => {
+                this.currentVaccine = {
+                    id: data.id,
+                    name: data.name,
+                    brand: data.brand || '',
+                    category: data.category,
+                    stock: data.stock,
+                    description: data.description || '',
+                    received_date: data.received_date || '',
+                    expiration_date: data.expiration_date || '',
+                    image_url: data.image_url || null
+                };
+                this.showEditModal = true;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading vaccine data');
+            });
     },
     updateStock(id) {
-    fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
-        .then(response => response.json())
-        .then(data => {
-            this.currentVaccine = data;
-            this.showStockModal = true;
-        });
+        fetch(`{{ url('admin/vaccines') }}/${id}/edit`)
+            .then(response => response.json())
+            .then(data => {
+                this.currentVaccine = data;
+                this.showStockModal = true;
+            });
     }
 }">
     <h1 class="title-style mb-4 sm:mb-8">Vaccines</h1>
 
-    <!-- Add Vaccine Button -->
-    <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
-      <form action="{{ route('admin.vaccines.add') }}" method="GET">
-        <button type="submit"
-                class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
-            <span class="hidden sm:inline">+ Add Vaccine</span>
-            <span class="sm:hidden">+ Add</span>
-        </button>
-      </form>
+    <!-- Tabs -->
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="flex space-x-4">
+            <button @click="activeTab = 'summary'"
+                    :class="activeTab === 'summary' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                    class="px-3 py-2 text-sm font-medium">
+                Summary
+            </button>
+            <button @click="activeTab = 'delivery'"
+                    :class="activeTab === 'delivery' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                    class="px-3 py-2 text-sm font-medium">
+                Delivery
+            </button>
+            <button @click="activeTab = 'usage'"
+                    :class="activeTab === 'usage' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                    class="px-3 py-2 text-sm font-medium">
+                Usage
+            </button>
+        </nav>
     </div>
 
-    <!-- Vaccines Table Card -->
-    <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+    <!-- Add Vaccine Button (only show on delivery tab) -->
+    <div x-show="activeTab === 'delivery'" class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
+        <form action="{{ route('admin.vaccines.add') }}" method="GET">
+            <button type="submit"
+                    class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
+                <span class="hidden sm:inline">+ Add Vaccine</span>
+                <span class="sm:hidden">+ Add</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Shared Filter Component -->
+    <div x-show="activeTab !== 'usage'" class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
         <!-- Filter Form -->
         <div class="mb-4 sm:mb-6 bg-gray-50 p-2 sm:p-4 rounded-lg">
             <form method="GET" class="space-y-3 sm:space-y-4">
+                <!-- Hidden field to preserve active tab -->
+                <input type="hidden" name="tab" :value="activeTab">
+                
                 <!-- Search Bar -->
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center">
                     <div class="flex-1">
                         <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}" 
-                               placeholder="Search vaccines..." 
-                               class="w-full border border-gray-300 px-2 py-2 sm:px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            name="search" 
+                            value="{{ request('search') }}" 
+                            placeholder="Search vaccines..." 
+                            class="w-full border border-gray-300 px-2 py-2 sm:px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     </div>
                     <button type="submit" 
                             class="bg-blue-500 text-white px-3 py-2 sm:px-6 rounded-md hover:bg-blue-600 transition flex items-center justify-center gap-2 text-sm">
@@ -102,6 +132,18 @@
 
                 <!-- Filters -->
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center sm:flex-wrap">
+                    <!-- Category Filter -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Category:</label>
+                        <select name="category" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            <option value="">All Categories</option>
+                            <option value="vaccine" {{ request('category') == 'vaccine' ? 'selected' : '' }}>Vaccine</option>
+                            <option value="deworming" {{ request('category') == 'deworming' ? 'selected' : '' }}>Deworming</option>
+                            <option value="vitamin" {{ request('category') == 'vitamin' ? 'selected' : '' }}>Vitamin</option>
+                        </select>
+                    </div>
+
+                    <!-- Stock Filter -->
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Stock:</label>
                         <select name="stock_status" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
@@ -118,9 +160,9 @@
                             Apply Filters
                         </button>
 
-                        @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                        @if(request()->hasAny(['search', 'category', 'stock_status']))
                             <a href="{{ route('admin.vaccines') }}" 
-                               class="bg-gray-500 text-white px-3 py-2 sm:px-4 rounded-md hover:bg-gray-600 transition text-center text-sm">
+                            class="bg-gray-500 text-white px-3 py-2 sm:px-4 rounded-md hover:bg-gray-600 transition text-center text-sm">
                                 Clear All
                             </a>
                         @endif
@@ -128,7 +170,7 @@
                 </div>
 
                 <!-- Active Filters Display -->
-                @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                @if(request()->hasAny(['search', 'category', 'stock_status']))
                     <div class="flex flex-wrap gap-1 sm:gap-2 pt-2 border-t">
                         <span class="text-xs sm:text-sm text-gray-600">Active filters:</span>
                         
@@ -139,16 +181,16 @@
                             </span>
                         @endif
                         
-                        @if(request('affected'))
+                        @if(request('category'))
                             <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                                {{ request('affected') }}
-                                <a href="{{ request()->fullUrlWithQuery(['affected' => null]) }}" class="text-green-600 hover:text-green-800">×</a>
+                                {{ ucfirst(request('category')) }}
+                                <a href="{{ request()->fullUrlWithQuery(['category' => null]) }}" class="text-green-600 hover:text-green-800">×</a>
                             </span>
                         @endif
                         
                         @if(request('stock_status'))
                             <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                                {{ ucfirst(request('stock_status')) }}
+                                {{ ucfirst(request('stock_status')) }} Stock
                                 <a href="{{ request()->fullUrlWithQuery(['stock_status' => null]) }}" class="text-yellow-600 hover:text-yellow-800">×</a>
                             </span>
                         @endif
@@ -159,38 +201,51 @@
             <!-- Results Count -->
             <div class="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-600">
                 Showing {{ $vaccines->count() }} vaccine(s)
-                @if(request()->hasAny(['search', 'affected', 'stock_status']))
+                @if(request()->hasAny(['search', 'category', 'stock_status']))
                     matching your criteria
                 @endif
             </div>
         </div>
+    </div>
 
-        <!-- Table Container with horizontal scroll -->
-        <div class="overflow-x-auto -mx-2 sm:mx-0">
-            <div class="inline-block min-w-full align-middle">
-                <table class="min-w-full border-collapse">
-                    <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
-                        <tr>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden lg:table-cell">Expiration</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Stock</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Status</th>
-                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white">
-                    @forelse($vaccines as $index => $vaccine)
-                        <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
-                            onClick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'">
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                <div class="font-medium text-gray-900">{{ $vaccine->name }}</div>
-                                <!-- Mobile-only additional info -->
-                                <div class="text-gray-500 text-xs md:hidden">
-                                    <div>{{ $vaccine->affected }}</div>
-                                    @php $stock = $vaccine->stock ?? 0; @endphp
-                                    <div class="sm:hidden">
+    <!-- SUMMARY TAB -->
+    <div x-show="activeTab === 'summary'" x-cloak>
+        <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+            <!-- Table Container with horizontal scroll -->
+            <div class="overflow-x-auto -mx-2 sm:mx-0">
+                <div class="inline-block min-w-full align-middle">
+                    <table class="min-w-full border-collapse">
+                        <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                            <tr>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Category</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Brand</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Overall Stock</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Status</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white">
+                        @forelse($vaccines as $index => $vaccine)
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150">
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs capitalize">
+                                        {{ $vaccine->category }}
+                                    </span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="font-medium">{{ $vaccine->brand ?? '-' }}</span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium text-gray-900">{{ $vaccine->name }}</div>
+                                    @if($vaccine->brand)
+                                        <div class="text-gray-500 text-xs">{{ $vaccine->brand }}</div>
+                                    @endif
+                                    <!-- Mobile-only additional info -->
+                                    <div class="text-gray-500 text-xs sm:hidden">
+                                        @php $stock = $vaccine->stock ?? 0; @endphp
                                         Stock: {{ $stock }} 
                                         @if($stock <= 5)
                                             <span class="text-red-500">(Low)</span>
@@ -200,75 +255,408 @@
                                             <span class="text-green-500">(High)</span>
                                         @endif
                                     </div>
-                                    <div class="lg:hidden">
-                                        @if($vaccine->expiration_date)
-                                            Exp: {{ \Carbon\Carbon::parse($vaccine->expiration_date)->format('M j, Y') }}
-                                        @else
-                                            Exp: N/A
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden lg:table-cell">
-                                @if($vaccine->expiration_date)
-                                    {{ \Carbon\Carbon::parse($vaccine->expiration_date)->format('M j, Y') }}
-                                @else
-                                    <span class="text-gray-400">N/A</span>
-                                @endif
-                            </td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                <span class="font-medium">{{ $vaccine->stock ?? 0 }}</span>
-                            </td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">
-                                @php $stock = $vaccine->stock ?? 0; @endphp
-                                @if($stock <= 5)
-                                    <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Low</span>
-                                @elseif($stock <= 20)
-                                    <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Medium</span>
-                                @else
-                                    <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">High</span>
-                                @endif
-                            </td>
-                            <td class="px-2 py-2 sm:px-4 sm:py-3 text-center" onclick="event.stopPropagation()">
-                                <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                                    <button @click="updateStock({{ $vaccine->id }})"
-                                            class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition">
-                                        Stock
-                                    </button>
-                                    <button @click="editVaccine({{ $vaccine->id }})"
-                                            class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
-                                        Edit
-                                    </button>
-                                    <form action="{{ route('admin.vaccines.destroy', $vaccine->id) }}" method="POST" class="inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this vaccine?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="bg-red-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-red-600 transition w-full sm:w-auto">
-                                            Delete
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="font-medium">{{ $vaccine->stock ?? 0 }}</span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">
+                                    @php $stock = $vaccine->stock ?? 0; @endphp
+                                    @if($stock <= 5)
+                                        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Low</span>
+                                    @elseif($stock <= 20)
+                                        <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Medium</span>
+                                    @else
+                                        <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">High</span>
+                                    @endif
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-center" onclick="event.stopPropagation()">
+                                    <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                        <button onclick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'"
+                                                class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition w-full sm:w-auto">
+                                            View
                                         </button>
-                                    </form>
-                                </div>
-                            </td>
+                                        <button @click="editVaccine({{ $vaccine->id }})"
+                                                class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
+                                            Edit
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-gray-500 text-sm">
+                                    <div class="flex flex-col items-center px-4">
+                                        <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <p class="text-sm sm:text-base font-medium text-gray-900 mb-1">No vaccines found</p>
+                                        <p class="text-gray-500 text-xs sm:text-sm">No vaccines available at the moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELIVERY TAB -->
+    <div x-show="activeTab === 'delivery'" x-cloak>
+        <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+            <!-- Table Container with horizontal scroll -->
+            <div class="overflow-x-auto -mx-2 sm:mx-0">
+                <div class="inline-block min-w-full align-middle">
+                    <table class="min-w-full border-collapse">
+                        <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                            <tr>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Category</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Brand</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Received Stock</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Received Date</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Expiration Date</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white">
+                        @forelse($vaccines as $index => $vaccine)
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150">
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs capitalize">
+                                        {{ $vaccine->category }}
+                                    </span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium text-gray-900">{{ $vaccine->name }}</div>
+                                    <!-- Mobile-only additional info -->
+                                    <div class="text-gray-500 text-xs md:hidden">
+                                        <div>Stock: {{ $vaccine->stock ?? 0 }}</div>
+                                        <div>
+                                            Rcvd: {{ $vaccine->received_date ? \Carbon\Carbon::parse($vaccine->received_date)->format('M j, Y') : 'N/A' }}
+                                        </div>
+                                        <div>
+                                            Exp: {{ $vaccine->expiration_date ? \Carbon\Carbon::parse($vaccine->expiration_date)->format('M j, Y') : 'N/A' }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="font-medium">{{ $vaccine->brand ?? '-' }}</span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    @if($vaccine->stock)
+                                        {{ $vaccine->stock }}
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    @if($vaccine->received_date)
+                                        {{ \Carbon\Carbon::parse($vaccine->received_date)->format('M j, Y') }}
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    @if($vaccine->expiration_date)
+                                        @php
+                                            $expirationDate = \Carbon\Carbon::parse($vaccine->expiration_date);
+                                            $daysUntilExpiration = now()->diffInDays($expirationDate, false);
+                                            $isExpired = $daysUntilExpiration < 0;
+                                            $isExpiringSoon = $daysUntilExpiration <= 30 && $daysUntilExpiration >= 0;
+                                        @endphp
+                                        <span class="{{ $isExpired ? 'text-red-600 font-medium' : ($isExpiringSoon ? 'text-yellow-600 font-medium' : '') }}">
+                                            {{ $expirationDate->format('M j, Y') }}
+                                        </span>
+                                        @if($isExpired)
+                                            <div class="text-xs text-red-500">Expired</div>
+                                        @elseif($isExpiringSoon)
+                                            <div class="text-xs text-yellow-500">Expires Soon</div>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-center" onclick="event.stopPropagation()">
+                                    <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                        <button onclick="window.location.href = '{{ route('admin.vaccines.show', $vaccine->id) }}'"
+                                                class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition w-full sm:w-auto">
+                                            View
+                                        </button>
+                                        <button @click="editVaccine({{ $vaccine->id }})"
+                                                class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
+                                            Edit
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-gray-500 text-sm">
+                                    <div class="flex flex-col items-center px-4">
+                                        <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <p class="text-sm sm:text-base font-medium text-gray-900 mb-1">No vaccines found</p>
+                                        <p class="text-gray-500 text-xs sm:text-sm">No vaccines available at the moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USAGE TAB -->
+<div x-show="activeTab === 'usage'" x-cloak>
+    <!-- Usage Filters -->
+    <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
+        <div class="mb-4 sm:mb-6 bg-gray-50 p-2 sm:p-4 rounded-lg">
+            <form method="GET" class="space-y-3 sm:space-y-4">
+                <!-- Hidden field to preserve active tab -->
+                <input type="hidden" name="tab" value="usage">
+                
+                <!-- Search Bar -->
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center">
+                    <div class="flex-1">
+                        <input type="text" 
+                            name="usage_search" 
+                            value="{{ request('usage_search') }}" 
+                            placeholder="Search usage records..." 
+                            class="w-full border border-gray-300 px-2 py-2 sm:px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    </div>
+                    <button type="submit" 
+                            class="bg-blue-500 text-white px-3 py-2 sm:px-6 rounded-md hover:bg-blue-600 transition flex items-center justify-center gap-2 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Search</span>
+                    </button>
+                </div>
+
+                <!-- Filters Row 1 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                    <!-- Vaccine Filter -->
+                    <div class="flex flex-col">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 mb-1">Vaccine:</label>
+                        <select name="usage_vaccine" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            <option value="">All Vaccines</option>
+                            @foreach($vaccinesForFilter as $vaccine)
+                                <option value="{{ $vaccine->id }}" {{ request('usage_vaccine') == $vaccine->id ? 'selected' : '' }}>
+                                    {{ $vaccine->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Barangay Filter -->
+                    <div class="flex flex-col">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 mb-1">Barangay:</label>
+                        <select name="usage_barangay" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            <option value="">All Barangays</option>
+                            @foreach($barangays as $barangay)
+                                <option value="{{ $barangay->id }}" {{ request('usage_barangay') == $barangay->id ? 'selected' : '' }}>
+                                    {{ $barangay->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="flex flex-col">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 mb-1">Category:</label>
+                        <select name="usage_category" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            <option value="">All Categories</option>
+                            <option value="vaccine" {{ request('usage_category') == 'vaccine' ? 'selected' : '' }}>Vaccine</option>
+                            <option value="deworming" {{ request('usage_category') == 'deworming' ? 'selected' : '' }}>Deworming</option>
+                            <option value="vitamin" {{ request('usage_category') == 'vitamin' ? 'selected' : '' }}>Vitamin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filters Row 2 - Date Range -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 mb-1">Date From:</label>
+                        <input type="date" 
+                            name="usage_date_from" 
+                            value="{{ request('usage_date_from') }}" 
+                            class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label class="text-xs sm:text-sm font-medium text-gray-700 mb-1">Date To:</label>
+                        <input type="date" 
+                            name="usage_date_to" 
+                            value="{{ request('usage_date_to') }}" 
+                            class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    </div>
+
+                    <div class="flex flex-col justify-end">
+                        <button type="submit" 
+                                class="bg-green-500 text-white px-3 py-2 sm:px-4 rounded-md hover:bg-green-600 transition text-sm">
+                            Apply Filters
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col justify-end">
+                        @if(request()->hasAny(['usage_search', 'usage_vaccine', 'usage_barangay', 'usage_category', 'usage_date_from', 'usage_date_to']))
+                            <a href="{{ route('admin.vaccines') }}?tab=usage" 
+                            class="bg-gray-500 text-white px-3 py-2 sm:px-4 rounded-md hover:bg-gray-600 transition text-center text-sm">
+                                Clear All
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Active Filters Display -->
+                @if(request()->hasAny(['usage_search', 'usage_vaccine', 'usage_barangay', 'usage_category', 'usage_date_from', 'usage_date_to']))
+                    <div class="flex flex-wrap gap-1 sm:gap-2 pt-2 border-t">
+                        <span class="text-xs sm:text-sm text-gray-600">Active filters:</span>
+                        
+                        @if(request('usage_search'))
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                Search: "{{ Str::limit(request('usage_search'), 15) }}"
+                                <a href="{{ request()->fullUrlWithQuery(['usage_search' => null]) }}" class="text-blue-600 hover:text-blue-800">×</a>
+                            </span>
+                        @endif
+                        
+                        @if(request('usage_vaccine'))
+                            @php
+                                $selectedVaccine = $vaccinesForFilter->find(request('usage_vaccine'));
+                            @endphp
+                            @if($selectedVaccine)
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                    Vaccine: {{ Str::limit($selectedVaccine->name, 15) }}
+                                    <a href="{{ request()->fullUrlWithQuery(['usage_vaccine' => null]) }}" class="text-green-600 hover:text-green-800">×</a>
+                                </span>
+                            @endif
+                        @endif
+                        
+                        @if(request('usage_barangay'))
+                            @php
+                                $selectedBarangay = $barangays->find(request('usage_barangay'));
+                            @endphp
+                            @if($selectedBarangay)
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                    Barangay: {{ Str::limit($selectedBarangay->name, 15) }}
+                                    <a href="{{ request()->fullUrlWithQuery(['usage_barangay' => null]) }}" class="text-purple-600 hover:text-purple-800">×</a>
+                                </span>
+                            @endif
+                        @endif
+                        
+                        @if(request('usage_category'))
+                            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                {{ ucfirst(request('usage_category')) }}
+                                <a href="{{ request()->fullUrlWithQuery(['usage_category' => null]) }}" class="text-yellow-600 hover:text-yellow-800">×</a>
+                            </span>
+                        @endif
+                        
+                        @if(request('usage_date_from'))
+                            <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                From: {{ \Carbon\Carbon::parse(request('usage_date_from'))->format('M j, Y') }}
+                                <a href="{{ request()->fullUrlWithQuery(['usage_date_from' => null]) }}" class="text-indigo-600 hover:text-indigo-800">×</a>
+                            </span>
+                        @endif
+                        
+                        @if(request('usage_date_to'))
+                            <span class="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                                To: {{ \Carbon\Carbon::parse(request('usage_date_to'))->format('M j, Y') }}
+                                <a href="{{ request()->fullUrlWithQuery(['usage_date_to' => null]) }}" class="text-pink-600 hover:text-pink-800">×</a>
+                            </span>
+                        @endif
+                    </div>
+                @endif
+            </form>
+
+            <!-- Results Count -->
+            <div class="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-600">
+                Showing {{ $usageData->count() }} usage record(s)
+                @if(request()->hasAny(['usage_search', 'usage_vaccine', 'usage_barangay', 'usage_category', 'usage_date_from', 'usage_date_to']))
+                    matching your criteria
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Data Table -->
+    <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+        <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <div class="inline-block min-w-full align-middle">
+                <table class="min-w-full border-collapse">
+                    <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                        <tr>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm whitespace-nowrap">No.</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Treatment</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Animal</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Owner</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Date Given</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Dose</th>
+                            <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Administrator</th>
                         </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        @forelse($usageData as $index => $usage)
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium text-gray-900">{{ $usage->vaccine_name }}</div>
+                                    @if($usage->vaccine_brand)
+                                        <div class="text-gray-500 text-xs">{{ $usage->vaccine_brand }}</div>
+                                    @endif
+                                    <div class="text-xs">
+                                        <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full capitalize">
+                                            {{ $usage->vaccine_category }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium">{{ $usage->animal_name }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $usage->animal_type }} - {{ $usage->animal_breed }}</div>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <div class="font-medium">{{ $usage->owner_first_name }} {{ $usage->owner_last_name }}</div>
+                                </td>
+                                {{-- <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                        {{ $usage->barangay_name }}
+                                    </span>
+                                </td> --}}
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    {{ \Carbon\Carbon::parse($usage->date_given)->format('M j, Y') }}
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    {{ $usage->dose ?? 'N/A' }}
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    {{ $usage->administrator ?? 'N/A' }}
+                                </td>
+                            </tr>
                         @empty
-                          <tr>
-                              <td colspan="7" class="text-center py-8 text-gray-500 text-sm">
-                                  <div class="flex flex-col items-center px-4">
-                                      <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                      </svg>
-                                      <p class="text-sm sm:text-base font-medium text-gray-900 mb-1">No vaccines found</p>
-                                      <p class="text-gray-500 text-xs sm:text-sm">No vaccines available at the moment.</p>
-                                  </div>
-                              </td>
-                          </tr>
-                    @endforelse
+                            <tr>
+                                <td colspan="8" class="text-center py-8 text-gray-500 text-sm">
+                                    <div class="flex flex-col items-center px-4">
+                                        <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                        <p class="text-sm sm:text-base font-medium text-gray-900 mb-1">No usage records found</p>
+                                        <p class="text-gray-500 text-xs sm:text-sm">No vaccine usage records available at the moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Edit Vaccine Modal -->
     <div x-show="showEditModal" 
@@ -299,7 +687,15 @@
                     @csrf
                     @method('PUT')
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Vaccine Name</label>
+                        <label class="block text-sm font-medium text-gray-700">Category</label>
+                        <input type="text" 
+                               name="category"
+                               x-model="currentVaccine.category"
+                               required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
                         <input type="text" 
                                name="name"
                                x-model="currentVaccine.name"
@@ -313,6 +709,14 @@
                                   x-model="currentVaccine.description"
                                   rows="3"
                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Received Date</label>
+                        <input type="date" 
+                               name="received_date"
+                               x-model="currentVaccine.received_date"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
                     </div>
 
                     <div>
@@ -366,153 +770,5 @@
             </div>
         </div>
     </div>
-
-    <!-- Stock Update Modal -->
-    <div x-show="showStockModal" 
-        x-cloak
-        x-transition
-        class="fixed inset-0 z-50 overflow-y-auto"
-        @keydown.escape.window="showStockModal = false">
-        
-        <div class="fixed inset-0 bg-black opacity-50" @click="showStockModal = false"></div>
-        
-        <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-lg w-full max-w-sm">
-                <!-- Enhanced Modal Header -->
-                <div class="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Update Stock</h3>
-                        <p class="text-sm text-gray-600" x-text="currentVaccine.name"></p>
-                    </div>
-                    <button @click="showStockModal = false" class="text-gray-400 hover:text-gray-500">
-                        <span class="sr-only">Close</span>
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <form :action="`{{ url('admin/vaccines') }}/${currentVaccine.id}/stock`" 
-                    method="POST" 
-                    class="p-6"
-                    enctype="multipart/form-data"
-                    x-data="{ 
-                        action: 'add',
-                        quantity: 1,
-                        reason: '',
-                        get preview() {
-                            const newStock = this.action === 'add' 
-                                ? currentVaccine.stock + parseInt(this.quantity || 0)
-                                : currentVaccine.stock - parseInt(this.quantity || 0);
-                            return Math.max(0, newStock);
-                        }
-                    }">
-                    @csrf
-                    @method('PATCH')
-                    
-                    <div class="space-y-6">
-                        <!-- Current Stock Display -->
-                        <div class="bg-gray-50 p-4 rounded-lg text-center">
-                            <label class="text-sm font-medium text-gray-700">Current Stock</label>
-                            <div class="text-2xl font-bold text-gray-900" x-text="currentVaccine.stock"></div>
-                        </div>
-
-                        <!-- Action Selection -->
-                        <div class="flex gap-4">
-                            <label class="flex-1">
-                                <input type="radio" 
-                                    name="action" 
-                                    value="add" 
-                                    x-model="action"
-                                    class="sr-only">
-                                <div class="border rounded-lg p-4 text-center cursor-pointer transition-all"
-                                    :class="action === 'add' ? 'border-green-500 bg-green-50 text-green-700' : 'hover:bg-gray-50'">
-                                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                    </svg>
-                                    Add Stock
-                                </div>
-                            </label>
-                            <label class="flex-1">
-                                <input type="radio" 
-                                    name="action" 
-                                    value="remove" 
-                                    x-model="action"
-                                    class="sr-only">
-                                <div class="border rounded-lg p-4 text-center cursor-pointer transition-all"
-                                    :class="action === 'remove' ? 'border-red-500 bg-red-50 text-red-700' : 'hover:bg-gray-50'">
-                                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                                    </svg>
-                                    Remove Stock
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Quantity Input -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                            <div class="flex items-center gap-2">
-                                <button type="button" 
-                                        @click="quantity = Math.max(1, parseInt(quantity) - 1)"
-                                        class="p-2 border rounded hover:bg-gray-50">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                                    </svg>
-                                </button>
-                                <input type="number" 
-                                    name="quantity"
-                                    x-model="quantity"
-                                    min="1"
-                                    required
-                                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center">
-                                <button type="button"
-                                        @click="quantity = parseInt(quantity) + 1"
-                                        class="p-2 border rounded hover:bg-gray-50">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Preview of New Stock -->
-                        <div class="bg-blue-50 p-4 rounded-lg text-center">
-                            <span class="text-sm text-blue-700">New Stock will be:</span>
-                            <div class="text-2xl font-bold text-blue-900" x-text="preview"></div>
-                        </div>
-
-                        <!-- Reason Input -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Reason 
-                                <span class="text-gray-400">(Optional)</span>
-                            </label>
-                            <textarea name="reason" 
-                                    x-model="reason"
-                                    rows="2"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    placeholder="Enter reason for stock update..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="flex justify-end gap-3 mt-6 pt-6 border-t">
-                        <button type="button" 
-                                @click="showStockModal = false"
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-                            Update Stock
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 </div>
 @endsection

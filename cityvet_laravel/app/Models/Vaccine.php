@@ -8,7 +8,9 @@ class Vaccine extends Model
 {
     //
     protected $fillable = [
+        'category',
         'name',
+        'brand',
         'description',
         'stock',
         'image_url',
@@ -17,6 +19,7 @@ class Vaccine extends Model
         'affected',
         'schedule',
         'expiration_date',
+        'received_date',
     ];
 
     public function animals() {

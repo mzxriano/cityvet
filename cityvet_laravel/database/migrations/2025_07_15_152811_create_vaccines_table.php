@@ -15,13 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->text('brand')->nullable();
+            $table->enum('category', ['vaccine', 'deworming', 'vitamin']);
             $table->integer('stock')->default(0);
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();
             $table->string('protect_against')->nullable();
             $table->string('affected')->nullable();
-            $table->string('schedule')->nullable();
-            $table->date('expiration_date')->nullable();
+            $table->date('received_date');
+            $table->date('expiration_date');
             $table->timestamps();
         });
     }

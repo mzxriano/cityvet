@@ -262,7 +262,7 @@ function activitiesManager() {
     <div class="mb-4">
       <form method="GET" action="{{ route('admin.activities') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
         <select name="status" class="w-full md:w-auto border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base">
-          <option value="">All Statuses</option>
+          <option value="">All Status</option>
           <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
           <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
           <option value="up_coming" {{ request('status') == 'up_coming' ? 'selected' : '' }}>Up Coming</option>
@@ -346,24 +346,21 @@ function activitiesManager() {
               </td>
               <td class="px-4 py-2 text-center whitespace-nowrap" onclick="event.stopPropagation()">
                 <div class="flex justify-center space-x-2">
-                  <button 
-                    @click="editActivity({
-                      id: {{ $activity->id }},
-                      reason: @js($activity->reason),
-                      barangay_id: {{ $activity->barangay_id }},
-                      time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
-                      date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
-                      status: @js($activity->status),
-                      details: @js($activity->details ?? '')
-                    })" 
-                    class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm">
-                    Edit
-                  </button>
-                  <button 
-                    @click="confirmDelete({{ json_encode($activity) }})" 
-                    class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-sm border-2 border-red-600">
-                    Delete
-                  </button>
+                  @if($activity->status != 'completed')
+                    <button 
+                      @click="editActivity({
+                        id: {{ $activity->id }},
+                        reason: @js($activity->reason),
+                        barangay_id: {{ $activity->barangay_id }},
+                        time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
+                        date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
+                        status: @js($activity->status),
+                        details: @js($activity->details ?? '')
+                      })" 
+                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm">
+                      Edit
+                    </button>
+                    @endif
                 </div>
               </td>
             </tr>

@@ -99,6 +99,10 @@ Future<void> login(String email, String password) async
     final data = e.response?.data;
     final statusCode = e.response?.statusCode;
 
+      print('DioException: ${e.response?.data}');
+    print('Status code: ${e.response?.statusCode}');
+    print('Type: ${e.response?.data.runtimeType}');
+
     if(e.response?.statusCode == 401 && data['errors'] != null) {
       setError(data['errors']);
       setMessage(data['message']);
