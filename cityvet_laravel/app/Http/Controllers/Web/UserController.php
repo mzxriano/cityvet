@@ -20,6 +20,15 @@ class UserController
     {
         $query = User::with(["roles", "barangay"]);
 
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        } else {
+            // For "All" tab, exclude pending users - only show approved/active users
+            $query->whereIn('status', ['active', 'inactive']);
+        }
+
+        // Filter by role
         if ($request->filled('role')) {
             $roleId = $request->input('role');
             $query->whereHas('roles', function ($q) use ($roleId) {
@@ -27,15 +36,27 @@ class UserController
             });
         }
 
+        // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%");
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        $users = $query->get();
+        // Get per_page value, default to 10
+        $perPage = $request->input('per_page', 10);
+        
+        // Paginate results
+        $users = $query->paginate($perPage);
+
+        // Get counts for tabs
+        $allCount = User::whereIn('status', ['active', 'inactive'])->count();
+        $pendingCount = User::where('status', 'pending')->count();
+        $rejectedCount = User::where('status', 'rejected')->count();
+
         $roles = Role::all();
         $barangays = Barangay::all();
 
@@ -43,6 +64,9 @@ class UserController
             "users",
             "roles",
             "barangays",
+            "allCount",
+            "pendingCount",
+            "rejectedCount"
         ]));
     }
 
@@ -70,7 +94,7 @@ class UserController
             "street" => "required|string|max:255",
             "role_ids" => "required|array|min:1",
             "role_ids.*" => "exists:roles,id",
-            "status" => "nullable|in:active,inactive,banned",
+            "status" => "nullable|in:active,inactive,pending,rejected,banned",
         ]);
 
         if($validate->fails()) {
@@ -78,7 +102,7 @@ class UserController
         }
 
         $validated = $validate->validated();
-        $validated["status"] = $validated["status"] ?? "active";
+        $validated["status"] = $validated["status"] ?? "pending";
 
         // Generate a random password for the user
         $password = Str::random(10);
@@ -148,7 +172,7 @@ class UserController
             'street'       => 'sometimes|nullable|string',
             'role_ids' => 'sometimes|array',
             'role_ids.*' => 'exists:roles,id',
-            'status' => 'sometimes|in:active,inactive,banned',
+            'status' => 'sometimes|in:active,inactive,pending,rejected,banned',
         ]);
 
         $user->update($validated);
@@ -174,5 +198,47 @@ class UserController
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Approve a pending user
+     */
+    public function approve(string $id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->status !== 'pending') {
+            return redirect()->back()->with('error', 'Only pending users can be approved.');
+        }
+
+        $user->update(['status' => 'active']);
+
+        // Send approval email
+        $user->notify(new \App\Notifications\UserApproved());
+
+        return redirect()->route('admin.users')->with('success', 'User has been approved successfully and notified via email.');
+    }
+
+    /**
+     * Reject a pending user
+     */
+    public function reject(Request $request, string $id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->status !== 'pending') {
+            return redirect()->back()->with('error', 'Only pending users can be rejected.');
+        }
+
+        $validated = $request->validate([
+            'rejection_message' => 'required|string|max:1000'
+        ]);
+
+        $user->update(['status' => 'rejected']);
+
+        // Send rejection email with message
+        $user->notify(new \App\Notifications\UserRejected($validated['rejection_message']));
+
+        return redirect()->route('admin.users')->with('success', 'User has been rejected and notified via email.');
     }
 }

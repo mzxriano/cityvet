@@ -10,11 +10,11 @@
         </svg>
     </button>
 
-    <div class="flex items-center gap-[1rem]">
+    <div class="flex items-center gap-[1rem] cursor-pointer" onclick="window.location.href = '{{ route('admin.dashboard') }}'">
         <div>
-            <img src="{{ asset('images/cityvet-logo.png') }}" width="50" height="50" alt="Cityvet logo">
+            <img src="{{ asset('images/cityvet-logo.png') }}" width="100" height="100" alt="Cityvet logo">
         </div>
-        <h2 class="text-2xl font-medium mt-4 mb-3">CityVet</h2>
+        <h2 class="text-3xl font-medium mt-4 mb-3">CityVet</h2>
     </div>
     <hr class="mb-4">
     

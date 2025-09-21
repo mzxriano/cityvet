@@ -9,7 +9,7 @@ import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home/home_view.dart';
-import 'package:cityvet_app/views/main_screens/notification_view.dart';
+import 'package:cityvet_app/views/main_screens/notification/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:dio/dio.dart';

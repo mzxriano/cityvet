@@ -48,6 +48,7 @@ Route::prefix('auth')->group(function () {
             Route::get('/recent', [ActivityController::class,'recentActivities']);
             Route::get('/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimals']);
             Route::get('/{activityId}/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimalsByActivity']);
+            Route::post('/{id}/upload-images', [ActivityController::class,'uploadImages']);
         });
 
         Route::get('/recent-activities', [ActivityController::class,'recentActivities']);

@@ -49,15 +49,23 @@ class CustomImagePicker {
   Future<List<File>?> pickMultipleImages() async {
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
-    List<File>? selectedImages = [];
+    List<File> selectedImages = [];
 
     if (pickedFiles.isNotEmpty) {
-        selectedImages.addAll(pickedFiles.map((e) => File(e.path)));
-        return selectedImages;
+        for (final pickedFile in pickedFiles) {
+          final file = File(pickedFile.path);
+          // Check if file exists and has size > 0
+          if (await file.exists() && await file.length() > 0) {
+            selectedImages.add(file);
+            print('Valid image selected: ${pickedFile.path}, size: ${await file.length()}');
+          } else {
+            print('Invalid or empty image skipped: ${pickedFile.path}');
+          }
+        }
+        return selectedImages.isNotEmpty ? selectedImages : null;
     }
 
     return null;
-
   }
 
 }

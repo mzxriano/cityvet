@@ -46,9 +46,6 @@
   <!-- Breed Data -->
   <input type="hidden" id="breed-data" value='@json($breedOptions)' />
 
-<!-- Add this wrapper around your filter form and table section -->
-<!-- Replace the existing Filter Form and Table Container sections with this: -->
-
 <!-- Animals Table Card -->
 <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
   <!-- Filter Form -->
@@ -92,8 +89,7 @@
         </thead>
         <tbody class="bg-white">
           @forelse($animals as $index => $animal)
-           <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150"
-                onClick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'">
+           <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                 <span class="font-mono text-gray-600">{{ $animal->code }}</span>
@@ -133,9 +129,13 @@
                 </div>
               </td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-center">
+                <button onclick="window.location.href = '{{ route('admin.animals.show', $animal->id) }}'"
+                    class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition w-full sm:w-auto">
+                    View
+                </button>
                 <button
                   @click.stop="showEditModal = true; currentAnimal = @js($animal)" 
-                  class="text-blue-600 hover:underline text-xs sm:text-sm px-2 py-1 rounded hover:bg-blue-50">
+                  class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition w-full sm:w-auto">
                   Edit
                 </button>
               </td>

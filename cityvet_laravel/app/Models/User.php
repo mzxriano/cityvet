@@ -83,6 +83,16 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $query->where('status', 'inactive');
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
+    }
+
     public function scopeBanned($query)
     {
         return $query->where('status', 'banned');
@@ -98,6 +108,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'force_password_change' => 'boolean',
         ];
     }
 

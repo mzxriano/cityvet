@@ -28,202 +28,47 @@
 // Alpine.js Data Object - Activities Manager
 function activitiesManager() {
   return {
-    // Modal state
-    showCalendarModal: false,
+    // Modal states
     showAddModal: false,
     showEditModal: false,
     showDeleteModal: false,
+    showCalendarModal: false,
     
-    // Data state
+    // Calendar states
+    calendarMode: '',
     selectedDate: '',
+    
+    // Activity data
     currentActivity: null,
     activityToDelete: null,
-    calendarMode: '',
     
-    // Calendar state
+    // Notification settings
+    notifyAll: true,
+    selectedBarangays: [],
+    
+    // Calendar functionality
     currentDate: new Date(),
-    currentMonth: new Date().getMonth(),
-    currentYear: new Date().getFullYear(),
-    
-    // Initialize
-    init() {
-      console.log('Activities Manager initialized');
-    },
     
     // Calendar computed properties
     get monthName() {
-      const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                     'July', 'August', 'September', 'October', 'November', 'December'];
-      return months[this.currentMonth];
+      return this.currentDate.toLocaleDateString('en-US', { month: 'long' });
     },
     
-    get daysInMonth() {
-      return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+    get currentYear() {
+      return this.currentDate.getFullYear();
     },
     
     get firstDayOfMonth() {
-      return new Date(this.currentYear, this.currentMonth, 1).getDay();
+      const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+      return firstDay.getDay();
     },
     
-    // Helper method to check if a date is in the past
-    isDateInPast(day) {
-      const selectedDate = new Date(this.currentYear, this.currentMonth, day);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to compare only dates
-      return selectedDate < today;
+    get daysInMonth() {
+      const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+      return lastDay.getDate();
     },
     
-    // Helper method to check if a date is today
-    isToday(day) {
-      const selectedDate = new Date(this.currentYear, this.currentMonth, day);
-      const today = new Date();
-      return selectedDate.toDateString() === today.toDateString();
-    },
-    
-    // Calendar navigation methods
-    previousMonth() {
-      if (this.currentMonth === 0) {
-        this.currentMonth = 11;
-        this.currentYear--;
-      } else {
-        this.currentMonth--;
-      }
-    },
-    
-    nextMonth() {
-      if (this.currentMonth === 11) {
-        this.currentMonth = 0;
-        this.currentYear++;
-      } else {
-        this.currentMonth++;
-      }
-    },
-    
-    // Date selection and formatting
-    selectDate(day) {
-      // Prevent selection of past dates
-      if (this.isDateInPast(day)) {
-        return;
-      }
-      
-      const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      this.selectedDate = dateStr;
-
-      if (this.calendarMode === 'add') {
-        this.showCalendarModal = false;
-        this.showAddModal = true;
-      } else if (this.calendarMode === 'edit') {
-        if (this.currentActivity) {
-          this.currentActivity.date = dateStr;
-        }
-        this.showCalendarModal = false;
-        this.showEditModal = true;
-      }
-    },
-
-    formatSelectedDate() {
-      if (!this.selectedDate) return '';
-      const date = new Date(this.selectedDate + 'T00:00:00');
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-    },
-
-    // FIXED: Activity CRUD operations
-    editActivity(activityData) {
-      console.log('Editing activity:', activityData);
-      
-      // Format time to HH:MM format (remove seconds if present)
-      let formattedTime = activityData.time;
-      if (formattedTime && formattedTime.length > 5) {
-        formattedTime = formattedTime.substring(0, 5); // Convert "14:30:00" to "14:30"
-      }
-      
-      // Format date to YYYY-MM-DD format
-      let formattedDate = activityData.date;
-      if (formattedDate) {
-        // Handle different date formats that might come from the database
-        const dateObj = new Date(formattedDate);
-        if (!isNaN(dateObj.getTime())) {
-          formattedDate = dateObj.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
-        }
-      }
-      
-      this.currentActivity = {
-        id: activityData.id,
-        reason: activityData.reason,
-        barangay_id: activityData.barangay_id,
-        time: formattedTime,
-        date: formattedDate,
-        status: activityData.status,
-        details: activityData.details || ''
-      };
-      this.selectedDate = formattedDate;
-      this.showEditModal = true;
-    },
-
-    confirmDelete(activity) {
-      this.activityToDelete = activity;
-      this.showDeleteModal = true;
-    },
-
-    deleteActivity() {
-      if (!this.activityToDelete) {
-        console.error('No activity selected for deletion');
-        return;
-      }
-      
-      // Create a form to submit the delete request
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `/admin/activities/${this.activityToDelete.id}`;
-      
-      // Add CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (!csrfToken) {
-        console.error('CSRF token not found');
-        alert('CSRF token not found. Please refresh the page.');
-        return;
-      }
-      
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = '_token';
-      csrfInput.value = csrfToken;
-      form.appendChild(csrfInput);
-      
-      // Add method override for DELETE
-      const methodInput = document.createElement('input');
-      methodInput.type = 'hidden';
-      methodInput.name = '_method';
-      methodInput.value = 'DELETE';
-      form.appendChild(methodInput);
-      
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Close modal
-      this.showDeleteModal = false;
-      this.activityToDelete = null;
-    },
-
-    // Modal management
-    resetModals() {
-      this.showAddModal = false;
-      this.showEditModal = false;
-      this.showDeleteModal = false;
-      this.showCalendarModal = false;
-      this.selectedDate = '';
-      this.currentActivity = null;
-      this.activityToDelete = null;
-      this.calendarMode = '';
-    },
-    
-    // UI action methods
+    // Methods
     openAddModal() {
       this.resetModals();
       this.showCalendarModal = true;
@@ -240,6 +85,147 @@ function activitiesManager() {
       this.showAddModal = false;
       this.showCalendarModal = true;
       this.calendarMode = 'add';
+    },
+    
+    resetModals() {
+      this.showAddModal = false;
+      this.showEditModal = false;
+      this.showDeleteModal = false;
+      this.showCalendarModal = false;
+      this.selectedDate = '';
+      this.currentActivity = null;
+      this.activityToDelete = null;
+      this.calendarMode = '';
+    },
+    
+    selectDate(day) {
+      const year = this.currentDate.getFullYear();
+      const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(day).padStart(2, '0');
+      this.selectedDate = `${year}-${month}-${dayStr}`;
+      this.showCalendarModal = false;
+      if (this.calendarMode === 'add') {
+        this.showAddModal = true;
+      } else if (this.calendarMode === 'edit') {
+        this.showEditModal = true;
+      }
+    },
+    
+    formatSelectedDate() {
+      if (!this.selectedDate) return '';
+      const date = new Date(this.selectedDate);
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    },
+    
+    editActivity(activity) {
+      this.currentActivity = { ...activity };
+      this.selectedDate = activity.date;
+      this.showEditModal = true;
+    },
+    
+    confirmDelete(activity) {
+      this.activityToDelete = activity;
+      this.showDeleteModal = true;
+    },
+    
+    deleteActivity() {
+      if (!this.activityToDelete) return;
+      
+      // Create and submit delete form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/activities/${this.activityToDelete.id}`;
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = '_token';
+      csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      form.appendChild(csrfInput);
+      
+      const methodInput = document.createElement('input');
+      methodInput.type = 'hidden';
+      methodInput.name = '_method';
+      methodInput.value = 'DELETE';
+      form.appendChild(methodInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+      
+      this.showDeleteModal = false;
+      this.activityToDelete = null;
+    },
+    
+    // Calendar navigation
+    previousMonth() {
+      this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+      this.currentDate = new Date(this.currentDate);
+    },
+    
+    nextMonth() {
+      this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+      this.currentDate = new Date(this.currentDate);
+    },
+    
+    // Calendar utilities
+    getDaysInMonth() {
+      const year = this.currentDate.getFullYear();
+      const month = this.currentDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startingDayOfWeek = firstDay.getDay();
+      
+      const days = [];
+      
+      // Add empty cells for days before the first day of the month
+      for (let i = 0; i < startingDayOfWeek; i++) {
+        days.push(null);
+      }
+      
+      // Add days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        days.push(day);
+      }
+      
+      return days;
+    },
+    
+    isToday(day) {
+      if (!day) return false;
+      const today = new Date();
+      const year = this.currentDate.getFullYear();
+      const month = this.currentDate.getMonth();
+      return today.getFullYear() === year && 
+             today.getMonth() === month && 
+             today.getDate() === day;
+    },
+    
+    isDateInPast(day) {
+      if (!day) return false;
+      const today = new Date();
+      const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+      return selectedDate < today;
+    },
+    
+    formatDateForInput(day) {
+      const year = this.currentDate.getFullYear();
+      const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(day).padStart(2, '0');
+      return `${year}-${month}-${dayStr}`;
+    },
+    
+    getMonthYear() {
+      return this.currentDate.toLocaleDateString('en-US', { 
+        month: 'long', 
+        year: 'numeric' 
+      });
     }
   }
 }
@@ -288,69 +274,60 @@ function activitiesManager() {
         <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
           <tr>
             <th class="px-4 py-2 rounded-tl-xl font-medium whitespace-nowrap">No.</th>
-            <th class="px-4 py-2 font-medium whitespace-nowrap">Reason</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Category</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Barangay</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Time</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Date</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Status</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Vaccinated</th>
-            <th class="px-4 py-2 font-medium whitespace-nowrap">Details</th>
             <th class="px-4 py-2 rounded-tr-xl font-medium whitespace-nowrap">Action</th>
           </tr>
         </thead>
         <tbody>
           @forelse($activities as $index => $activity)
             <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
-              <td class="px-4 py-2 cursor-pointer" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
+              <td class="px-4 py-2">
                 {{ $index + 1 }}
               </td>
-              <td class="px-4 py-2 cursor-pointer max-w-xs" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                <div class="truncate" title="{{ $activity->reason }}">{{ $activity->reason }}</div>
-              </td>
-              <td class="px-4 py-2 cursor-pointer" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                {{ $activity->barangay->name ?? 'N/A' }}
-              </td>
-              <td class="px-4 py-2 cursor-pointer whitespace-nowrap" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                {{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}
-              </td>
-              <td class="px-4 py-2 cursor-pointer whitespace-nowrap" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                {{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}
-              </td>
-              <td class="px-4 py-2 capitalize cursor-pointer whitespace-nowrap" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                {{ ucwords(str_replace('_', ' ', $activity->status)) }}
-              </td>
-              <td class="px-4 py-2 cursor-pointer text-center whitespace-nowrap" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                  {{ $activity->vaccinated_animals_count > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                  {{ $activity->vaccinated_animals_count ?? 0 }} animals
-                </span>
-              </td>
-              <td class="px-4 py-2 cursor-pointer max-w-xs" 
-                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                @if($activity->details)
-                  <div class="truncate" title="{{ $activity->details }}">
-                    <span class="text-sm text-gray-600">
-                      {{ Str::limit($activity->details, 30) }}
-                    </span>
-                  </div>
+              <td class="px-4 py-2">
+                @if($activity->category)
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ ucfirst($activity->category) }}
+                  </span>
                 @else
-                  <span class="text-gray-400 italic">No details</span>
+                  <span class="text-gray-400 italic">Not set</span>
                 @endif
               </td>
-              <td class="px-4 py-2 text-center whitespace-nowrap" onclick="event.stopPropagation()">
+              <td class="px-4 py-2">
+                {{ $activity->barangay->name ?? 'N/A' }}
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                {{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                {{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}
+              </td>
+              <td class="px-4 py-2 capitalize whitespace-nowrap">
+                {{ ucwords(str_replace('_', ' ', $activity->status)) }}
+              </td>
+              <td class="px-4 py-2 text-center whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  {{ $activity->vaccinated_animals_count > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                  {{ $activity->vaccinated_animals_count ?? 0 }}
+                </span>
+              </td>
+              <td class="px-4 py-2 text-center whitespace-nowrap flex gap-2" onclick="event.stopPropagation()">
+              <button onclick="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'"
+                class="bg-green-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-green-600 transition w-full sm:w-auto">
+                  View
+              </button>
                 <div class="flex justify-center space-x-2">
                   @if($activity->status != 'completed')
                     <button 
                       @click="editActivity({
                         id: {{ $activity->id }},
                         reason: @js($activity->reason),
+                        category: @js($activity->category ?? ''),
                         barangay_id: {{ $activity->barangay_id }},
                         time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
                         date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
@@ -366,7 +343,7 @@ function activitiesManager() {
             </tr>
           @empty
             <tr>
-              <td colspan="9" class="text-center py-4 text-gray-500">No activities found.</td>
+              <td colspan="11" class="text-center py-4 text-gray-500">No activities found.</td>
             </tr>
           @endforelse
         </tbody>
@@ -393,6 +370,7 @@ function activitiesManager() {
                 @click="editActivity({
                   id: {{ $activity->id }},
                   reason: @js($activity->reason),
+                  category: @js($activity->category ?? ''),
                   barangay_id: {{ $activity->barangay_id }},
                   time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
                   date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
@@ -413,6 +391,16 @@ function activitiesManager() {
           <div class="grid grid-cols-2 gap-3 text-sm cursor-pointer" 
                @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
             <div>
+              <span class="font-medium text-gray-700">Category:</span>
+              <p class="text-gray-600 truncate">
+                @if($activity->category)
+                  {{ ucfirst($activity->category) }}
+                @else
+                  <span class="text-gray-400 italic">Not set</span>
+                @endif
+              </p>
+            </div>
+            <div>
               <span class="font-medium text-gray-700">Time:</span>
               <p class="text-gray-600 truncate">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</p>
             </div>
@@ -427,6 +415,49 @@ function activitiesManager() {
             <div>
               <span class="font-medium text-gray-700">Vaccinated:</span>
               <p class="text-gray-600 truncate">{{ $activity->vaccinated_animals_count ?? 0 }} animals</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Memo:</span>
+              @if($activity->memo)
+                <a href="{{ route('admin.activities.memo', $activity->id) }}" 
+                   class="text-blue-600 hover:text-blue-800 text-sm flex items-center" 
+                   onclick="event.stopPropagation()">
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  Download
+                </a>
+              @else
+                <p class="text-gray-400 italic text-sm">No memo</p>
+              @endif
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Images:</span>
+              @if($activity->images && count($activity->images) > 0)
+                <div class="mt-1">
+                  <div class="flex items-center space-x-1 mb-1">
+                    @foreach($activity->images as $index => $imageUrl)
+                      @if($index < 4)
+                        <div class="w-12 h-12 rounded overflow-hidden border border-gray-200 cursor-pointer" 
+                             onclick="window.open('{{ $imageUrl }}', '_blank')" 
+                             title="View image {{ $index + 1 }}">
+                          <img src="{{ $imageUrl }}" alt="Activity image" class="w-full h-full object-cover">
+                        </div>
+                      @endif
+                    @endforeach
+                    @if(count($activity->images) > 4)
+                      <div class="w-12 h-12 rounded bg-gray-100 border border-gray-200 flex items-center justify-center cursor-pointer" 
+                           onclick="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'"
+                           title="View all {{ count($activity->images) }} images">
+                        <span class="text-xs text-gray-600 font-medium">+{{ count($activity->images) - 4 }}</span>
+                      </div>
+                    @endif
+                  </div>
+                  <p class="text-xs text-gray-500">{{ count($activity->images) }} image{{ count($activity->images) > 1 ? 's' : '' }} • Click to view</p>
+                </div>
+              @else
+                <p class="text-gray-400 italic text-sm">No images</p>
+              @endif
             </div>
           </div>
           
@@ -531,7 +562,7 @@ function activitiesManager() {
           </p>
         </div>
 
-        <form method="POST" action="{{ route('admin.activities.store') }}" class="px-4 md:px-6 py-4 space-y-4">
+        <form method="POST" action="{{ route('admin.activities.store') }}" class="px-4 md:px-6 py-4 space-y-4" enctype="multipart/form-data">
           @csrf
 
           <div>
@@ -542,11 +573,36 @@ function activitiesManager() {
           <div>
             <label class="block font-medium mb-2 text-sm md:text-base">Barangay</label>
             <select name="barangay_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
-              <option value="">Select Barangay</option>
+              <option value="" disabled selected>Select Barangay</option>
               @foreach($barangays as $barangay)
                 <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
               @endforeach
             </select>
+          </div>
+
+          <div x-data="{ selectedCategory: '', customCategory: '' }">
+            <label class="block font-medium mb-2 text-sm md:text-base">Category</label>
+            <select x-model="selectedCategory" 
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
+              <option value="" disabled selected>Select Category</option>
+              <option value="vaccination">Vaccination</option>
+              <option value="deworming">Deworming</option>
+              <option value="vitamin">Vitamin</option>
+              <option value="other">Other (specify below)</option>
+            </select>
+            
+            <!-- Custom category input that appears when "Other" is selected -->
+            <div x-show="selectedCategory === 'other'" x-transition>
+              <input type="text" 
+                     x-model="customCategory"
+                     placeholder="Please specify the category"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+            </div>
+            
+            <!-- Hidden input that will contain the final category value -->
+            <input type="hidden" 
+                   name="category" 
+                   :value="selectedCategory === 'other' ? customCategory : selectedCategory">
           </div>
 
           <div class="flex flex-col md:flex-row gap-4">
@@ -574,6 +630,54 @@ function activitiesManager() {
                       rows="3" 
                       placeholder="Enter additional details or remarks about this activity..."
                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
+          </div>
+
+          <!-- Notification Settings -->
+          <div x-data="{ notifyAll: true, selectedBarangays: [] }">
+            <label class="block font-medium mb-3 text-sm md:text-base">Notify Users</label>
+            
+            <!-- Notify All Option -->
+            <div class="mb-3">
+              <label class="flex items-center">
+                <input type="checkbox" 
+                       x-model="notifyAll" 
+                       @change="if(notifyAll) selectedBarangays = []"
+                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                <span class="ml-2 text-sm md:text-base">Notify all users</span>
+              </label>
+            </div>
+
+            <!-- Specific Barangays Selection -->
+            <div x-show="!notifyAll" x-transition class="space-y-2">
+              <p class="text-sm text-gray-600 mb-2">Select specific barangays to notify:</p>
+              <div class="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-1">
+                @foreach($barangays as $barangay)
+                <label class="flex items-center">
+                  <input type="checkbox" 
+                         value="{{ $barangay->id }}"
+                         x-model="selectedBarangays"
+                         class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                  <span class="ml-2 text-sm">{{ $barangay->name }}</span>
+                </label>
+                @endforeach
+              </div>
+            </div>
+
+            <!-- Hidden inputs for form submission -->
+            <input type="hidden" name="notify_all" :value="notifyAll ? '1' : '0'">
+            <template x-for="barangayId in selectedBarangays" :key="barangayId">
+              <input type="hidden" name="notify_barangays[]" :value="barangayId">
+            </template>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2 text-sm md:text-base">Memo (optional)</label>
+            <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
+                   x-on:change="$event.target.files.length > 0 ? 
+                     $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
+                     $el.parentElement.querySelector('.file-info').textContent = 'Attach a PDF, DOC, DOCX, or image file as a memo (optional).'"
+                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+            <p class="text-xs text-gray-500 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo (optional).</p>
           </div>
 
           <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">
@@ -612,7 +716,7 @@ function activitiesManager() {
           </p>
         </div>
 
-        <form method="POST" :action="`/admin/activities/${currentActivity ? currentActivity.id : ''}`" class="px-4 md:px-6 py-4 space-y-4" x-show="currentActivity">
+        <form method="POST" :action="`/admin/activities/${currentActivity ? currentActivity.id : ''}`" class="px-4 md:px-6 py-4 space-y-4" x-show="currentActivity" enctype="multipart/form-data">
           @csrf
           @method('PUT')
 
@@ -638,6 +742,52 @@ function activitiesManager() {
                 <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
               @endforeach
             </select>
+          </div>
+
+          <div x-data="{ 
+            editSelectedCategory: '', 
+            editCustomCategory: '',
+            init() {
+              // Initialize with current activity category
+              this.$watch('currentActivity', (activity) => {
+                if (activity && activity.category) {
+                  const predefinedCategories = ['vaccination', 'deworming', 'vitamin'];
+                  if (predefinedCategories.includes(activity.category)) {
+                    this.editSelectedCategory = activity.category;
+                    this.editCustomCategory = '';
+                  } else {
+                    this.editSelectedCategory = 'other';
+                    this.editCustomCategory = activity.category;
+                  }
+                } else {
+                  this.editSelectedCategory = '';
+                  this.editCustomCategory = '';
+                }
+              });
+            }
+          }">
+            <label class="block font-medium mb-2 text-sm md:text-base">Category</label>
+            <select x-model="editSelectedCategory" 
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
+              <option value="" disabled>Select Category</option>
+              <option value="vaccination">Vaccination</option>
+              <option value="deworming">Deworming</option>
+              <option value="vitamin">Vitamin</option>
+              <option value="other">Other</option>
+            </select>
+            
+            <!-- Custom category input that appears when "Other" is selected -->
+            <div x-show="editSelectedCategory === 'other'" x-transition>
+              <input type="text" 
+                     x-model="editCustomCategory"
+                     placeholder="Please specify the category"
+                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+            </div>
+            
+            <!-- Hidden input that will contain the final category value -->
+            <input type="hidden" 
+                   name="category" 
+                   :value="editSelectedCategory === 'other' ? editCustomCategory : editSelectedCategory">
           </div>
 
           <div class="flex flex-col md:flex-row gap-4">
@@ -681,6 +831,16 @@ function activitiesManager() {
                       placeholder="Enter additional details or remarks about this activity..."
                       x-model="currentActivity.details"
                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-medium mb-2 text-sm md:text-base">Memo (optional)</label>
+            <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
+                   x-on:change="$event.target.files.length > 0 ? 
+                     $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
+                     $el.parentElement.querySelector('.file-info').textContent = 'Attach a PDF, DOC, DOCX, or image file as a memo (optional). Leave empty to keep existing memo.'"
+                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+            <p class="text-xs text-gray-500 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo. Leave empty to keep existing memo.</p>
           </div>
 
           <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">

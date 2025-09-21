@@ -7,9 +7,24 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use App\Models\User;
 use App\Notifications\PushNotification;
+use Cloudinary\Cloudinary;
 
 class ActivityController extends Controller
 {
+    /**
+     * Get Cloudinary instance
+     */
+    private function getCloudinary()
+    {
+        return new Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key' => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+                'secure' => env('CLOUDINARY_SECURE', true),
+            ],
+        ]);
+    }
     /**
      * Get latest upcoming activity (status: up_coming) - Single next activity
      */
@@ -335,5 +350,156 @@ class ActivityController extends Controller
             'total_vaccinated_animals' => $vaccinatedAnimals->count(),
             'vaccinated_animals' => $vaccinatedAnimals
         ]);
+    }
+
+    /**
+     * Upload images for an activity
+     */
+    public function uploadImages(Request $request, $id)
+    {
+        try {
+            \Log::info('Upload images request received', [
+                'activity_id' => $id,
+                'files_count' => $request->hasFile('images') ? count($request->file('images')) : 0,
+                'has_files' => $request->hasFile('images'),
+                'all_files_data' => $request->allFiles()
+            ]);
+
+            // Filter out empty files before validation
+            $files = $request->file('images', []);
+            $validFiles = [];
+            
+            if (is_array($files)) {
+                foreach ($files as $index => $file) {
+                    if ($file && $file->isValid()) {
+                        $validFiles[] = $file;
+                        \Log::info("Valid file found at index {$index}", [
+                            'original_name' => $file->getClientOriginalName(),
+                            'size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType()
+                        ]);
+                    } else {
+                        \Log::warning("Invalid file at index {$index}", [
+                            'file_exists' => $file !== null,
+                            'is_valid' => $file ? $file->isValid() : false,
+                            'error' => $file ? $file->getError() : 'File is null'
+                        ]);
+                    }
+                }
+            }
+
+            if (empty($validFiles)) {
+                return response()->json([
+                    'message' => 'No valid image files provided',
+                    'error' => 'Please select at least one valid image file'
+                ], 422);
+            }
+
+            // Create a new request with only valid files for validation
+            $validationData = ['images' => $validFiles];
+            
+            $validator = \Illuminate\Support\Facades\Validator::make($validationData, [
+                'images' => 'required|array|max:10',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp,heic|max:5120', // 5MB per image
+            ], [
+                'images.max' => 'You can upload a maximum of 10 images per activity.',
+                'images.*.image' => 'Each file must be a valid image.',
+                'images.*.mimes' => 'Images must be in JPEG, PNG, JPG, GIF, WebP, or HEIC format.',
+                'images.*.max' => 'Each image must be smaller than 5MB.',
+            ]);
+
+            if ($validator->fails()) {
+                \Log::error('Validation failed for image upload', [
+                    'activity_id' => $id,
+                    'errors' => $validator->errors()
+                ]);
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $activity = Activity::findOrFail($id);
+            
+            $imageUrls = [];
+            $cloudinary = $this->getCloudinary();
+            
+            foreach ($validFiles as $index => $image) {
+                try {
+                    \Log::info("Uploading image {$index}", [
+                        'file_name' => $image->getClientOriginalName(),
+                        'file_size' => $image->getSize()
+                    ]);
+
+                    $uploadResult = $cloudinary->uploadApi()->upload(
+                        $image->getPathname(),
+                        [
+                            'folder' => 'cityvet/activities',
+                            'transformation' => [
+                                'width' => 1200,
+                                'height' => 900,
+                                'crop' => 'limit',
+                                'quality' => 'auto',
+                                'fetch_format' => 'auto'
+                            ]
+                        ]
+                    );
+                    
+                    $imageUrls[] = $uploadResult['secure_url'];
+                    \Log::info("Image {$index} uploaded successfully", [
+                        'url' => $uploadResult['secure_url']
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error("Failed to upload image {$index}: " . $e->getMessage(), [
+                        'file_name' => $image->getClientOriginalName(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e; // Re-throw to trigger the outer catch block
+                }
+            }
+            
+            // Merge with existing images or replace them
+            $existingImages = $activity->images ?? [];
+            $allImages = array_merge($existingImages, $imageUrls);
+            
+            // Limit to 10 images maximum
+            if (count($allImages) > 10) {
+                $allImages = array_slice($allImages, -10);
+            }
+            
+            $activity->update(['images' => $allImages]);
+            
+            \Log::info('Images uploaded successfully', [
+                'activity_id' => $id,
+                'uploaded_count' => count($imageUrls),
+                'total_images' => count($allImages)
+            ]);
+            
+            return response()->json([
+                'message' => 'Images uploaded successfully',
+                'images' => $allImages,
+                'activity_id' => $activity->id,
+                'uploaded_count' => count($imageUrls)
+            ], 200);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed for image upload', [
+                'activity_id' => $id,
+                'errors' => $e->errors()
+            ]);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Failed to upload activity images: ' . $e->getMessage(), [
+                'activity_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Failed to upload images',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

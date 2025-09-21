@@ -32,19 +32,23 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('suffix')->nullable();
             $table->date('birth_date');
-            $table->enum('gender', ['male', 'female', 'other']);
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->string('phone_number')->unique();
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id');
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->string('street');
             $table->string('password');
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();
+            $table->enum('status', ['active', 'inactive', 'pending', 'rejected', 'banned'])->default('pending');
+            $table->boolean('force_password_change')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
 
             $table->foreign('barangay_id')->references('id')->on('barangays');
+            $table->foreign('role_id')->references('id')->on('roles');
         });
 
         Schema::create('animals', function (Blueprint $table) {

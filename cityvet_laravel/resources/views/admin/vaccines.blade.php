@@ -228,7 +228,7 @@
                         </thead>
                         <tbody class="bg-white">
                         @forelse($vaccines as $index => $vaccine)
-                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150">
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs capitalize">
@@ -323,7 +323,7 @@
                         </thead>
                         <tbody class="bg-white">
                         @forelse($vaccines as $index => $vaccine)
-                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] cursor-pointer transition-colors duration-150">
+                            <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ $index + 1 }}</td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs capitalize">

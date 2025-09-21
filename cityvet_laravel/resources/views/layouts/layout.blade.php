@@ -44,7 +44,7 @@
   <main class="flex h-screen w-full">
     @include('layouts.sidebar')
     
-    {{-- Main content area --}}
+    <!-- Main content area -->
     <section class="flex-1 bg-[#eeeeee] px-4 py-4 lg:px-[5rem] lg:py-[3rem] overflow-y-auto -mb-1.5 ml-0 lg:ml-0 transition-all duration-300">
       @yield('content')
     </section>

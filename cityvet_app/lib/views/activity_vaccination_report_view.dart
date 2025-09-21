@@ -6,6 +6,7 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/components/qr_scanner.dart';
 import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
 class ActivityVaccinationReportView extends StatefulWidget {
   final String? activityId;
@@ -67,6 +68,83 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
         errorMessage = 'Failed to load vaccination report: $e';
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _uploadImages() async {
+    if (selectedImages.isEmpty || widget.activityId == null) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final token = await AuthStorage().getToken();
+      if (token == null) {
+        throw Exception('Authentication required');
+      }
+
+      final api = ApiService();
+      await api.uploadActivityImages(token, int.parse(widget.activityId!), selectedImages);
+
+      setState(() {
+        selectedImages.clear();
+        isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Images uploaded successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
+      String errorMessage = 'Failed to upload images';
+      
+      if (e.response != null) {
+        // Get detailed error message from server response
+        if (e.response!.data is Map && e.response!.data['errors'] != null) {
+          final errors = e.response!.data['errors'] as Map;
+          errorMessage = errors.values.first.toString();
+        } else if (e.response!.data is Map && e.response!.data['message'] != null) {
+          errorMessage = e.response!.data['message'].toString();
+        } else {
+          errorMessage = 'Server error: ${e.response!.statusCode}';
+        }
+      } else {
+        errorMessage = 'Network error: ${e.message}';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload images: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -245,13 +323,27 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
                       final images = await CustomImagePicker().pickMultipleImages();
                   
                       if (images != null) {
+                        // Limit to 4 images maximum
+                        final limitedImages = images.length > 10 ? images.take(10).toList() : images;
+                        
                         setState(() {
-                          selectedImages = images;
+                          selectedImages = limitedImages;
                         });
+                        
+                        // Show warning if user selected more than 10 images
+                        if (images.length > 10 && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Only first 10 images selected. Maximum 10 images allowed per activity.'),
+                              backgroundColor: Colors.orange,
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
                       }
                     },
                     icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload Images'),
+                    label: const Text('Upload Images (Max 10)'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: Colors.blue,
@@ -265,6 +357,15 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
             
                 if (selectedImages.isNotEmpty) ...[
                   const SizedBox(height: 12),
+                  Text(
+                    'Selected: ${selectedImages.length}/10 images',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: selectedImages.length == 10 ? Colors.orange : Colors.grey[600],
+                      fontWeight: selectedImages.length == 10 ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   SizedBox(
                     height: 120,
                     child: ListView.separated(
@@ -312,12 +413,12 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: (){},
+                      onPressed: selectedImages.isNotEmpty ? _uploadImages : null,
                       icon: const Icon(Icons.upload),
-                      label: const Text('Submit'),
+                      label: Text(selectedImages.isNotEmpty ? 'Submit Images (${selectedImages.length})' : 'Select Images First'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: Colors.green,
+                        backgroundColor: selectedImages.isNotEmpty ? Colors.green : Colors.grey,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),

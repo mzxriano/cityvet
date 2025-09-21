@@ -1,6 +1,7 @@
 import 'package:cityvet_app/models/notification_model.dart';
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
+import 'dart:io';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
@@ -178,6 +179,39 @@ class ApiService {
     );
 
     return response.data;
+  }
+
+  Future<void> uploadActivityImages(String token, int activityId, List<File> images) async {
+    try {
+      FormData formData = FormData();
+      
+      // Add images to form data - use 'images' as key for array validation
+      for (int i = 0; i < images.length; i++) {
+        String fileName = images[i].path.split('/').last;
+        formData.files.add(MapEntry(
+          'images[$i]', // Use indexed format for Laravel array validation
+          await MultipartFile.fromFile(images[i].path, filename: fileName),
+        ));
+      }
+
+      final response = await _dio.post(
+        '/activity/$activityId/upload-images',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            // Remove Content-Type header, let Dio set it automatically for multipart
+          },
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to upload images: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Request failed: $e');
+      throw Exception('Error uploading images: $e');
+    }
   }
 }
 

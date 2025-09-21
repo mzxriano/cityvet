@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cityvet_app/models/notification_model.dart';
 import 'package:cityvet_app/services/api_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
+import 'package:cityvet_app/views/main_screens/notification/notification_preview.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({Key? key}) : super(key: key);
@@ -259,7 +260,34 @@ class _NotificationViewState extends State<NotificationView> {
                           color: Colors.transparent,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
-                            onTap: n.read ? null : () => markAsRead(n.id),
+                            onTap: () async {
+                              // Navigate to preview page
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => NotificationPreviewPage(
+                                    notification: n,
+                                  ),
+                                ),
+                              );
+                              
+                              // If the notification was marked as read in the preview page, update the list
+                              if (result == true && !n.read) {
+                                setState(() {
+                                  notifications = notifications.map((notification) => 
+                                    notification.id == n.id 
+                                      ? NotificationModel(
+                                          id: notification.id,
+                                          title: notification.title,
+                                          body: notification.body,
+                                          read: true,
+                                          createdAt: notification.createdAt,
+                                        )
+                                      : notification
+                                  ).toList();
+                                });
+                              }
+                            },
                             child: Padding(
                               padding: EdgeInsets.all(15),
                               child: Row(
@@ -303,16 +331,14 @@ class _NotificationViewState extends State<NotificationView> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
-                                        if (n.createdAt != null) ...[
-                                          SizedBox(height: 10),
-                                          Text(
-                                            _formatTime(n.createdAt),
-                                            style: TextStyle(
-                                              fontSize: 14, 
-                                              color: Colors.grey.shade500,
-                                            ),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          _formatTime(n.createdAt),
+                                          style: TextStyle(
+                                            fontSize: 14, 
+                                            color: Colors.grey.shade500,
                                           ),
-                                        ],
+                                        ),
                                       ],
                                     ),
                                   ),

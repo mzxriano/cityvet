@@ -11,16 +11,20 @@ class Activity extends Model
 
     protected $fillable = [
         'reason',
+        'category',
         'barangay_id',
         'details',
         'time',
         'date',
-        'status'
+        'status',
+        'memo',
+        'images'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'time' => 'datetime:H:i'
+        'time' => 'datetime:H:i',
+        'images' => 'array'
     ];
 
     // Relationship with Barangay

@@ -19,13 +19,41 @@
     <h1 class="text-3xl font-semibold text-gray-900 mb-8">Activities</h1>
 
     <!-- Activities image grid -->
-    <section aria-label="Activities cards" class="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-      <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
-      <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
-      <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
-      <div class="rounded-lg bg-gray-300 aspect-square shadow"></div>
+    <section aria-label="Activities images" class="mb-8">
+      @if($activity->images && count($activity->images) > 0)
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          @foreach($activity->images as $index => $imageUrl)
+            <div class="rounded-lg aspect-square shadow overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow"
+                 onclick="openImageModal('{{ $imageUrl }}')">
+              <img src="{{ $imageUrl }}" 
+                   alt="Activity image {{ $index + 1 }}" 
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            </div>
+          @endforeach
+        </div>
+        
+        <!-- Image count indicator -->
+        <div class="mt-4 text-center">
+          <p class="text-sm text-gray-600">
+            {{ count($activity->images) }} image{{ count($activity->images) > 1 ? 's' : '' }} uploaded
+          </p>
+        </div>
+      @else
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          @for($i = 0; $i < 4; $i++)
+            <div class="rounded-lg bg-gray-200 aspect-square shadow flex items-center justify-center">
+              <div class="text-gray-400 text-center">
+                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-xs">No image</p>
+              </div>
+            </div>
+          @endfor
+        </div>
+      @endif
     </section>
-
+    
     <!-- Details and stats area - Single Row -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
       
@@ -53,6 +81,20 @@
           <p class="text-gray-500 font-light mb-2">Status</p>
           <span class="inline-block bg-sky-400 text-white text-xs px-3 py-1 rounded-full select-none">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</span>
         </div>
+
+        <!-- Memo card -->
+        @if($activity->memo)
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+          <p class="text-gray-500 font-light mb-2">Memo</p>
+          <a href="{{ route('admin.activities.memo', $activity->id) }}" 
+             class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors text-sm font-medium">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Download Memo
+          </a>
+        </div>
+        @endif
       </div>
       
     </section>
@@ -133,5 +175,42 @@
     </section>
     @endif
   </main>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="relative max-w-4xl max-h-full">
+      <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <img id="modalImage" src="" alt="Activity Image" class="max-w-full max-h-full object-contain rounded-lg">
+    </div>
+  </div>
+
+  <script>
+    function openImageModal(imageUrl) {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      modalImage.src = imageUrl;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+      const modal = document.getElementById('imageModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Close modal with escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeImageModal();
+      }
+    });
+  </script>
 </body>
 @endsection

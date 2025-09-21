@@ -65,6 +65,7 @@ Route::prefix('admin')->group(function () {
         Route::prefix('activities')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
             Route::get('/{id}/show', [ActivityController::class, 'show'])->name('admin.activities.show');
+            Route::get('/{id}/memo', [ActivityController::class, 'downloadMemo'])->name('admin.activities.memo');
             Route::post('/', [ActivityController::class, 'create'])->name('admin.activities.store');
             Route::put('/{id}', [ActivityController::class, 'update'])->name('admin.activities.update');
             Route::delete('/{id}', [ActivityController::class, 'destroy'])->name('admin.activities.destroy');
@@ -75,6 +76,8 @@ Route::prefix('admin')->group(function () {
             Route::post('/', [UserController::class, 'store'])->name('admin.users.store');
             Route::get('/{id}/show', [UserController::class, 'show'])->name('admin.users.show');
             Route::put('/{id}', [UserController::class, 'update'])->name('users.update');
+            Route::patch('/{id}/approve', [UserController::class, 'approve'])->name('admin.users.approve');
+            Route::patch('/{id}/reject', [UserController::class, 'reject'])->name('admin.users.reject');
             Route::get('/search', [AnimalController::class,'searchOwner'])->name('search.owner');
         });
 
