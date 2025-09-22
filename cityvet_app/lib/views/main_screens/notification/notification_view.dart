@@ -132,7 +132,6 @@ class _NotificationViewState extends State<NotificationView> {
     if (unreadNotifications.isEmpty) return;
 
     for (final notification in unreadNotifications) {
-      // Check mounted before each operation
       if (!mounted) break;
       await markAsRead(notification.id);
     }
@@ -158,39 +157,9 @@ class _NotificationViewState extends State<NotificationView> {
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = notifications.where((n) => !n.read).length;
     
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Notifications', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)), 
-            if (unreadCount > 0)
-              Text(
-                '$unreadCount unread',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.normal),
-              ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        shadowColor: Colors.transparent,
-        actions: [
-          if (unreadCount > 0)
-            TextButton(
-              onPressed: markAllAsRead,
-              child: Text('Mark all read', style: TextStyle(color: Colors.green.shade600, fontSize: 15)), 
-            ),
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Colors.grey.shade700),
-            onPressed: fetchNotifications,
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
       body: isLoading
           ? Center(
               child: Column(

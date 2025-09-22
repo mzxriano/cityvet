@@ -110,6 +110,8 @@ Route::prefix('admin')->group(function () {
         Route::get('/community/pending-posts', [\App\Http\Controllers\Web\CommunityController::class, 'pending'])->name('admin.community.pending');
         Route::patch('/community/{id}/review', [\App\Http\Controllers\Web\CommunityController::class, 'review'])->name('admin.community.review');
         Route::get('/community/approved-posts', [\App\Http\Controllers\Web\CommunityController::class, 'approved'])->name('admin.community.approved');
+        Route::get('/community/reported-posts', [\App\Http\Controllers\Web\CommunityController::class, 'reportedPosts'])->name('admin.community.reported-posts');
+        Route::get('/community/reported-comments', [\App\Http\Controllers\Web\CommunityController::class, 'reportedComments'])->name('admin.community.reported-comments');
 
         Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
         Route::post('/reports/generate-vaccination', [ReportController::class, 'generateVaccinationReport'])->name('reports.generate-vaccination');

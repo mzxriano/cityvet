@@ -10,7 +10,7 @@ class CommunityComment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'community_id', 'user_id', 'content', 'parent_id'
+        'community_id', 'user_id', 'content', 'parent_id', 'reported'
     ];
 
     public function community()

@@ -1,4 +1,5 @@
 import 'package:cityvet_app/components/role.dart';
+import 'package:cityvet_app/components/report_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:dio/dio.dart';
@@ -120,6 +121,44 @@ class _PostDetailsViewState extends State<PostDetailsView> {
     }
   }
 
+  Future<void> _reportPost() async {
+    if (_post == null) return;
+    
+    showReportModal(
+      context,
+      title: 'Report Post',
+      onReport: (String reason) async {
+        try {
+          await _service.reportPost(
+            postId: _post!['id'],
+            reason: reason,
+            token: widget.token,
+          );
+        } catch (e) {
+          throw Exception('Failed to report post');
+        }
+      },
+    );
+  }
+
+  Future<void> _reportComment(int commentId) async {
+    showReportModal(
+      context,
+      title: 'Report Comment',
+      onReport: (String reason) async {
+        try {
+          await _service.reportComment(
+            commentId: commentId,
+            reason: reason,
+            token: widget.token,
+          );
+        } catch (e) {
+          throw Exception('Failed to report comment');
+        }
+      },
+    );
+  }
+
   // Helper method to format time
   String _formatTime(String? timeString) {
     if (timeString == null) return 'Just now';
@@ -231,6 +270,12 @@ class _PostDetailsViewState extends State<PostDetailsView> {
                             FocusScope.of(context).requestFocus(FocusNode());
                           }),
                           const SizedBox(width: 20),
+                          // Report button (only show if not comment owner)
+                          if (_userId != null && user['id']?.toString() != _userId)
+                            _buildActionButton('Report', Icons.flag_outlined, () {
+                              _reportComment(comment['id']);
+                            }),
+                          const Spacer(),
                           Text(
                             _formatTime(comment['created_at']), 
                             style: TextStyle(
@@ -260,6 +305,10 @@ class _PostDetailsViewState extends State<PostDetailsView> {
   }
 
   Widget _buildActionButton(String label, IconData icon, VoidCallback onPressed) {
+    final isReport = label == 'Report';
+    final iconColor = isReport ? Colors.red[600] : Colors.grey[600];
+    final textColor = isReport ? Colors.red[600] : Colors.grey[600];
+    
     return GestureDetector(
       onTap: onPressed,
       child: Row(
@@ -268,14 +317,14 @@ class _PostDetailsViewState extends State<PostDetailsView> {
           Icon(
             icon,
             size: 17, 
-            color: Colors.grey[600],
+            color: iconColor,
           ),
           const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
               fontSize: 13, 
-              color: Colors.grey[600],
+              color: textColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -363,6 +412,14 @@ class _PostDetailsViewState extends State<PostDetailsView> {
               onPressed: _deletePost,
             ),
           ],
+          // Show report button only for non-owners
+          if (_userId != null && _post != null && _post!['user'] != null && 
+              _post!['user']['id']?.toString() != _userId)
+            IconButton(
+              icon: Icon(Icons.flag_outlined, color: Colors.red[600]),
+              onPressed: _reportPost,
+              tooltip: 'Report Post',
+            ),
         ],
       ),
       body: Column(

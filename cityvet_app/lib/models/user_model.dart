@@ -13,6 +13,7 @@ class UserModel {
   final String? street;
   final String? imageUrl;
   final String? imagePublicId;
+  final String? status;
   bool forcePasswordChange;
 
   UserModel({
@@ -28,6 +29,7 @@ class UserModel {
     this.role,
     this.imageUrl,
     this.imagePublicId,
+    this.status,
     this.forcePasswordChange = false,
   });
 
@@ -48,6 +50,7 @@ class UserModel {
       street: json['street'],
       imageUrl: json['image_url'],
       imagePublicId: json['image_public_id'],
+      status: json['status'],
       forcePasswordChange: json['force_password_change'] == 1 || 
                          json['force_password_change'] == true,
     );

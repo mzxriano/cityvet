@@ -1,6 +1,7 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/email_verification_page.dart';
 import 'package:cityvet_app/components/label_text.dart';
+import 'package:cityvet_app/components/status_modal.dart';
 import 'package:cityvet_app/main_layout.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/login_view_model.dart';
@@ -241,6 +242,46 @@ class _LoginViewState extends State<LoginView> {
                                     if (loginViewModel.isLogin) {
                                       final userVM = Provider.of<UserViewModel>(context, listen: false);
                                       userVM.setUser(loginViewModel.user!);
+
+                                      final userStatus = loginViewModel.user?.status?.toLowerCase();
+                                      if (userStatus == 'pending') {
+                                        await StatusModal.show(
+                                          context,
+                                          title: 'Account Pending',
+                                          message: 'Your account is still pending approval. Please wait for admin verification.',
+                                          barrierDismissible: true,
+                                        );
+                                        return;
+                                      }
+                                      if (userStatus == 'rejected') {
+                                        await StatusModal.show(
+                                          context,
+                                          title: 'Account Rejected',
+                                          message: 'Your account has been rejected. Please contact support for more information.',
+                                          barrierDismissible: true,
+                                        );
+                                        return;
+                                      }
+                                      if (userStatus == 'banned') {
+                                        await StatusModal.show(
+                                          context,
+                                          title: 'Account Banned',
+                                          message: 'Your account has been banned. Please contact support for more information.',
+                                          barrierDismissible: true,
+                                        );
+                                        return;
+                                      }
+                                      if (userStatus == 'inactive') {
+                                        // Allow login, but show modal after login
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          StatusModal.show(
+                                            context,
+                                            title: 'Account Inactive',
+                                            message: 'Your account is inactive. Some features may be limited.',
+                                            barrierDismissible: true,
+                                          );
+                                        });
+                                      }
 
                                       // Check for force password change before FCM initialization
                                       if (loginViewModel.user?.forcePasswordChange == true) {

@@ -6,6 +6,7 @@ import 'package:cityvet_app/views/main_screens/community/post_create_view.dart';
 import 'package:cityvet_app/views/main_screens/community/post_details_view.dart';
 import 'package:cityvet_app/views/main_screens/community/post_edit_view.dart';
 import 'package:cityvet_app/views/main_screens/community/my_posts_view.dart';
+import 'package:cityvet_app/components/report_modal.dart';
 import 'package:intl/intl.dart'; 
 
 enum PostFilter { newest, oldest }
@@ -197,6 +198,26 @@ class _CommunityViewState extends State<CommunityView> {
         );
       }
     }
+  }
+
+  Future<void> _reportPost(int postId) async {
+    if (_token == null || !mounted) return;
+    
+    showReportModal(
+      context,
+      title: 'Report Post',
+      onReport: (String reason) async {
+        try {
+          await _service.reportPost(
+            postId: postId,
+            reason: reason,
+            token: _token!,
+          );
+        } catch (e) {
+          throw Exception('Failed to report post');
+        }
+      },
+    );
   }
 
   Widget _buildFilterChips() {
@@ -649,6 +670,22 @@ class _CommunityViewState extends State<CommunityView> {
                                   ),
                                 ),
                                 const Spacer(),
+                                // Report button (only show if not owner)
+                                if (!isOwner)
+                                  TextButton.icon(
+                                    onPressed: () => _reportPost(post['id']),
+                                    icon: const Icon(Icons.flag_outlined, size: 16),
+                                    label: const Text(
+                                      'Report',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red[600],
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  ),
                               ],
                             ),
                           ],

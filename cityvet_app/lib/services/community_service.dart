@@ -127,4 +127,28 @@ class CommunityService {
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   }
+
+  Future<Response> reportPost({
+    required int postId,
+    required String reason,
+    required String token,
+  }) async {
+    return await dio.post(
+      '/community/$postId/report',
+      data: {'reason': reason},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
+
+  Future<Response> reportComment({
+    required int commentId,
+    required String reason,
+    required String token,
+  }) async {
+    return await dio.post(
+      '/community/comment/$commentId/report',
+      data: {'reason': reason},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
 } 

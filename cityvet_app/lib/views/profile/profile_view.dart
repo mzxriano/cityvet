@@ -32,7 +32,6 @@ class _ProfileView extends State<ProfileView> {
     final userRef = Provider.of<UserViewModel>(context);
     final animals = animalViewModel.animals;
     final role = RoleWidget();
-    print('user from profile ${userRef.user?.imageUrl}');
 
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +66,7 @@ class _ProfileView extends State<ProfileView> {
                       children: [
                         Align(
                           alignment: Alignment.topRight,
-                          child: role['Owner'],
+                          child: role[userRef.user?.role ?? 'unknown'],
                         ),
                         Config.heightSmall,
                         CustomCard(

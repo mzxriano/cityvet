@@ -88,6 +88,8 @@ Route::prefix('auth')->group(function () {
         Route::post('/community/{id}/comment', [CommunityCommentController::class, 'store']);
         Route::get('/community/{id}/comments', [CommunityCommentController::class, 'index']);
         Route::post('/community/{id}/like', [CommunityLikeController::class, 'toggle']);
+        Route::post('/community/{id}/report', [CommunityController::class, 'reportPost']);
+        Route::post('/community/comment/{commentId}/report', [CommunityController::class, 'reportComment']);
         
         // Admin Community Management
         Route::get('/admin/community/pending', [CommunityController::class, 'getPendingPosts']);

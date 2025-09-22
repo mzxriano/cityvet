@@ -323,4 +323,48 @@ class CommunityController extends Controller
 
         return response()->json(['message' => 'Post deleted successfully.']);
     }
+
+    /**
+     * Report a community post
+     */
+    public function reportPost(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $post = Community::findOrFail($id);
+        
+        // Update post as reported
+        $post->reported = true;
+        $post->save();
+
+        return response()->json(['message' => 'Post reported successfully.']);
+    }
+
+    /**
+     * Report a community comment
+     */
+    public function reportComment(Request $request, $commentId)
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $comment = \App\Models\CommunityComment::findOrFail($commentId);
+        
+        // Update comment as reported
+        $comment->reported = true;
+        $comment->save();
+
+        return response()->json(['message' => 'Comment reported successfully.']);
+    }
 } 

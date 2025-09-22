@@ -77,6 +77,7 @@ class UserController extends Controller
                 "image_url" => $user->image_url,
                 "image_public_id" => $user->image_public_id,
                 "force_password_change" => $user->force_password_change,
+                "status" => $user->status,
             ]
         ]);
     }
