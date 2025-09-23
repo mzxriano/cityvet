@@ -1,13 +1,50 @@
 @extends('layouts.layout')
 
 @section('content')
+<style>
+/* Custom scrollbar styles for animal cards */
+.max-h-\[60vh\]::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark .max-h-\[60vh\]::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark .max-h-\[60vh\]::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+.dark .max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+</style>
+
 <div class="min-h-screen">
   <!-- Sidebar would be here -->
 
   <main class="p-6 max-w-7xl mx-auto">
+    <div class="flex items-center space-x-4 mb-6">
+        <i class="fas fa-chevron-left text-gray-500 text-xl cursor-pointer" onclick="window.history.back()"></i>
+    </div>
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Users</h1>
+      <h1 class="text-2xl font-semibold text-primary">User Details</h1>
     </div>
 
     <!-- User Profile Section -->
@@ -16,16 +53,16 @@
       <div class="bg-white flex items-center rounded-lg shadow-lg p-6">
         <div class="flex items-start space-x-4">
           <!-- Profile Image -->
-          <img src="{{ $user->image_url }}" class="w-24 h-24 bg-gray-300 rounded-full flex-shrink-0"></img>
-                   
+          <img src="{{ $user->image_url ?? asset('images/default_avatar.png') }}" class="w-24 h-24 bg-gray-300 rounded-full flex-shrink-0 object-contain object-center"></img>
+          
           <!-- User Details -->
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-2">
               <!-- <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium">Owner</span> -->
             </div>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-1">{{ "$user->first_name $user->last_name" }}</h2>
-            <p class="text-gray-600 mb-1">{{ ucwords($user->gender ?? 'N/A') }}</p>
-            <p class="text-gray-600">{{ \Carbon\Carbon::parse($user->birth_date)->format('F j, Y') }}</p>
+            <h2 class="text-2xl font-semibold text-primary mb-1">{{ "$user->first_name $user->last_name" }}</h2>
+            <p class="text-primary mb-1">{{ ucwords($user->gender ?? 'N/A') }}</p>
+            <p class="text-primary">{{ \Carbon\Carbon::parse($user->birth_date)->format('F j, Y') }}</p>
           </div>
         </div>
       </div>
@@ -34,15 +71,15 @@
       <div class="space-y-4">
         <!-- Address Card -->
         <div class="bg-white rounded-lg shadow-lg p-4">
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Address</h3>
-          <p class="text-gray-600">{{ $user->barangay->name ?? 'N/A' }}, {{ $user->street }}</p>
+          <h3 class="text-lg font-medium text-secondary mb-2">Address</h3>
+          <p class="text-primary">{{ $user->barangay->name ?? 'N/A' }}, {{ $user->street }}</p>
         </div>
 
         <!-- Contact Info Card -->
         <div class="bg-white rounded-lg shadow-lg p-4">
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Contact Info.</h3>
-          <p class="text-gray-600 mb-1">{{ $user->phone_number }}</p>
-          <p class="text-gray-600">{{ $user->email }}</p>
+          <h3 class="text-lg font-medium text-secondary mb-2">Contact Info.</h3>
+          <p class="text-primary mb-1">{{ $user->phone_number }}</p>
+          <p class="text-primary">{{ $user->email }}</p>
         </div>
       </div>
     </div>
@@ -144,38 +181,40 @@
       </div>
 
       <!-- Dynamic Animal Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        @forelse($animals as $animal)
-          @include('components.animal-card', ['animal' => $animal])
-        @empty
-          <div class="col-span-full text-center py-8">
-            @if(request()->anyFilled(['animal_type', 'animal_search']))
-              <div class="mb-4">
-                <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-              <p class="text-gray-500 text-lg mb-2">No animals found matching your filters.</p>
-              <p class="text-gray-400 text-sm mb-4">Try adjusting your search criteria or clearing the filters.</p>
-              <a 
-                href="{{ route('admin.users.show', $user->id) }}" 
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-                Clear All Filters
-              </a>
-            @else
-              <div class="mb-4">
-                <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                </svg>
-              </div>
-              <p class="text-gray-500 text-lg">This user doesn't own any animals yet.</p>
-            @endif
-          </div>
-        @endforelse
+      <div class="max-h-[60vh] overflow-y-auto pr-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          @forelse($animals as $animal)
+            @include('components.animal-card', ['animal' => $animal])
+          @empty
+            <div class="col-span-full text-center py-8">
+              @if(request()->anyFilled(['animal_type', 'animal_search']))
+                <div class="mb-4">
+                  <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <p class="text-gray-500 text-lg mb-2">No animals found matching your filters.</p>
+                <p class="text-gray-400 text-sm mb-4">Try adjusting your search criteria or clearing the filters.</p>
+                <a 
+                  href="{{ route('admin.users.show', $user->id) }}" 
+                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  Clear All Filters
+                </a>
+              @else
+                <div class="mb-4">
+                  <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                  </svg>
+                </div>
+                <p class="text-gray-500 text-lg">This user doesn't own any animals yet.</p>
+              @endif
+            </div>
+          @endforelse
+        </div>
       </div>
     </div>
   </main>

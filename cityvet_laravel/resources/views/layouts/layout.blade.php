@@ -19,12 +19,81 @@
     }
   </style>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <script>
+    // Auto-apply dark theme classes to common elements
+    document.addEventListener('DOMContentLoaded', function() {
+      if (document.body.classList.contains('dark')) {
+        // Auto-apply dark classes to common patterns that might not have them
+        const whiteElements = document.querySelectorAll('.bg-white:not(.dark\\:bg-gray-800)');
+        whiteElements.forEach(el => el.classList.add('dark:bg-gray-800'));
+        
+        const grayTexts = document.querySelectorAll('.text-gray-700:not(.dark\\:text-gray-300)');
+        grayTexts.forEach(el => el.classList.add('dark:text-gray-300'));
+        
+        const borders = document.querySelectorAll('.border-gray-200:not(.dark\\:border-gray-700)');
+        borders.forEach(el => el.classList.add('dark:border-gray-700'));
+        
+        // Apply table dark theme classes
+        const tables = document.querySelectorAll('table:not(.table-styled)');
+        tables.forEach(table => {
+          table.classList.add('table-styled');
+          
+          // Add container wrapper if not exists
+          if (!table.closest('.table-container')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-container';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+          }
+          
+          // Style table headers
+          const headers = table.querySelectorAll('th');
+          headers.forEach(th => {
+            th.classList.add('px-6', 'py-3', 'text-left', 'text-xs', 'font-medium', 'text-gray-500', 'dark:text-gray-300', 'uppercase', 'tracking-wider', 'border-b', 'border-gray-200', 'dark:border-gray-600');
+          });
+          
+          // Style table cells
+          const cells = table.querySelectorAll('td');
+          cells.forEach(td => {
+            td.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-900', 'dark:text-gray-100', 'border-b', 'border-gray-200', 'dark:border-gray-700');
+          });
+          
+          // Style table rows
+          const rows = table.querySelectorAll('tbody tr');
+          rows.forEach(tr => {
+            tr.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'transition-colors');
+          });
+          
+          // Style thead
+          const thead = table.querySelector('thead');
+          if (thead) {
+            thead.classList.add('bg-gray-50', 'dark:bg-gray-700');
+          }
+          
+          // Style tbody
+          const tbody = table.querySelector('tbody');
+          if (tbody) {
+            tbody.classList.add('bg-white', 'dark:bg-gray-800', 'divide-y', 'divide-gray-200', 'dark:divide-gray-700');
+          }
+        });
+        
+        // Apply form element styles
+        const inputs = document.querySelectorAll('input:not(.styled), select:not(.styled), textarea:not(.styled)');
+        inputs.forEach(input => {
+          input.classList.add('styled', 'dark:bg-gray-700', 'dark:border-gray-600', 'dark:text-white', 'dark:placeholder-gray-400');
+        });
+      }
+    });
+  </script>
 </head>
-<body class="h-screen m-0 p-0" x-data="{ sidebarOpen: false }">
+@php
+  $currentTheme = \App\Models\Setting::get('app_theme', 'light');
+@endphp
+<body class="h-screen m-0 p-0 {{ $currentTheme === 'dark' ? 'dark' : '' }}" x-data="{ sidebarOpen: false }">
   <!-- Mobile menu button -->
   <button @click="sidebarOpen = !sidebarOpen" 
-          class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-lg hover:bg-gray-100 transition-colors">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+    <svg class="w-6 h-6 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
     </svg>
   </button>
@@ -45,7 +114,7 @@
     @include('layouts.sidebar')
     
     <!-- Main content area -->
-    <section class="flex-1 bg-[#eeeeee] px-4 py-4 lg:px-[5rem] lg:py-[3rem] overflow-y-auto -mb-1.5 ml-0 lg:ml-0 transition-all duration-300">
+    <section class="flex-1 bg-[#eeeeee] dark:bg-gray-900 px-4 py-4 lg:px-[5rem] lg:py-[3rem] overflow-y-auto -mb-1.5 ml-0 lg:ml-0 transition-all duration-300">
       @yield('content')
     </section>
   </main>

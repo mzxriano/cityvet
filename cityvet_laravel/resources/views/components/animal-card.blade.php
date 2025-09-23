@@ -38,39 +38,39 @@
     <!-- Animal Info -->
     <div class="space-y-1 text-sm">
       <div class="flex">
-        <span class="text-gray-500 w-16">Name:</span>
-        <span class="text-gray-900 font-medium">{{ ucwords($animal->name) ?? 'Unknown' }}</span>
+        <span class="text-secondary w-16">Name:</span>
+        <span class="text-primary font-medium">{{ ucwords($animal->name) ?? 'Unknown' }}</span>
       </div>
       
       <div class="flex">
-        <span class="text-gray-500 w-16">Breed:</span>
-        <span class="text-gray-700">{{ $animal->breed ?? 'Unknown' }}</span>
+        <span class="text-secondary w-16">Breed:</span>
+        <span class="text-primary">{{ $animal->breed ?? 'Unknown' }}</span>
       </div>
       
       <div class="flex">
-        <span class="text-gray-500 w-16">Gender:</span>
-        <span class="text-gray-700">{{ ucwords($animal->gender) ?? 'Unknown' }}</span>
+        <span class="text-secondary w-16">Gender:</span>
+        <span class="text-primary">{{ ucwords($animal->gender) ?? 'Unknown' }}</span>
       </div>
       
       <div class="flex">
-        <span class="text-gray-500 w-16">Birthday:</span>
-        <span class="text-gray-700">
+        <span class="text-secondary w-16">Birthday:</span>
+        <span class="text-primary">
           {{ $animal->birthday ? \Carbon\Carbon::parse($animal->birthday)->format('F j, Y') : 'Unknown' }}
         </span>
       </div>
       
       <div class="flex">
-        <span class="text-gray-500 w-16">Weight:</span>
-        <span class="text-gray-700">{{ $animal->weight ?? 'Unknown' }}</span>
+        <span class="text-secondary w-16">Weight:</span>
+        <span class="text-primary">{{ $animal->weight ?? 'Unknown' }}</span>
       </div>
       
       <div class="flex">
-        <span class="text-gray-500 w-16">Height:</span>
-        <span class="text-gray-700">{{ $animal->height ?? 'Unknown' }}</span>
+        <span class="text-secondary w-16">Height:</span>
+        <span class="text-primary">{{ $animal->height ?? 'Unknown' }}</span>
       </div>
       
       <div class="mt-2">
-        <span class="text-gray-500">Vaccines:</span>
+        <span class="text-secondary">Vaccines:</span>
         @if($animal->vaccines && $animal->vaccines->count() > 0)
           <div class="mt-1 flex flex-wrap gap-1">
             @foreach($animal->vaccines->take(3) as $vaccine)
@@ -79,11 +79,11 @@
               </span>
             @endforeach
             @if($animal->vaccines->count() > 3)
-              <span class="text-xs text-gray-500">+{{ $animal->vaccines->count() - 3 }} more</span>
+              <span class="text-xs text-secondary">+{{ $animal->vaccines->count() - 3 }} more</span>
             @endif
           </div>
         @else
-          <span class="text-gray-700 text-sm"> None</span>
+          <span class="text-primary text-sm"> None</span>
         @endif
       </div>
     </div>

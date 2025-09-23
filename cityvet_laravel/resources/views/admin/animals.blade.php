@@ -163,7 +163,7 @@
     <div class="relative min-h-screen flex items-center justify-center p-4">
       <div class="relative bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
         <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
-          <h2 class="text-lg sm:text-xl font-semibold">Add New Animal</h2>
+          <h2 class="text-lg sm:text-xl font-semibold text-primary">Add New Animal</h2>
           <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
@@ -173,7 +173,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Species</label>
+              <label class="block font-medium text-sm text-primary">Species</label>
               <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled selected>Select Species</option>
                 @foreach(array_keys($breedOptions) as $type)
@@ -183,7 +183,7 @@
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Breed</label>
+              <label class="block font-medium text-sm text-primary">Breed</label>
               <select name="breed" id="modal-breed" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled selected>Select Breed</option>
               </select>
@@ -191,18 +191,18 @@
           </div>
 
           <div>
-            <label class="block font-medium text-sm">Name</label>
+            <label class="block font-medium text-sm text-primary">Name</label>
             <input type="text" name="name" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Birth Date</label>
+              <label class="block font-medium text-sm text-primary">Birth Date</label>
               <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Gender</label>
+              <label class="block font-medium text-sm text-primary">Gender</label>
               <select name="gender" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled selected>Select Gender</option>
                 <option value="male">Male</option>
@@ -213,24 +213,24 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Weight (kg)</label>
+              <label class="block font-medium text-sm text-primary">Weight (kg)</label>
               <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Height (cm)</label>
+              <label class="block font-medium text-sm text-primary">Height (cm)</label>
               <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
           </div>
 
           <div>
-            <label class="block font-medium text-sm">Color</label>
+            <label class="block font-medium text-sm text-primary">Color</label>
             <input type="text" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <!-- Owner autocomplete input -->
           <div class="relative w-full">
-            <label for="owner-search" class="block font-medium text-sm mb-1">Owner</label>
+            <label for="owner-search" class="block font-medium text-sm mb-1 text-primary">Owner</label>
             <input
               type="text"
               id="owner-search"
@@ -265,7 +265,7 @@
     <div class="relative min-h-screen flex items-center justify-center p-4">
       <div class="relative bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
         <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
-          <h2 class="text-lg sm:text-xl font-semibold">Edit Animal</h2>
+          <h2 class="text-lg sm:text-xl font-semibold text-primary">Edit Animal</h2>
           <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
@@ -276,7 +276,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Species</label>
+              <label class="block font-medium text-sm text-primary">Species</label>
               <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled>Select Species</option>
                 @foreach(array_keys($breedOptions) as $type)
@@ -286,7 +286,7 @@
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Breed</label>
+              <label class="block font-medium text-sm text-primary">Breed</label>
               <select name="breed" x-model="currentAnimal?.breed" id="modal-breed-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled>Select Breed</option>
               </select>
@@ -294,18 +294,18 @@
           </div>
 
           <div>
-            <label class="block font-medium text-sm">Name</label>
+            <label class="block font-medium text-sm text-primary">Name</label>
             <input type="text" x-model="currentAnimal.name" name="name" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Birth Date</label>
+              <label class="block font-medium text-sm text-primary">Birth Date</label>
               <input type="date" x-model="currentAnimal.birth_date" name="birth_date" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Gender</label>
+              <label class="block font-medium text-sm text-primary">Gender</label>
               <select name="gender" x-model="currentAnimal.gender" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled>Select Gender</option>
                 <option value="male">Male</option>
@@ -316,24 +316,24 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-sm">Weight (kg)</label>
+              <label class="block font-medium text-sm text-primary">Weight (kg)</label>
               <input type="number" step="0.01" x-model="currentAnimal.weight" name="weight" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
 
             <div>
-              <label class="block font-medium text-sm">Height (cm)</label>
+              <label class="block font-medium text-sm text-primary">Height (cm)</label>
               <input type="number" step="0.01" x-model="currentAnimal.height" name="height" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
             </div>
           </div>
 
           <div>
-            <label class="block font-medium text-sm">Color</label>
+            <label class="block font-medium text-sm text-primary">Color</label>
             <input type="text" x-model="currentAnimal.color" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
           <!-- Owner autocomplete input for edit modal -->
           <div class="relative w-full">
-            <label for="owner-search-edit" class="block font-medium text-sm mb-1">Owner</label>
+            <label for="owner-search-edit" class="block font-medium text-sm mb-1 text-primary">Owner</label>
             <input
               type="text"
               id="owner-search-edit"

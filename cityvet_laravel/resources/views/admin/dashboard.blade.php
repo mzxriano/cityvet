@@ -1,36 +1,36 @@
 @extends('layouts.layout')
 
 @section('content')
-  <h1 class="title-style mb-8 lg:mb-[50px] text-2xl lg:text-3xl">Dashboard</h1>
+  <h1 class="title-style mb-8 lg:mb-[50px] text-2xl lg:text-3xl dark:text-white">Dashboard</h1>
 
   <section class="mb-6 lg:mb-[2rem]">
     <!-- Stats Cards - Stack on mobile, flex on desktop -->
     <div class="flex flex-col lg:flex-row justify-between gap-4 lg:gap-[5rem] mb-6 lg:mb-[2rem]">
       <div 
-        class="bg-white flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
+        class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
         data-modal-target="userRoleModal" 
         data-modal-toggle="userRoleModal"
       >
-        <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
+        <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Users
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalUsers }}
         </div>
       </div>
-      <div class="bg-white flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
-        <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
+      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
+        <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Registered Animals
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalAnimals }}
         </div>
       </div>
-      <div class="bg-white flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
-        <div class="mb-4 lg:mb-[2rem] text-gray-500 text-sm lg:text-base">
+      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
+        <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Vaccinated Animals
         </div>
-        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E]">
+        <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalVaccinatedAnimals }}
         </div>
       </div>
@@ -40,9 +40,9 @@
   <!-- Modal -->
   <div id="userRoleModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen px-4">
-      <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">User Role Breakdown</h2>
-        <ul class="space-y-2 text-sm text-gray-600">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">User Role Breakdown</h2>
+        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
             <li>Pet Owner: <span class="font-semibold">{{ $userTypeCounts['pet_owner'] ?? 0 }}</span></li>
             <li>Livestock Owner: <span class="font-semibold">{{ $userTypeCounts['livestock_owner'] ?? 0 }}</span></li>
             <li>Poultry Owner: <span class="font-semibold">{{ $userTypeCounts['poultry_owner'] ?? 0 }}</span></li>
@@ -62,9 +62,9 @@
 
   <!-- Case Report Section -->
   <section class="mb-6 lg:mb-[2rem]">
-    <div class="bg-white shadow-md rounded-lg lg:rounded-[1rem] p-4 lg:p-[2rem]">
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg lg:rounded-[1rem] p-4 lg:p-[2rem]">
       <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 lg:gap-0"> 
-        <div class="text-lg lg:text-[25px] text-gray-700 font-medium">
+        <div class="text-lg lg:text-[25px] text-gray-700 dark:text-gray-300 font-medium">
           Bite Case Report
         </div>
 
@@ -72,8 +72,8 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4">
           <!-- Filter by Barangay -->
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label class="text-sm text-gray-600 lg:hidden">Barangay:</label>
-            <select id="barangay" class="w-full sm:w-auto px-3 py-2 border-2 bg-transparent rounded-full text-gray-600 text-sm lg:text-base">
+            <label class="text-sm text-gray-600 dark:text-gray-400 lg:hidden">Barangay:</label>
+            <select id="barangay" class="w-full sm:w-auto px-3 py-2 border-2 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 rounded-full text-gray-600 text-sm lg:text-base">
               <option value="all">All</option>
               <option value="barangay-1">Barangay 1</option>
               <option value="barangay-2">Barangay 2</option>
@@ -105,18 +105,18 @@
     <!-- Bottom Cards - Stack on mobile/tablet, flex on desktop -->
     <div class="flex flex-col lg:flex-row gap-4 lg:gap-[2rem]">
     <!-- Vaccinated per barangay -->
-    <div class="flex flex-col w-full lg:w-2/5 bg-white rounded-xl shadow-md p-4 lg:p-[2rem]">
-      <div class="text-lg lg:text-[20px] text-gray-700 mb-4 lg:mb-5 font-medium">
+    <div class="flex flex-col w-full lg:w-2/5 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 lg:p-[2rem]">
+      <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 mb-4 lg:mb-5 font-medium">
         Vaccinated Animal Per Barangay
       </div>
       
       <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
         @forelse($barangays as $barangay)
         <div class="flex justify-between items-center py-2">
-          <div class="text-gray-500 text-sm lg:text-base">
+          <div class="text-gray-500 dark:text-gray-400 text-sm lg:text-base">
             {{ $barangay->name }}
           </div>
-          <div class="text-gray-500 text-sm lg:text-base font-medium">
+          <div class="text-gray-500 dark:text-gray-400 text-sm lg:text-base font-medium">
             {{ $barangay->vaccinated_animals_count ?? 0 }}
           </div>
         </div>
@@ -131,8 +131,8 @@
 
       
       <!-- Animal per category -->
-      <div class="flex flex-col flex-1 bg-white rounded-xl shadow-md p-4 lg:p-[2rem]">
-        <div class="text-lg lg:text-[20px] text-gray-700 mb-4 font-medium">
+      <div class="flex flex-col flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 lg:p-[2rem]">
+        <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 mb-4 font-medium">
           Animal per Category
         </div>
         <!-- Pie chart -->

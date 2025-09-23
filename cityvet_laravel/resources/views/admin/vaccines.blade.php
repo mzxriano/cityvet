@@ -105,9 +105,9 @@
     </div>
 
     <!-- Shared Filter Component -->
-    <div x-show="activeTab !== 'usage'" class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
+    <div x-show="activeTab !== 'usage'" class="w-full bg-white  rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
         <!-- Filter Form -->
-        <div class="mb-4 sm:mb-6 bg-gray-50 p-2 sm:p-4 rounded-lg">
+        <div class="mb-4 sm:mb-6 card-bg p-2 sm:p-4 rounded-lg">
             <form method="GET" class="space-y-3 sm:space-y-4">
                 <!-- Hidden field to preserve active tab -->
                 <input type="hidden" name="tab" :value="activeTab">
@@ -239,7 +239,7 @@
                                     <span class="font-medium">{{ $vaccine->brand ?? '-' }}</span>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                    <div class="font-medium text-gray-900">{{ $vaccine->name }}</div>
+                                    <div class="font-medium text-primary">{{ $vaccine->name }}</div>
                                     @if($vaccine->brand)
                                         <div class="text-gray-500 text-xs">{{ $vaccine->brand }}</div>
                                     @endif
@@ -331,7 +331,7 @@
                                     </span>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                    <div class="font-medium text-gray-900">{{ $vaccine->name }}</div>
+                                    <div class="font-medium text-primary">{{ $vaccine->name }}</div>
                                     <!-- Mobile-only additional info -->
                                     <div class="text-gray-500 text-xs md:hidden">
                                         <div>Stock: {{ $vaccine->stock ?? 0 }}</div>
@@ -417,7 +417,7 @@
 <div x-show="activeTab === 'usage'" x-cloak>
     <!-- Usage Filters -->
     <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
-        <div class="mb-4 sm:mb-6 bg-gray-50 p-2 sm:p-4 rounded-lg">
+        <div class="mb-4 sm:mb-6 card-bg p-2 sm:p-4 rounded-lg">
             <form method="GET" class="space-y-3 sm:space-y-4">
                 <!-- Hidden field to preserve active tab -->
                 <input type="hidden" name="tab" value="usage">
@@ -673,7 +673,7 @@
             <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Edit Vaccine</h3>
+                    <h3 class="text-lg sm:text-xl font-semibold text-primary">Edit Vaccine</h3>
                     <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">

@@ -1,12 +1,12 @@
 @extends('layouts.layout')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <main class="max-w-7xl mx-auto p-4">
     <!-- Header -->
     <div class="mb-6">
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold text-gray-900">Community Management</h1>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Community Management</h1>
         <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 flex items-center space-x-2" onclick="refreshAllData()">
           <i class="fas fa-sync-alt"></i>
           <span>Refresh</span>
@@ -19,15 +19,15 @@
       <div class="flex-1">
         <!-- Tabs Navigation -->
         <div class="mb-6">
-          <div class="border-b border-gray-200 bg-white rounded-t-lg">
+          <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
             <nav class="-mb-px flex space-x-8 px-6" id="communityTabs" role="tablist">
-              <button class="tab-button active py-4 px-1 border-b-2 border-amber-500 font-medium text-sm text-amber-600" 
+              <button class="tab-button active py-4 px-1 border-b-2 border-amber-500 font-medium text-sm text-amber-600 dark:text-amber-400" 
                       id="pending-tab" 
                       data-target="pending">
                 Pending Reviews
-                <span class="ml-2 bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium" id="pending-count">0</span>
+                <span class="ml-2 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-xs px-2 py-1 rounded-full font-medium" id="pending-count">0</span>
               </button>
-              <button class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" 
+              <button class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600" 
                       id="approved-tab" 
                       data-target="approved">
                 All Posts
@@ -41,7 +41,7 @@
         <div class="tab-content">
           <!-- Pending Posts Tab -->
           <div class="tab-pane active" id="pending">
-            <div id="pending-posts-container" class="space-y-4">
+            <div id="pending-posts-container" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div class="flex justify-center py-12">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
@@ -50,7 +50,7 @@
           
           <!-- Approved Posts Tab -->
           <div class="tab-pane" id="approved">
-            <div id="approved-posts-container" class="space-y-4">
+            <div id="approved-posts-container" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div class="flex justify-center py-12">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
@@ -61,16 +61,16 @@
 
       <!-- Sidebar for Reported Content -->
       <div class="w-80">
-        <div class="bg-white rounded-lg shadow-sm border">
-          <div class="p-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+        <div class="bg-white rounded-lg shadow-sm border border-color">
+          <div class="p-4 border-b border-color">
+            <h2 class="text-lg font-semibold text-primary flex items-center">
               <i class="fas fa-flag text-red-500 mr-2"></i>
               Reported Content
             </h2>
           </div>
           
           <!-- Reported Posts Section -->
-          <div class="p-4 border-b border-gray-100">
+          <div class="p-4 border-b border-color">
             <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
               Reported Posts
               <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium" id="reported-posts-count">0</span>
@@ -163,6 +163,45 @@
   background-color: #dbeafe;
   color: #2563eb;
 }
+
+/* Custom scrollbar styles */
+#pending-posts-container::-webkit-scrollbar,
+#approved-posts-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#pending-posts-container::-webkit-scrollbar-track,
+#approved-posts-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+#pending-posts-container::-webkit-scrollbar-thumb,
+#approved-posts-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+#pending-posts-container::-webkit-scrollbar-thumb:hover,
+#approved-posts-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark #pending-posts-container::-webkit-scrollbar-track,
+.dark #approved-posts-container::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark #pending-posts-container::-webkit-scrollbar-thumb,
+.dark #approved-posts-container::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+.dark #pending-posts-container::-webkit-scrollbar-thumb:hover,
+.dark #approved-posts-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
 </style>
 
 <script>
@@ -243,7 +282,7 @@ function displayPendingPosts() {
   
   if (pendingPosts.length === 0) {
     container.innerHTML = `
-      <div class="text-center py-12 bg-white rounded-lg">
+      <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
         <div class="mx-auto h-16 w-16 text-green-400 mb-4">
           <svg fill="currentColor" viewBox="0 0 20 20" class="w-full h-full">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -361,16 +400,16 @@ function createPostCard(post, isPending = false) {
   ` : '';
 
   return `
-    <div class="bg-white rounded-lg shadow-sm border post-card">
+    <div class="card-bg rounded-lg shadow-sm border border-color post-card">
       <!-- Post Header -->
-      <div class="p-4 border-b border-gray-100">
+      <div class="p-4 border-b border-color">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <span class="text-white font-medium text-sm">${userName.charAt(0)}</span>
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900">${userName}</h3>
+              <h3 class="font-semibold text-primary">${userName}</h3>
               <div class="flex items-center space-x-2 text-sm text-gray-500">
                 <span>${postDate}</span>
                 <span>•</span>
@@ -388,7 +427,7 @@ function createPostCard(post, isPending = false) {
       </div>
       
       <!-- Post Stats -->
-      <div class="px-4 py-2 border-t border-gray-100">
+      <div class="px-4 py-2 border-t border-color">
         <div class="flex items-center justify-between text-sm text-gray-500">
           <span>${post.likes_count || 0} likes</span>
           <span>${post.comments_count || 0} comments</span>
@@ -396,12 +435,8 @@ function createPostCard(post, isPending = false) {
       </div>
       
       <!-- Action Buttons -->
-      <div class="px-4 py-2 border-t border-gray-100">
+      <div class="px-4 py-2 border-t border-color">
         <div class="flex items-center space-x-1">
-          <button class="like-btn flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <i class="far fa-heart"></i>
-            <span>Like</span>
-          </button>
           <button class="comment-btn flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
                   onclick="openCommentsModal(${post.id})">
             <i class="far fa-comment"></i>

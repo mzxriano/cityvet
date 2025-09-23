@@ -6,6 +6,9 @@
 <body class="bg-gray-200 min-h-screen p-8">
 
   <main class="max-w-7xl mx-auto">
+    <div class="flex items-center space-x-4 mb-6">
+        <i class="fas fa-chevron-left text-gray-500 text-xl cursor-pointer" onclick="window.history.back()"></i>
+    </div>
     <!-- Breadcrumb -->
     <nav class="text-xs text-gray-500 mb-4 select-none" aria-label="Breadcrumb">
       <ol class="list-reset flex space-x-2">
@@ -41,7 +44,7 @@
       @else
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           @for($i = 0; $i < 4; $i++)
-            <div class="rounded-lg bg-gray-200 aspect-square shadow flex items-center justify-center">
+            <div class="rounded-lg bg-gray-200 dark:bg-gray-800 aspect-square shadow flex items-center justify-center">
               <div class="text-gray-400 text-center">
                 <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -59,8 +62,8 @@
       
       <!-- Details card - Takes up 2/4 columns -->
       <div class="md:col-span-2 bg-white rounded-xl p-6 shadow-lg">
-        <h2 class="text-3xl font-semibold mb-3 text-gray-800">{{ $activity->reason }}</h2>
-        <p class="text-gray-500 font-light mb-3">{{ $activity->details }}</p>
+        <h2 class="text-3xl font-semibold mb-3 text-primary">{{ $activity->reason }}</h2>
+        <p class="text-primary font-light mb-3">{{ $activity->details }}</p>
         <address class="not-italic text-gray-700 mb-3 text-lg">{{ $activity->barangay->name }}</address>
         <p class="text-gray-700">{{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}<br />{{ \Carbon\Carbon::parse($activity->time)->format('H:i a') }}</p>
       </div>
@@ -69,23 +72,23 @@
       <div class="md:col-span-2 space-y-6">
         <!-- Vaccinated Animals card -->
         <div class="bg-white rounded-xl p-6 shadow-lg">
-          <p class="text-gray-500 font-light mb-1">Vaccinated Animals</p>
-          <p class="text-3xl font-light text-gray-800">{{ $vaccinatedAnimals->count() }}</p>
+          <p class="text-secondary font-light mb-1">Vaccinated Animals</p>
+          <p class="text-3xl font-light text-gray-800 dark:text-white">{{ $vaccinatedAnimals->count() }}</p>
           @if($vaccinatedAnimals->count() > 0)
-            <p class="text-sm text-gray-500 mt-1">{{ $vaccinatedAnimals->sum(function($animal) { return count($animal['vaccinations']); }) }} vaccinations given</p>
+            <p class="text-sm text-gray-500 dark:text-white mt-1">{{ $vaccinatedAnimals->sum(function($animal) { return count($animal['vaccinations']); }) }} vaccinations given</p>
           @endif
         </div>
         
         <!-- Status card -->
         <div class="bg-white rounded-xl p-6 shadow-lg">
-          <p class="text-gray-500 font-light mb-2">Status</p>
+          <p class="text-secondary font-light mb-2">Status</p>
           <span class="inline-block bg-sky-400 text-white text-xs px-3 py-1 rounded-full select-none">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</span>
         </div>
 
         <!-- Memo card -->
         @if($activity->memo)
         <div class="bg-white rounded-xl p-6 shadow-lg">
-          <p class="text-gray-500 font-light mb-2">Memo</p>
+          <p class="text-secondary font-light mb-2">Memo</p>
           <a href="{{ route('admin.activities.memo', $activity->id) }}" 
              class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors text-sm font-medium">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

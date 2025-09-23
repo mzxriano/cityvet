@@ -100,7 +100,7 @@
             </template>
         </form>
 
-        <form method="GET" action="{{ route('admin.reports') }}" class="mb-6 bg-gray-50 p-4 rounded-lg">
+        <form method="GET" action="{{ route('admin.reports') }}" class="mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
  
                 <!-- Animal Type Filter -->

@@ -120,9 +120,20 @@ Route::prefix('admin')->group(function () {
             return view('admin.archives');
         })->name('admin.archives');
 
-        Route::get('/settings', function () {
-            return view('admin.settings');
-        })->name('admin.settings');
+        Route::get('/settings', [App\Http\Controllers\Web\SettingsController::class, 'index'])
+            ->name('admin.settings');
+        
+        Route::post('/settings/password', [App\Http\Controllers\Web\SettingsController::class, 'updatePassword'])
+            ->name('settings.password.update');
+        
+        Route::post('/settings/profile', [App\Http\Controllers\Web\SettingsController::class, 'updateProfile'])
+            ->name('settings.profile.update');
+        
+        Route::post('/settings/theme', [App\Http\Controllers\Web\SettingsController::class, 'updateTheme'])
+            ->name('settings.theme.update');
+        
+        Route::post('/settings/system', [App\Http\Controllers\Web\SettingsController::class, 'updateSettings'])
+            ->name('settings.system.update');
         
     });
 });

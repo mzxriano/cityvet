@@ -3,7 +3,7 @@
 @section('content')
 <!-- Success/Error Messages -->
 @if(session('success'))
-<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+<div class="mb-4 p-4 bg-green-100 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded">
   {{ session('success') }}
     @if(session('password_sent'))
         <br>
@@ -13,7 +13,7 @@
 @endif
 
 @if(session('error'))
-<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+<div class="mb-4 p-4 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded">
   {{ session('error') }}
 </div>
 @endif
@@ -319,7 +319,7 @@
             <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Add New User</h3>
+                    <h3 class="text-lg sm:text-xl font-semibold text-primary">Add New User</h3>
                     <button x-on:click="showAddModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">
@@ -460,7 +460,7 @@
             <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Edit User</h3>
+                    <h3 class="text-lg sm:text-xl font-semibold text-primary">Edit User</h3>
                     <button x-on:click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" stroke="currentColor">

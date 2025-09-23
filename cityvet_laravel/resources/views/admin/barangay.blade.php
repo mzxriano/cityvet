@@ -28,7 +28,7 @@
     <h1 class="title-style mb-4 sm:mb-8">Barangay</h1>
 
     <!-- Main Card -->
-    <div class="w-full bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-200">
+    <div class="w-full bg-white card-bg rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-200">
         
         <!-- Search Form -->
         <form method="GET" action="{{ route('admin.barangay') }}" 
@@ -62,7 +62,7 @@
                        name="search"
                        value="{{ request('search') }}"
                        placeholder="Search barangay..."
-                       class="w-full sm:w-72 border border-gray-300 px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm">
+                       class="w-full sm:w-72 border border-color px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm">
                 
                 <button type="submit"
                         class="bg-blue-500 text-white px-6 py-2.5 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap font-medium shadow-sm">
@@ -77,14 +77,14 @@
         <!-- Mobile Card Layout (Hidden on Desktop) -->
         <div class="block lg:hidden space-y-6">
             @forelse($barangays as $index => $barangay)
-                <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                <div class="bg-white card-bg rounded-xl p-5 border border-color shadow-sm">
                     <!-- Header -->
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <div class="text-sm text-gray-500 mb-1">
                                 #{{ ($barangays->currentPage() - 1) * $barangays->perPage() + $index + 1 }}
                             </div>
-                            <h3 class="font-semibold text-xl text-gray-900">
+                            <h3 class="font-semibold text-xl text-gray-900 dark:text-white">
                                 @if(request('search'))
                                     {!! str_ireplace(request('search'), '<mark class="bg-yellow-200">' . request('search') . '</mark>', $barangay->name) !!}
                                 @else
@@ -97,8 +97,8 @@
                     <!-- Content Grid -->
                     <div class="space-y-4">
                         <!-- Animal Owners Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <h4 class="text-base font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-300">
+                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                            <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Animal Owners
                             </h4>
                             <div class="grid grid-cols-3 gap-3">
@@ -118,8 +118,8 @@
                         </div>
                         
                         <!-- Veterinary Activities Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <h4 class="text-base font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-300">
+                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                            <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Veterinary Activities
                             </h4>
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -135,7 +135,7 @@
                                     <div class="text-lg font-bold text-indigo-600">{{ $barangay->activities->where('category', 'vitamin')->count() }}</div>
                                     <div class="text-sm text-gray-600 mt-1">Vitamin</div>
                                 </div>
-                                <div class="bg-white rounded-lg p-3 text-center border border-gray-300">
+                                <div class="bg-white rounded-lg p-3 text-center border border-color">
                                     <div class="text-lg font-bold text-gray-600">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
                                     <div class="text-sm text-gray-600 mt-1">Other</div>
                                 </div>
@@ -143,8 +143,8 @@
                         </div>
                         
                         <!-- Vaccinated Animals Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <h4 class="text-base font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-300">
+                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                            <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Vaccinated Animals
                             </h4>
                             <div class="grid grid-cols-3 gap-3">
@@ -164,8 +164,8 @@
                         </div>
                         
                         <!-- Bite Cases Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <h4 class="text-base font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-300">
+                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                            <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Bite Cases
                             </h4>
                             <div class="bg-white rounded-lg p-4 text-center border border-red-200">
@@ -201,33 +201,33 @@
 
         <!-- Desktop Table Layout (Hidden on Mobile) -->
         <div class="hidden lg:block">
-            <div class="overflow-x-auto border border-gray-300 rounded-lg shadow-sm">
+            <div class="overflow-x-auto border border-color card-bg rounded-lg shadow-sm">
                 <table class="min-w-full border-collapse bg-white">
                     <thead>
                         <!-- Main Headers -->
                         <tr class="bg-gradient-to-r from-gray-200 to-gray-300">
-                            <th class="px-4 py-4 text-left font-semibold text-gray-800 border-r border-gray-400 w-16">No.</th>
-                            <th class="px-6 py-4 text-left font-semibold text-gray-800 border-r border-gray-400 min-w-[200px]">Barangay Name</th>
-                            <th class="px-4 py-4 text-center font-semibold text-gray-800 border-r border-gray-400 min-w-[240px]">
+                            <th class="px-4 py-4 text-left font-semibold text-gray-800 card-bg border-r border-color w-16">No.</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-800 card-bg border-r border-color min-w-[200px]">Barangay Name</th>
+                            <th class="px-4 py-4 text-center font-semibold text-gray-800 card-bg border-r border-color min-w-[240px]">
                                 Animal Owners
                             </th>
-                            <th class="px-4 py-4 text-center font-semibold text-gray-800 border-r border-gray-400 min-w-[280px]">
+                            <th class="px-4 py-4 text-center font-semibold text-gray-800 card-bg border-r border-color min-w-[280px]">
                                 Activities
                             </th>
-                            <th class="px-4 py-4 text-center font-semibold text-gray-800 border-r border-gray-400 min-w-[240px]">
+                            <th class="px-4 py-4 text-center font-semibold text-gray-800 card-bg border-r border-color min-w-[240px]">
                                 Vaccinated Animals
                             </th>
-                            <th class="px-4 py-4 text-center font-semibold text-gray-800 w-32">
+                            <th class="px-4 py-4 text-center font-semibold text-gray-800 card-bg w-32">
                                 Bite Cases
                             </th>
                         </tr>
                         <!-- Sub Headers -->
-                        <tr class="bg-gray-100 border-t border-gray-300">
-                            <th class="px-4 py-3 border-r border-gray-300"></th>
-                            <th class="px-6 py-3 border-r border-gray-300"></th>
-                            <th class="px-4 py-3 border-r border-gray-300">
+                        <tr class="bg-gray-100 border-t border-color">
+                            <th class="px-4 py-3 border-r border-color card-bg"></th>
+                            <th class="px-6 py-3 border-r border-color card-bg"></th>
+                            <th class="px-4 py-3 border-r border-color card-bg">
                                 <div class="grid grid-cols-3 gap-2 text-xs font-medium">
-                                    <div class="text-center text-pink-700 rounded-md py-2 border border-pink-300">
+                                    <div class="text-center text-pink-700 bg-pink-100 rounded-md py-2 border border-pink-300">
                                         Pet
                                     </div>
                                     <div class="text-center bg-orange-100 text-orange-700 rounded-md py-2 border border-orange-300">
@@ -238,23 +238,23 @@
                                     </div>
                                 </div>
                             </th>
-                            <th class="px-4 py-3 border-r border-gray-300">
+                            <th class="px-4 py-3 border-r border-color card-bg">
                                 <div class="grid grid-cols-4 gap-1 text-xs font-medium">
-                                    <div class="text-center text-green-700 rounded-md py-2 border border-green-300">
+                                    <div class="text-center text-green-700 bg-green-100 rounded-md py-2 border border-green-300">
                                         Vaccination
                                     </div>
-                                    <div class="text-center text-purple-700 rounded-md py-2 border border-purple-300">
+                                    <div class="text-center text-purple-700 bg-purple-100 rounded-md py-2 border border-purple-300">
                                         Deworming
                                     </div>
-                                    <div class="text-center text-indigo-700 rounded-md py-2 border border-indigo-300">
+                                    <div class="text-center text-indigo-700 bg-indigo-100 rounded-md py-2 border border-indigo-300">
                                         Vitamin
                                     </div>
-                                    <div class="text-center bg-gray-100 text-gray-700 rounded-md py-2 border border-gray-300">
+                                    <div class="text-center bg-gray-100 text-gray-700 rounded-md py-2 border border-color">
                                         Other
                                     </div>
                                 </div>
                             </th>
-                            <th class="px-4 py-3 border-r border-gray-300">
+                            <th class="px-4 py-3 border-r border-color card-bg">
                                 <div class="grid grid-cols-3 gap-2 text-xs font-medium">
                                     <div class="text-center bg-pink-100 text-pink-700 rounded-md py-2 border border-pink-300">
                                         Pet
@@ -267,7 +267,7 @@
                                     </div>
                                 </div>
                             </th>
-                            <th class="px-4 py-3"></th>
+                            <th class="px-4 py-3 bg-gray-800 card-bg"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -277,7 +277,7 @@
                                     {{ ($barangays->currentPage() - 1) * $barangays->perPage() + $index + 1 }}
                                 </td>
                                 <td class="px-6 py-4 border-r border-gray-200">
-                                    <div class="font-semibold text-gray-900 text-lg">
+                                    <div class="font-semibold text-gray-900 dark:text-white text-lg">
                                         @if(request('search'))
                                             {!! str_ireplace(request('search'), '<mark class="bg-yellow-200">' . request('search') . '</mark>', $barangay->name) !!}
                                         @else
@@ -311,7 +311,7 @@
                                         <div class="bg-indigo-50 rounded-lg py-2 px-1 border border-indigo-200">
                                             <div class="text-sm font-bold text-indigo-700">{{ $barangay->activities->where('category', 'vitamin')->count() }}</div>
                                         </div>
-                                        <div class="bg-gray-50 rounded-lg py-2 px-1 border border-gray-300">
+                                        <div class="bg-gray-50 rounded-lg py-2 px-1 border border-color">
                                             <div class="text-sm font-bold text-gray-700">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
                                         </div>
                                     </div>
@@ -367,7 +367,7 @@
         <!-- Pagination -->
         @if($barangays->hasPages())
             <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-200">
-                <div class="text-sm text-gray-700 text-center sm:text-left bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                <div class="text-sm text-gray-700 text-center sm:text-left bg-gray-50 card-bg px-4 py-2 rounded-lg border border-gray-200">
                     <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>

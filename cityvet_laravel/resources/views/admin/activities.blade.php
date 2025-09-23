@@ -3,19 +3,19 @@
 @section('content')
 <!-- Success/Error Messages -->
 @if(session('success'))
-<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+<div class="mb-4 p-4 bg-green-100 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded">
   {{ session('success') }}
 </div>
 @endif
 
 @if(session('error'))
-<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+<div class="mb-4 p-4 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded">
   {{ session('error') }}
 </div>
 @endif
 
 @if($errors->any())
-<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+<div class="mb-4 p-4 bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded">
   <ul class="list-disc list-inside">
     @foreach($errors->all() as $error)
       <li>{{ $error }}</li>
@@ -243,11 +243,11 @@ function activitiesManager() {
   </div>
 
   <!-- Table Card -->
-  <div class="w-full bg-white rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
+  <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
     <!-- Filter -->
     <div class="mb-4">
       <form method="GET" action="{{ route('admin.activities') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
-        <select name="status" class="w-full md:w-auto border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base">
+        <select name="status" class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
           <option value="">All Status</option>
           <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
           <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On Going</option>
@@ -259,10 +259,10 @@ function activitiesManager() {
                name="search"
                value="{{ request('search') }}"
                placeholder="Search Reason or Barangay"
-               class="w-full md:w-auto border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base">
+               class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
 
         <button type="submit"
-                class="w-full md:w-auto bg-[#d9d9d9] text-[#6F6969] px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 hover:text-white text-sm md:text-base">
+                class="w-full md:w-auto bg-[#d9d9d9] dark:bg-gray-600 text-[#6F6969] dark:text-gray-300 px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 hover:text-white text-sm md:text-base">
           Filter
         </button>
       </form>
@@ -271,7 +271,7 @@ function activitiesManager() {
     <!-- Desktop Table -->
     <div class="hidden lg:block overflow-x-auto">
       <table class="table-auto w-full border-collapse min-w-full">
-        <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+        <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
           <tr>
             <th class="px-4 py-2 rounded-tl-xl font-medium whitespace-nowrap">No.</th>
             <th class="px-4 py-2 font-medium whitespace-nowrap">Category</th>
@@ -285,7 +285,7 @@ function activitiesManager() {
         </thead>
         <tbody>
           @forelse($activities as $index => $activity)
-            <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t dark:border-gray-600 text-[#524F4F] dark:text-gray-300 transition-colors duration-150">
               <td class="px-4 py-2">
                 {{ $index + 1 }}
               </td>
@@ -334,7 +334,7 @@ function activitiesManager() {
                         status: @js($activity->status),
                         details: @js($activity->details ?? '')
                       })" 
-                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm">
+                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-xs">
                       Edit
                     </button>
                     @endif
@@ -353,14 +353,14 @@ function activitiesManager() {
     <!-- Mobile Cards -->
     <div class="block lg:hidden space-y-4">
       @forelse($activities as $index => $activity)
-        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-sm">
           <div class="flex justify-between items-start mb-3">
             <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-lg text-gray-900 cursor-pointer truncate pr-2" 
+              <h3 class="font-semibold text-lg text-gray-900 dark:text-white cursor-pointer truncate pr-2" 
                   @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
                 {{ $activity->reason }}
               </h3>
-              <p class="text-sm text-gray-600 cursor-pointer truncate" 
+              <p class="text-sm text-primary dark:text-gray-300 cursor-pointer truncate" 
                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
                 {{ $activity->barangay->name ?? 'N/A' }}
               </p>
@@ -391,33 +391,33 @@ function activitiesManager() {
           <div class="grid grid-cols-2 gap-3 text-sm cursor-pointer" 
                @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
             <div>
-              <span class="font-medium text-gray-700">Category:</span>
-              <p class="text-gray-600 truncate">
+              <span class="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+              <p class="text-primary dark:text-gray-400 truncate">
                 @if($activity->category)
                   {{ ucfirst($activity->category) }}
                 @else
-                  <span class="text-gray-400 italic">Not set</span>
+                  <span class="text-gray-400 dark:text-gray-500 italic">Not set</span>
                 @endif
               </p>
             </div>
             <div>
-              <span class="font-medium text-gray-700">Time:</span>
-              <p class="text-gray-600 truncate">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</p>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Time:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}</p>
             </div>
             <div>
-              <span class="font-medium text-gray-700">Date:</span>
-              <p class="text-gray-600 truncate">{{ \Carbon\Carbon::parse($activity->date)->format('M j, Y') }}</p>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ \Carbon\Carbon::parse($activity->date)->format('M j, Y') }}</p>
             </div>
             <div>
-              <span class="font-medium text-gray-700">Status:</span>
-              <p class="text-gray-600 capitalize truncate">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</p>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Status:</span>
+              <p class="text-primary dark:text-gray-400 capitalize truncate">{{ ucwords(str_replace('_', ' ', $activity->status)) }}</p>
             </div>
             <div>
-              <span class="font-medium text-gray-700">Vaccinated:</span>
-              <p class="text-gray-600 truncate">{{ $activity->vaccinated_animals_count ?? 0 }} animals</p>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Vaccinated:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ $activity->vaccinated_animals_count ?? 0 }} animals</p>
             </div>
             <div>
-              <span class="font-medium text-gray-700">Memo:</span>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Memo:</span>
               @if($activity->memo)
                 <a href="{{ route('admin.activities.memo', $activity->id) }}" 
                    class="text-blue-600 hover:text-blue-800 text-sm flex items-center" 
@@ -449,7 +449,7 @@ function activitiesManager() {
                       <div class="w-12 h-12 rounded bg-gray-100 border border-gray-200 flex items-center justify-center cursor-pointer" 
                            onclick="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'"
                            title="View all {{ count($activity->images) }} images">
-                        <span class="text-xs text-gray-600 font-medium">+{{ count($activity->images) - 4 }}</span>
+                        <span class="text-xs text-primary font-medium">+{{ count($activity->images) - 4 }}</span>
                       </div>
                     @endif
                   </div>
@@ -465,7 +465,7 @@ function activitiesManager() {
             <div class="mt-3 cursor-pointer" 
                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
               <span class="font-medium text-gray-700">Details:</span>
-              <p class="text-sm text-gray-600 break-words">{{ Str::limit($activity->details, 100) }}</p>
+              <p class="text-sm text-primary break-words">{{ Str::limit($activity->details, 100) }}</p>
             </div>
           @endif
         </div>
@@ -486,23 +486,23 @@ function activitiesManager() {
   <div x-show="showCalendarModal" x-transition x-cloak class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showCalendarModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-md w-full shadow-lg mx-4">
-        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b">
-          <h2 class="text-lg md:text-xl font-semibold">Select Date for Activity</h2>
-          <button @click="showCalendarModal = false" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+      <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-full shadow-lg mx-4">
+        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b dark:border-gray-600">
+          <h2 class="text-lg md:text-xl font-semibold text-primary">Select Date for Activity</h2>
+          <button @click="showCalendarModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl">✕</button>
         </div>
 
         <div class="p-4 md:p-6">
           <!-- Calendar Header -->
           <div class="flex justify-between items-center mb-4">
-            <button @click="previousMonth()" class="p-2 hover:bg-gray-100 rounded">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="previousMonth()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+              <svg class="w-5 h-5 text-primary dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
             </button>
-            <h3 class="text-base md:text-lg font-semibold" x-text="monthName + ' ' + currentYear"></h3>
-            <button @click="nextMonth()" class="p-2 hover:bg-gray-100 rounded">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-base md:text-lg font-semibold text-primary" x-text="monthName + ' ' + currentYear"></h3>
+            <button @click="nextMonth()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+              <svg class="w-5 h-5 text-primary dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
@@ -511,13 +511,13 @@ function activitiesManager() {
           <!-- Calendar Grid -->
           <div class="grid grid-cols-7 gap-1">
             <!-- Day Headers -->
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Sun</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Mon</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Tue</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Wed</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Thu</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Fri</div>
-            <div class="text-center font-medium text-gray-600 py-2 text-xs md:text-sm">Sat</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Sun</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Mon</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Tue</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Wed</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Thu</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Fri</div>
+            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Sat</div>
 
             <!-- Empty cells for days before month starts -->
             <template x-for="i in firstDayOfMonth" :key="i">
@@ -533,7 +533,7 @@ function activitiesManager() {
                 :class="{ 
                   'bg-blue-500 text-white': isToday(day),
                   'hover:bg-blue-100 hover:text-blue-600 cursor-pointer': !isDateInPast(day),
-                  'text-gray-300 cursor-not-allowed bg-gray-50': isDateInPast(day),
+                  'text-gray-300 cursor-not-allowed card-bg': isDateInPast(day),
                   'hover:bg-blue-500 hover:text-white': !isDateInPast(day) && !isToday(day)
                 }"
                 x-text="day">
@@ -549,15 +549,15 @@ function activitiesManager() {
   <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b">
-          <h2 class="text-lg md:text-xl font-semibold">Add New Activity</h2>
-          <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+      <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b dark:border-gray-600">
+          <h2 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Add New Activity</h2>
+          <button @click="showAddModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl">✕</button>
         </div>
 
         <!-- Selected Date Display -->
-        <div class="px-4 md:px-6 py-3 bg-blue-50 border-b" x-show="selectedDate">
-          <p class="text-sm text-blue-600">
+        <div class="px-4 md:px-6 py-3 bg-blue-50 dark:bg-blue-900/30 border-b dark:border-gray-600" x-show="selectedDate">
+          <p class="text-sm text-blue-600 dark:text-blue-300">
             <strong>Selected Date:</strong> <span x-text="formatSelectedDate()"></span>
           </p>
         </div>
@@ -566,12 +566,12 @@ function activitiesManager() {
           @csrf
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Reason</label>
-            <input type="text" name="reason" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Reason</label>
+            <input type="text" name="reason" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Barangay</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Barangay</label>
             <select name="barangay_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
               <option value="" disabled selected>Select Barangay</option>
               @foreach($barangays as $barangay)
@@ -581,7 +581,7 @@ function activitiesManager() {
           </div>
 
           <div x-data="{ selectedCategory: '', customCategory: '' }">
-            <label class="block font-medium mb-2 text-sm md:text-base">Category</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Category</label>
             <select x-model="selectedCategory" 
                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
               <option value="" disabled selected>Select Category</option>
@@ -607,25 +607,25 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base">Time</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Time</label>
               <input type="time" name="time" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
             </div>
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base">Date</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Date</label>
               <input type="date" name="date" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
                      x-model="selectedDate" readonly required>
             </div>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Status</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Status</label>
             <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
               <option value="up_coming" selected>Up Coming</option>
             </select>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Details</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Details</label>
             <textarea name="details" 
                       rows="3" 
                       placeholder="Enter additional details or remarks about this activity..."
@@ -634,7 +634,7 @@ function activitiesManager() {
 
           <!-- Notification Settings -->
           <div x-data="{ notifyAll: true, selectedBarangays: [] }">
-            <label class="block font-medium mb-3 text-sm md:text-base">Notify Users</label>
+            <label class="block font-medium mb-3 text-sm md:text-base text-primary">Notify Users</label>
             
             <!-- Notify All Option -->
             <div class="mb-3">
@@ -643,13 +643,13 @@ function activitiesManager() {
                        x-model="notifyAll" 
                        @change="if(notifyAll) selectedBarangays = []"
                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                <span class="ml-2 text-sm md:text-base">Notify all users</span>
+                <span class="ml-2 text-sm md:text-base text-primary">Notify all users</span>
               </label>
             </div>
 
             <!-- Specific Barangays Selection -->
             <div x-show="!notifyAll" x-transition class="space-y-2">
-              <p class="text-sm text-gray-600 mb-2">Select specific barangays to notify:</p>
+              <p class="text-sm text-primary mb-2">Select specific barangays to notify:</p>
               <div class="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-1">
                 @foreach($barangays as $barangay)
                 <label class="flex items-center">
@@ -657,7 +657,7 @@ function activitiesManager() {
                          value="{{ $barangay->id }}"
                          x-model="selectedBarangays"
                          class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                  <span class="ml-2 text-sm">{{ $barangay->name }}</span>
+                  <span class="ml-2 text-sm text-primary">{{ $barangay->name }}</span>
                 </label>
                 @endforeach
               </div>
@@ -671,7 +671,7 @@ function activitiesManager() {
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Memo (optional)</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Memo (optional)</label>
             <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
                    x-on:change="$event.target.files.length > 0 ? 
                      $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
@@ -682,7 +682,7 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">
             <button type="button" @click="resetModals()"
-                    class="w-full md:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm md:text-base">
+                    class="w-full md:w-auto px-4 py-2 border rounded-md text-primary hover:bg-gray-100 text-sm md:text-base">
               Cancel
             </button>
             <button type="button" @click="openAddCalendar()"
@@ -704,14 +704,14 @@ function activitiesManager() {
     <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
       <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b">
-          <h2 class="text-lg md:text-xl font-semibold">Edit Activity</h2>
+        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b dark:border-gray-600">
+          <h2 class="text-lg md:text-xl font-semibold text-primary">Edit Activity</h2>
           <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
         </div>
 
         <!-- Selected Date Display -->
-        <div class="px-4 md:px-6 py-3 bg-blue-50 border-b" x-show="selectedDate">
-          <p class="text-sm text-blue-600">
+        <div class="px-4 md:px-6 py-3 bg-blue-50 dark:bg-blue-900/30 border-b dark:border-gray-600" x-show="selectedDate">
+          <p class="text-sm text-blue-600 dark:text-blue-300">
             <strong>Selected Date:</strong> <span x-text="formatSelectedDate()"></span>
           </p>
         </div>
@@ -721,7 +721,7 @@ function activitiesManager() {
           @method('PUT')
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Reason</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Reason</label>
             <input 
               type="text" 
               name="reason"
@@ -731,7 +731,7 @@ function activitiesManager() {
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Barangay</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Barangay</label>
             <select 
               name="barangay_id" 
               x-model="currentActivity.barangay_id"
@@ -766,7 +766,7 @@ function activitiesManager() {
               });
             }
           }">
-            <label class="block font-medium mb-2 text-sm md:text-base">Category</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Category</label>
             <select x-model="editSelectedCategory" 
                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
               <option value="" disabled>Select Category</option>
@@ -792,7 +792,7 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base">Time</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Time</label>
               <input 
                 type="time" 
                 name="time" 
@@ -801,7 +801,7 @@ function activitiesManager() {
                 required>
             </div>
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base">Date</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Date</label>
               <input 
                 type="date" 
                 name="date" 
@@ -812,7 +812,7 @@ function activitiesManager() {
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Status</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Status</label>
             <select 
               name="status" 
               x-model="currentActivity.status"
@@ -825,7 +825,7 @@ function activitiesManager() {
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Details</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Details</label>
             <textarea name="details" 
                       rows="3" 
                       placeholder="Enter additional details or remarks about this activity..."
@@ -834,7 +834,7 @@ function activitiesManager() {
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base">Memo (optional)</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Memo</label>
             <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
                    x-on:change="$event.target.files.length > 0 ? 
                      $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
@@ -845,7 +845,7 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">
             <button type="button" @click="resetModals()"
-                    class="w-full md:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm md:text-base">
+                    class="w-full md:w-auto px-4 py-2 border rounded-md text-primary hover:bg-gray-100 text-sm md:text-base">
               Cancel
             </button>
             <button type="button" @click="openEditCalendar()"

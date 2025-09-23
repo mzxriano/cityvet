@@ -1,17 +1,20 @@
 @extends('layouts.layout')
 
 @section('content')
+<div class="flex items-center space-x-4 mb-6">
+    <i class="fas fa-chevron-left text-gray-500 text-xl cursor-pointer" onclick="window.history.back()"></i>
+</div>
 <!-- Page Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
   <div>
-    <h1 class="text-2xl sm:text-3xl font-semibold text-[#2C2A2A]">Vaccines</h1>
+    <h1 class="text-2xl sm:text-3xl font-semibold text-primary">{{ $vaccine->name }}</h1>
   </div>
 </div>
 
 <!-- Main Content Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
   <!-- Vaccine Image -->
-  <div class="bg-gray-100 rounded-lg flex items-center justify-center h-56 sm:h-72 overflow-hidden">
+  <div class="card-bg rounded-lg flex items-center justify-center h-56 sm:h-72 overflow-hidden">
     @if($vaccine->image_url)
       <img src="{{ $vaccine->image_url }}" 
           alt="{{ $vaccine->name }}" 
@@ -26,8 +29,8 @@
     <!-- Vaccine Details -->
     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
       <div class="mb-4 sm:mb-6">
-        <div class="text-sm mb-2 text-[#858585]">Vaccine Name</div>
-        <div class="text-[#2C2A2A] text-lg sm:text-xl font-medium">{{ $vaccine->name }}</div>
+        <div class="text-sm mb-2 text-secondary">Vaccine Name</div>
+        <div class="text-primary text-lg sm:text-xl font-medium">{{ $vaccine->name }}</div>
       </div>
     </div>
     
@@ -40,9 +43,9 @@
       </div> --}}
       
       <!-- Stock Card -->
-      <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-        <div class="text-[#858585] text-sm mb-2">Stock</div>
-        <div class="text-[#2C2A2A] text-xl sm:text-2xl font-semibold">{{ $vaccine->stock }}</div>
+      <div class="card-bg p-4 sm:p-6 rounded-lg shadow-lg">
+        <div class="text-secondary text-sm mb-2">Stock</div>
+        <div class="text-primary text-xl sm:text-2xl font-semibold">{{ $vaccine->stock }}</div>
       </div>
     </div>
   </div>
@@ -51,9 +54,9 @@
 <!-- Information Cards -->
 <div class="grid grid-cols-1 gap-6">
   <!-- Description Card -->
-  <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-    <h3 class="text-sm sm:text-base font-semibold text-[#858585] mb-3 sm:mb-4">Description</h3>
-    <p class="text-gray-600 leading-relaxed text-sm">
+  <div class="card-bg p-4 sm:p-6 rounded-lg shadow-lg">
+    <h3 class="text-sm sm:text-base font-semibold text-secondary mb-3 sm:mb-4">Description</h3>
+    <p class="text-primary leading-relaxed text-sm">
       {{ $vaccine->description }}
     </p>
   </div>

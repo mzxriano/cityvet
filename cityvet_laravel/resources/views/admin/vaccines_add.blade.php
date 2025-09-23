@@ -154,8 +154,8 @@
                 
                 <div class="space-y-6">
                     
-                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Add Stock</h3>
+                    <div class="card-bg p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-primary mb-4">Add Stock</h3>
                         <input type="number" id="add-stock" name="stock" value="{{ old('stock', 0) }}" 
                                min="0" max="999999"
                                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 {{ $errors->has('stock') ? 'error-border' : '' }}">
@@ -164,8 +164,8 @@
                         @endif
                     </div>
                     
-                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Add Image</h3>
+                    <div class="card-bg p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-primary mb-4">Add Image</h3>
                         <input type="file" id="add-image" name="image" accept="image/jpeg,image/png,image/jpg,image/webp" 
                                class="custom-file-input w-full {{ $errors->has('image') ? 'error-border' : '' }}">
                         <p class="text-xs text-gray-500 mt-2">Supported formats: JPG, PNG, JPEG, WEBP. Max size: 2MB</p>
