@@ -100,7 +100,7 @@
 <div id="commentsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4" style="display: none;">
   <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
     <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-900">Comments</h3>
+      <h3 class="text-lg font-semibold text-secondary">Comments</h3>
       <button onclick="closeCommentsModal()" class="text-gray-400 hover:text-gray-600">
         <i class="fas fa-times"></i>
       </button>
@@ -288,7 +288,7 @@ function displayPendingPosts() {
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+        <h3 class="text-lg font-medium text-primary mb-2">All caught up!</h3>
         <p class="text-gray-500">No pending posts need review at this time.</p>
       </div>
     `;
@@ -310,7 +310,7 @@ function displayApprovedPosts() {
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+        <h3 class="text-lg font-medium text-primary mb-2">No posts yet</h3>
         <p class="text-gray-500">Community posts will appear here once approved.</p>
       </div>
     `;
@@ -466,11 +466,11 @@ function openCommentsModal(postId) {
                 <span class="text-white font-medium text-xs">${comment.user?.first_name?.charAt(0) || 'U'}</span>
               </div>
               <div class="flex-1">
-                <div class="bg-gray-100 rounded-lg p-3">
-                  <div class="font-medium text-sm text-gray-900">${comment.user?.first_name} ${comment.user?.last_name}</div>
-                  <div class="text-gray-800">${comment.content}</div>
+                <div class="bg-gray-200  dark:bg-gray-700 rounded-lg p-3">
+                  <div class="font-medium text-sm text-primary">${comment.user?.first_name} ${comment.user?.last_name}</div>
+                  <div class="text-secondary">${comment.content}</div>
                 </div>
-                <div class="text-xs text-gray-500 mt-1">${new Date(comment.created_at).toLocaleDateString()}</div>
+                <div class="text-xs text-primary mt-1">${new Date(comment.created_at).toLocaleDateString()}</div>
               </div>
             </div>
           `).join('')

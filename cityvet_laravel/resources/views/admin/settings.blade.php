@@ -32,13 +32,13 @@
                     <label for="contact_phone" class="block text-gray-700 dark:text-gray-300">Contact Phone</label>
                     <input id="contact_phone" type="text" name="contact_phone" value="{{ old('contact_phone', $settings['contact_phone']) }}" class="w-full border dark:border-gray-600 rounded px-3 py-2 mt-1 bg-white dark:bg-gray-700 dark:text-white">
                 </div>
-                <div>
+                {{-- <div>
                     <label for="business_hours" class="block text-gray-700 dark:text-gray-300">Business Hours</label>
                     <textarea id="business_hours" name="business_hours" rows="3" class="w-full border dark:border-gray-600 rounded px-3 py-2 mt-1 bg-white dark:bg-gray-700 dark:text-white">{{ old('business_hours', $settings['business_hours']) }}</textarea>
-                </div>
+                </div> --}}
             </div>
             
-            <div class="mt-6">
+            {{-- <div class="mt-6">
                 <h3 class="text-lg font-semibold mb-4 dark:text-white">Notification Settings</h3>
                 <div class="space-y-3">
                     <label class="flex items-center">
@@ -50,7 +50,7 @@
                         <span class="dark:text-gray-300">Notify on new appointments</span>
                     </label>
                 </div>
-            </div>
+            </div> --}}
             
             <div class="mt-6">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Update System Settings</button>

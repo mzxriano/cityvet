@@ -92,10 +92,10 @@
            <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">{{ ($animals->currentPage() - 1) * $animals->perPage() + $index + 1 }}</td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                <span class="font-mono text-gray-600">{{ $animal->code }}</span>
+                <span class="font-mono text-primary">{{ $animal->code }}</span>
               </td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                <div class="font-medium text-gray-900">{{ $animal->name }}</div>
+                <div class="font-medium text-primary">{{ $animal->name }}</div>
                 <!-- Mobile-only additional info -->
                 <div class="text-gray-500 text-xs sm:hidden">
                   <div>{{ $animal->type }} - {{ $animal->breed }}</div>

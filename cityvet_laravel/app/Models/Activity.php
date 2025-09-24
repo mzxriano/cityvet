@@ -18,19 +18,45 @@ class Activity extends Model
         'date',
         'status',
         'memo',
-        'images'
+        'images',
+        'created_by',
+        'approved_at',
+        'approved_by',
+        'rejected_at',
+        'rejected_by',
+        'rejection_reason'
     ];
 
     protected $casts = [
         'date' => 'date',
         'time' => 'datetime:H:i',
-        'images' => 'array'
+        'images' => 'array',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime'
     ];
 
     // Relationship with Barangay
     public function barangay()
     {
         return $this->belongsTo(Barangay::class);
+    }
+
+    // Relationship with User (creator)
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // Relationship with Admin (approver)
+    public function approver()
+    {
+        return $this->belongsTo(\App\Models\Admin::class, 'approved_by');
+    }
+
+    // Relationship with Admin (rejecter)
+    public function rejecter()
+    {
+        return $this->belongsTo(\App\Models\Admin::class, 'rejected_by');
     }
 
     // Optional: Add scope for filtering by status

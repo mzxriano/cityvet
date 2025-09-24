@@ -12,6 +12,7 @@ import 'package:cityvet_app/views/main_screens/home/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
+import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -89,7 +90,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     return [
       NavigationItem(icon: FontAwesomeIcons.house, pageIndex: 0),
       NavigationItem(icon: FontAwesomeIcons.users, pageIndex: 1),
-      if (canUseQrScanner) NavigationItem(icon: FontAwesomeIcons.qrcode, pageIndex: 2), // Fixed: Added proper pageIndex
+      if (canUseQrScanner) NavigationItem(icon: FontAwesomeIcons.qrcode, pageIndex: 2),
       NavigationItem(icon: FontAwesomeIcons.paw, pageIndex: canUseQrScanner ? 3 : 2),
       NavigationItem(
         icon: FontAwesomeIcons.bell,
@@ -122,7 +123,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   Future<void> _showLogoutConfirmation() async {
     final bool? shouldLogout = await showDialog<bool>(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
@@ -688,6 +689,14 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const VaccinationHistoryView()),
+            ),
+          ),
+        if (userRole == 'aew')
+          _buildDrawerItem(
+            'Schedule Activity',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ScheduleActivityView()),
             ),
           ),
         const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),

@@ -31,7 +31,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'contact_phone',
-                'value' => '+1234567890',
+                'value' => '09123456789',
                 'type' => 'string',
                 'group' => 'general',
                 'description' => 'Main contact phone number'

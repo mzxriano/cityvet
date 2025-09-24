@@ -226,6 +226,57 @@ function activitiesManager() {
         month: 'long', 
         year: 'numeric' 
       });
+    },
+
+    // Approval/Rejection methods
+    approveRequest(requestId) {
+      console.log('Approving request ID:', requestId);
+      if (confirm('Are you sure you want to approve this activity request?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/activities/${requestId}/approve`;
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        
+        // Add notification option
+        const notifyInput = document.createElement('input');
+        notifyInput.type = 'hidden';
+        notifyInput.name = 'notify_users';
+        notifyInput.value = '1';
+        form.appendChild(notifyInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
+    },
+
+    rejectRequest(requestId) {
+      console.log('Rejecting request ID:', requestId);
+      const reason = prompt('Please provide a reason for rejection:');
+      if (reason && reason.trim() !== '') {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/activities/${requestId}/reject`;
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        
+        const reasonInput = document.createElement('input');
+        reasonInput.type = 'hidden';
+        reasonInput.name = 'rejection_reason';
+        reasonInput.value = reason.trim();
+        form.appendChild(reasonInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
     }
   }
 }
@@ -233,6 +284,28 @@ function activitiesManager() {
 
 <div x-data="activitiesManager()">
   <h1 class="title-style mb-4 md:mb-[2rem] text-xl md:text-2xl lg:text-3xl">Activities</h1>
+
+  <!-- Tabs -->
+  <div class="mb-6">
+    <div class="border-b border-gray-200 dark:border-gray-600">
+      <nav class="-mb-px flex space-x-8">
+        <a href="{{ route('admin.activities') }}" 
+           class="py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ request()->routeIs('admin.activities') && !request()->routeIs('admin.activities.pending') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+          All Activities
+          @if(isset($activities))
+            <span class="ml-2 bg-gray-100 text-gray-900 py-1 px-2 rounded-full text-xs">{{ $activities->total() }}</span>
+          @endif
+        </a>
+        <a href="{{ route('admin.activities.pending') }}" 
+           class="py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ request()->routeIs('admin.activities.pending') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+          Pending Requests
+          @if(isset($pendingRequests))
+            <span class="ml-2 bg-red-100 text-red-900 py-1 px-2 rounded-full text-xs">{{ $pendingRequests->total() }}</span>
+          @endif
+        </a>
+      </nav>
+    </div>
+  </div>
 
   <!-- Add Button -->
   <div class="flex justify-end gap-3 md:gap-5 mb-4 md:mb-[2rem]">
@@ -242,7 +315,8 @@ function activitiesManager() {
     </button>
   </div>
 
-  <!-- Table Card -->
+  <!-- All Activities Tab Content -->
+  @if(!request()->routeIs('admin.activities.pending'))
   <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
     <!-- Filter -->
     <div class="mb-4">
@@ -268,6 +342,7 @@ function activitiesManager() {
       </form>
     </div>
 
+    @if(isset($activities))
     <!-- Desktop Table -->
     <div class="hidden lg:block overflow-x-auto">
       <table class="table-auto w-full border-collapse min-w-full">
@@ -475,12 +550,238 @@ function activitiesManager() {
         </div>
       @endforelse
     </div>
-  </div>
-  
-  <!-- Pagination -->
+    
+  <!-- Pagination for All Activities -->
   <div class="mt-4">
     {{ $activities->links() }}
   </div>
+  @endif
+  
+  </div>
+  @endif
+
+  <!-- Pending Requests Tab Content -->
+  @if(request()->routeIs('admin.activities.pending'))
+  <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
+    <!-- Filter for Pending -->
+    <div class="mb-4">
+      <form method="GET" action="{{ route('admin.activities.pending') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
+        <select name="status" class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
+          <option value="">All Requests</option>
+          <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+          <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+        </select>
+
+        <input type="text"
+               name="search"
+               value="{{ request('search') }}"
+               placeholder="Search by reason, barangay, or AEW name"
+               class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
+
+        <button type="submit"
+                class="w-full md:w-auto bg-[#d9d9d9] dark:bg-gray-600 text-[#6F6969] dark:text-gray-300 px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 hover:text-white text-sm md:text-base">
+          Filter
+        </button>
+      </form>
+    </div>
+
+    <!-- Desktop Table for Pending -->
+    <div class="hidden lg:block overflow-x-auto">
+      <table class="table-auto w-full border-collapse min-w-full">
+        <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
+          <tr>
+            <th class="px-4 py-2 rounded-tl-xl font-medium whitespace-nowrap">No.</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Category</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Barangay</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Requested By</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Date</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Time</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Status</th>
+            <th class="px-4 py-2 font-medium whitespace-nowrap">Submitted</th>
+            <th class="px-4 py-2 rounded-tr-xl font-medium whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($pendingRequests as $index => $request)
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t dark:border-gray-600 text-[#524F4F] dark:text-gray-300 transition-colors duration-150">
+              <td class="px-4 py-2">{{ $index + 1 }}</td>
+              <td class="px-4 py-2">
+                @if($request->category)
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ ucfirst($request->category) }}
+                  </span>
+                @else
+                  <span class="text-gray-400 italic">Not set</span>
+                @endif
+              </td>
+              <td class="px-4 py-2">{{ $request->barangay->name ?? 'N/A' }}</td>
+              <td class="px-4 py-2">
+                @if($request->creator)
+                  <div class="font-medium">{{ $request->creator->first_name }} {{ $request->creator->last_name }}</div>
+                  <div class="text-sm text-gray-500">{{ $request->creator->email }}</div>
+                @else
+                  <span class="text-gray-400 italic">Unknown</span>
+                @endif
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">{{ \Carbon\Carbon::parse($request->date)->format('M j, Y') }}</td>
+              <td class="px-4 py-2 whitespace-nowrap">{{ \Carbon\Carbon::parse($request->time)->format('h:i A') }}</td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                @if($request->status === 'pending')
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    Pending
+                  </span>
+                @elseif($request->status === 'rejected')
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    Rejected
+                  </span>
+                @endif
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">{{ $request->created_at->format('M j, Y') }}</td>
+              <td class="px-4 py-2 text-center whitespace-nowrap">
+                @if($request->status === 'pending')
+                  <div class="flex gap-2 justify-center">
+                    <button 
+                      @click="approveRequest({{ $request->id }})"
+                      class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200 text-xs">
+                      Approve
+                    </button>
+                    <button 
+                      @click="rejectRequest({{ $request->id }})"
+                      class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-xs">
+                      Reject
+                    </button>
+                    <button 
+                      onclick="window.location.href = '{{ route('admin.activities.show', $request->id) }}'"
+                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-xs">
+                      View
+                    </button>
+                  </div>
+                @elseif($request->status === 'rejected')
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 mb-1">Rejected {{ $request->rejected_at->format('M j, Y') }}</p>
+                    @if($request->rejection_reason)
+                      <p class="text-xs text-red-600 italic">{{ Str::limit($request->rejection_reason, 50) }}</p>
+                    @endif
+                    <button 
+                      onclick="window.location.href = '{{ route('admin.activities.show', $request->id) }}'"
+                      class="mt-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-xs">
+                      View
+                    </button>
+                  </div>
+                @endif
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="10" class="text-center py-4 text-gray-500">No pending requests found.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Cards for Pending -->
+    <div class="block lg:hidden space-y-4">
+      @forelse($pendingRequests as $index => $request)
+        <div class="bg-white dark:bg-gray-800 border-l-4 border-l-orange-400 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-sm">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-lg text-gray-900 dark:text-white truncate pr-2">{{ $request->reason }}</h3>
+              <p class="text-sm text-primary dark:text-gray-300 truncate">{{ $request->barangay->name ?? 'N/A' }}</p>
+              @if($request->creator)
+                <p class="text-sm text-gray-500">Requested by: {{ $request->creator->first_name }} {{ $request->creator->last_name }}</p>
+              @endif
+            </div>
+            @if($request->status === 'pending')
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                Pending
+              </span>
+            @elseif($request->status === 'rejected')
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                Rejected
+              </span>
+            @endif
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+            <div>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+              <p class="text-primary dark:text-gray-400 truncate">
+                @if($request->category)
+                  {{ ucfirst($request->category) }}
+                @else
+                  <span class="text-gray-400 dark:text-gray-500 italic">Not set</span>
+                @endif
+              </p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Time:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ \Carbon\Carbon::parse($request->time)->format('h:i A') }}</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ \Carbon\Carbon::parse($request->date)->format('M j, Y') }}</p>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Submitted:</span>
+              <p class="text-primary dark:text-gray-400 truncate">{{ $request->created_at->format('M j, Y') }}</p>
+            </div>
+          </div>
+
+          @if($request->details)
+            <div class="mb-4">
+              <span class="font-medium text-gray-700 dark:text-gray-300">Details:</span>
+              <p class="text-sm text-primary dark:text-gray-400 break-words">{{ $request->details }}</p>
+            </div>
+          @endif
+
+          @if($request->status === 'pending')
+            <div class="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-600">
+              <button 
+                @click="approveRequest({{ $request->id }})"
+                class="flex-1 px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200 text-sm">
+                Approve
+              </button>
+              <button 
+                @click="rejectRequest({{ $request->id }})"
+                class="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-sm">
+                Reject
+              </button>
+              <button 
+                onclick="window.location.href = '{{ route('admin.activities.show', $request->id) }}'"
+                class="flex-1 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm">
+                View
+              </button>
+            </div>
+          @elseif($request->status === 'rejected')
+            <div class="pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
+              <p class="text-sm text-gray-500 mb-2">Rejected on {{ $request->rejected_at->format('M j, Y') }}</p>
+              @if($request->rejection_reason)
+                <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded mb-3">
+                  <p class="text-sm text-red-600 dark:text-red-400"><strong>Reason:</strong> {{ $request->rejection_reason }}</p>
+                </div>
+              @endif
+              <button 
+                onclick="window.location.href = '{{ route('admin.activities.show', $request->id) }}'"
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-sm">
+                View Details
+              </button>
+            </div>
+          @endif
+        </div>
+      @empty
+        <div class="text-center py-8 text-gray-500">
+          <p>No pending requests found.</p>
+        </div>
+      @endforelse
+    </div>
+  </div>
+
+  <!-- Pagination for Pending -->
+  <div class="mt-4">
+    {{ $pendingRequests->links() }}
+  </div>
+  @endif
 
   <!-- Calendar Modal -->
   <div x-show="showCalendarModal" x-transition x-cloak class="fixed inset-0 z-50 overflow-y-auto">

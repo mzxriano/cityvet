@@ -122,13 +122,6 @@ Future<void> login(String email, String password) async
       return;
     }
 
-    // Handle user not found (404)
-    if(statusCode == 404 && data is Map<String, dynamic> && data['error'] == 'user_not_found') {
-      setError(data['error']);
-      setMessage(data['message'] ?? 'User not found');
-      return;
-    }
-
     // Handle invalid credentials (400)
     if(statusCode == 400 && data is Map<String, dynamic> && data['error'] == 'invalid_credentials') {
       setError(data['error']);

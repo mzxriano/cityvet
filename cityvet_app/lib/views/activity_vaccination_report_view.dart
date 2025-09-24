@@ -11,11 +11,13 @@ import 'package:dio/dio.dart';
 class ActivityVaccinationReportView extends StatefulWidget {
   final String? activityId;
   final String? date;
+  final String? userRole;
 
   const ActivityVaccinationReportView({
     super.key,
     this.activityId,
     this.date,
+    this.userRole,
   });
 
   @override
@@ -32,6 +34,11 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
   void initState() {
     super.initState();
     _loadVaccinationReport();
+  }
+
+  bool get _canPerformActions {
+    final userRole = widget.userRole;
+    return userRole == 'veterinarian' || userRole == 'staff';
   }
 
   Future<void> _loadVaccinationReport() async {
@@ -171,7 +178,7 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
         ),
         centerTitle: false,
         actions: [
-          if (widget.activityId != null)
+          if (widget.activityId != null && _canPerformActions)
             TextButton.icon(
               onPressed: () => _showVaccinateAnimalDialog(context),
               icon: const Icon(Icons.qr_code_scanner, size: 20),
@@ -311,51 +318,52 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
             ),
           ),
 
-          // Upload Image Button
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final images = await CustomImagePicker().pickMultipleImages();
+          // Upload Image Button (only for veterinarians and staff)
+          if (_canPerformActions)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final images = await CustomImagePicker().pickMultipleImages();
                   
-                      if (images != null) {
-                        // Limit to 4 images maximum
-                        final limitedImages = images.length > 10 ? images.take(10).toList() : images;
-                        
-                        setState(() {
-                          selectedImages = limitedImages;
-                        });
-                        
-                        // Show warning if user selected more than 10 images
-                        if (images.length > 10 && mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Only first 10 images selected. Maximum 10 images allowed per activity.'),
-                              backgroundColor: Colors.orange,
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
+                        if (images != null) {
+                          // Limit to 4 images maximum
+                          final limitedImages = images.length > 10 ? images.take(10).toList() : images;
+                          
+                          setState(() {
+                            selectedImages = limitedImages;
+                          });
+                          
+                          // Show warning if user selected more than 10 images
+                          if (images.length > 10 && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Only first 10 images selected. Maximum 10 images allowed per activity.'),
+                                backgroundColor: Colors.orange,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          }
                         }
-                      }
-                    },
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload Images (Max 10)'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      },
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload Images (Max 10)'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                ),
             
-                if (selectedImages.isNotEmpty) ...[
+                  if (selectedImages.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
                     'Selected: ${selectedImages.length}/10 images',
@@ -425,11 +433,11 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
                         ),
                       ),
                     ),
-                  )
+                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
 
           Config.heightSmall,
 

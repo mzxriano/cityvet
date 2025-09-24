@@ -502,4 +502,91 @@ class ActivityController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Submit activity request (for AEW users)
+     */
+    public function submitRequest(Request $request)
+    {
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'reason' => 'required|string|max:255',
+                'category' => 'required|string|max:100',
+                'barangay_id' => 'required|integer|exists:barangays,id',
+                'date' => 'required|date|after:today',
+                'time' => 'required|date_format:H:i',
+                'details' => 'required|string|max:1000',
+            ]);
+
+            // Get the authenticated user
+            $user = $request->user();
+
+            // Check if user is AEW
+            if (!$user->roles->pluck('name')->contains('aew')) {
+                return response()->json([
+                    'message' => 'Only Animal Extension Workers can submit activity requests.'
+                ], 403);
+            }
+
+            // Create the activity request with pending status
+            $activity = Activity::create([
+                'reason' => $validated['reason'],
+                'details' => $validated['details'],
+                'barangay_id' => $validated['barangay_id'],
+                'date' => $validated['date'],
+                'time' => $validated['time'],
+                'status' => 'pending', // AEW requests start as pending
+                'created_by' => $user->id,
+                'category' => $validated['category'],
+            ]);
+
+            // Notify admins about the new request
+            // $admins = User::where('role', 'admin')->get();
+            // foreach ($admins as $admin) {
+            //     $admin->notify(new PushNotification(
+            //         'New Activity Request',
+            //         "{$user->firstName} {$user->lastName} has submitted a new activity request: {$validated['reason']}",
+            //         ['activity_id' => $activity->id, 'type' => 'activity_request']
+            //     ));
+            // }
+
+            \Log::info('Activity request submitted successfully', [
+                'activity_id' => $activity->id,
+                'user_id' => $user->id,
+                'reason' => $validated['reason']
+            ]);
+
+            return response()->json([
+                'message' => 'Activity request submitted successfully! Please wait for admin approval.',
+                'activity' => [
+                    'id' => $activity->id,
+                    'reason' => $activity->reason,
+                    'date' => $activity->date->format('Y-m-d'),
+                    'time' => $activity->time->format('H:i'),
+                    'status' => $activity->status,
+                ]
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed for activity request', [
+                'user_id' => $request->user()->id ?? null,
+                'errors' => $e->errors()
+            ]);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to submit activity request: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Failed to submit activity request. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

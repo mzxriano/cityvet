@@ -64,10 +64,13 @@ Route::prefix('admin')->group(function () {
 
         Route::prefix('activities')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
+            Route::get('/pending', [ActivityController::class, 'pendingRequests'])->name('admin.activities.pending');
             Route::get('/{id}/show', [ActivityController::class, 'show'])->name('admin.activities.show');
             Route::get('/{id}/memo', [ActivityController::class, 'downloadMemo'])->name('admin.activities.memo');
             Route::post('/', [ActivityController::class, 'create'])->name('admin.activities.store');
             Route::put('/{id}', [ActivityController::class, 'update'])->name('admin.activities.update');
+            Route::post('/{id}/approve', [ActivityController::class, 'approveRequest'])->name('admin.activities.approve');
+            Route::post('/{id}/reject', [ActivityController::class, 'rejectRequest'])->name('admin.activities.reject');
             Route::delete('/{id}', [ActivityController::class, 'destroy'])->name('admin.activities.destroy');
         });
 

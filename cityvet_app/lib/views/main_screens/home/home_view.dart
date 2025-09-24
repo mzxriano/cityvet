@@ -900,11 +900,15 @@ void _chatWithAew(String phoneNumber) {
   }
 
   void _navigateToActivityDetails(BuildContext context, dynamic activity) {
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    String userRole = userViewModel.user?.role ?? '';
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ActivityVaccinationReportView(
           activityId: activity.id.toString(),
+          userRole: userRole,
         ),
       ),
     );

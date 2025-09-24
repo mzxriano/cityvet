@@ -51,6 +51,9 @@ Route::prefix('auth')->group(function () {
             Route::post('/{id}/upload-images', [ActivityController::class,'uploadImages']);
         });
 
+        // Activity Requests (for AEW users)
+        Route::post('/activities/request', [ActivityController::class, 'submitRequest']);
+
         Route::get('/recent-activities', [ActivityController::class,'recentActivities']);
 
         Route::get('/vaccination-records', [VaccineController::class,'getAllVaccinationRecords']);

@@ -28,7 +28,7 @@
     <h1 class="title-style mb-4 sm:mb-8">Barangay</h1>
 
     <!-- Main Card -->
-    <div class="w-full bg-white card-bg rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-200">
+    <div class="w-full bg-white card-bg rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-color">
         
         <!-- Search Form -->
         <form method="GET" action="{{ route('admin.barangay') }}" 
@@ -84,7 +84,7 @@
                             <div class="text-sm text-gray-500 mb-1">
                                 #{{ ($barangays->currentPage() - 1) * $barangays->perPage() + $index + 1 }}
                             </div>
-                            <h3 class="font-semibold text-xl text-gray-900 dark:text-white">
+                            <h3 class="font-semibold text-xl text-primary dark:text-white">
                                 @if(request('search'))
                                     {!! str_ireplace(request('search'), '<mark class="bg-yellow-200">' . request('search') . '</mark>', $barangay->name) !!}
                                 @else
@@ -97,7 +97,7 @@
                     <!-- Content Grid -->
                     <div class="space-y-4">
                         <!-- Animal Owners Section -->
-                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                        <div class="card-bg rounded-lg p-4 border border-color">
                             <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Animal Owners
                             </h4>
@@ -118,7 +118,7 @@
                         </div>
                         
                         <!-- Veterinary Activities Section -->
-                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                        <div class="card-bg rounded-lg p-4 border border-color">
                             <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Veterinary Activities
                             </h4>
@@ -136,14 +136,14 @@
                                     <div class="text-sm text-gray-600 mt-1">Vitamin</div>
                                 </div>
                                 <div class="bg-white rounded-lg p-3 text-center border border-color">
-                                    <div class="text-lg font-bold text-gray-600">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
-                                    <div class="text-sm text-gray-600 mt-1">Other</div>
+                                    <div class="text-lg font-bold text-gray-700">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
+                                    <div class="text-sm text-gray-700 mt-1">Other</div>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Vaccinated Animals Section -->
-                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                        <div class="card-bg rounded-lg p-4 border border-color">
                             <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Vaccinated Animals
                             </h4>
@@ -164,7 +164,7 @@
                         </div>
                         
                         <!-- Bite Cases Section -->
-                        <div class="card-bg rounded-lg p-4 border border-gray-200">
+                        <div class="card-bg rounded-lg p-4 border border-color">
                             <h4 class="text-base font-semibold text-primary mb-3 pb-2 border-b border-color">
                                 Bite Cases
                             </h4>
@@ -182,7 +182,7 @@
                             <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No barangays found</h3>
+                            <h3 class="text-lg font-medium text-primary mb-2">No barangays found</h3>
                             <p class="text-gray-500 mb-4">No barangays match "<strong>{{ request('search') }}</strong>"</p>
                             <a href="{{ route('admin.barangay') }}" class="text-blue-600 hover:text-blue-800 font-medium">View all barangays</a>
                         </div>
@@ -191,7 +191,7 @@
                             <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No barangays available</h3>
+                            <h3 class="text-lg font-medium text-primary mb-2">No barangays available</h3>
                             <p class="text-gray-500">Nothing to display at the moment.</p>
                         </div>
                     @endif
@@ -249,7 +249,7 @@
                                     <div class="text-center text-indigo-700 bg-indigo-100 rounded-md py-2 border border-indigo-300">
                                         Vitamin
                                     </div>
-                                    <div class="text-center bg-gray-100 text-gray-700 rounded-md py-2 border border-color">
+                                    <div class="text-center bg-gray-100 text-gray-900 rounded-md py-2 border border-color">
                                         Other
                                     </div>
                                 </div>
@@ -273,11 +273,11 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse($barangays as $index => $barangay)
                             <tr class="hover:bg-blue-50 transition-colors duration-150 ease-in-out">
-                                <td class="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 font-medium">
+                                <td class="px-4 py-4 text-sm text-primary border-r border-color font-medium">
                                     {{ ($barangays->currentPage() - 1) * $barangays->perPage() + $index + 1 }}
                                 </td>
-                                <td class="px-6 py-4 border-r border-gray-200">
-                                    <div class="font-semibold text-gray-900 dark:text-white text-lg">
+                                <td class="px-6 py-4 border-r border-color">
+                                    <div class="font-semibold text-primary text-lg">
                                         @if(request('search'))
                                             {!! str_ireplace(request('search'), '<mark class="bg-yellow-200">' . request('search') . '</mark>', $barangay->name) !!}
                                         @else
@@ -286,7 +286,7 @@
                                     </div>
                                 </td>
                                 <!-- Owners Column with subcategories -->
-                                <td class="px-4 py-4 border-r border-gray-200">
+                                <td class="px-4 py-4 border-r border-color">
                                     <div class="grid grid-cols-3 gap-2 text-center">
                                         <div class="bg-pink-50 rounded-lg py-2 px-2 border border-pink-200">
                                             <div class="text-lg font-bold text-pink-700">{{ $barangay->pet_owners_count }}</div>
@@ -300,7 +300,7 @@
                                     </div>
                                 </td>
                                 <!-- Activities Column with subcategories -->
-                                <td class="px-4 py-4 border-r border-gray-200">
+                                <td class="px-4 py-4 border-r border-color">
                                     <div class="grid grid-cols-4 gap-1 text-center">
                                         <div class="bg-green-50 rounded-lg py-2 px-1 border border-green-200">
                                             <div class="text-sm font-bold text-green-700">{{ $barangay->activities->where('category', 'vaccination')->count() }}</div>
@@ -312,11 +312,11 @@
                                             <div class="text-sm font-bold text-indigo-700">{{ $barangay->activities->where('category', 'vitamin')->count() }}</div>
                                         </div>
                                         <div class="bg-gray-50 rounded-lg py-2 px-1 border border-color">
-                                            <div class="text-sm font-bold text-gray-700">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
+                                            <div class="text-sm font-bold text-gray-900">{{ $barangay->activities->whereNotIn('category', ['vaccination', 'deworming', 'vitamin'])->count() }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-4 text-center border-r border-gray-200">
+                                <td class="px-4 py-4 text-center border-r border-color">
                                     <div class="grid grid-cols-3 gap-2 text-center">
                                         <div class="bg-pink-50 rounded-lg py-2 px-2 border border-pink-200">
                                             <div class="text-lg font-bold text-pink-700">{{ $barangay->vaccinated_pets_count ?? 0 }}</div>
@@ -343,7 +343,7 @@
                                             <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                             </svg>
-                                            <h3 class="text-lg font-medium text-gray-900 mb-2">No barangays found</h3>
+                                            <h3 class="text-lg font-medium text-primary mb-2">No barangays found</h3>
                                             <p class="text-gray-500 mb-4">No barangays match "<strong>{{ request('search') }}</strong>"</p>
                                             <a href="{{ route('admin.barangay') }}" class="text-blue-600 hover:text-blue-800 font-medium">View all barangays</a>
                                         </div>
@@ -352,7 +352,7 @@
                                             <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                             </svg>
-                                            <h3 class="text-lg font-medium text-gray-900 mb-2">No barangays available</h3>
+                                            <h3 class="text-lg font-medium text-primary mb-2">No barangays available</h3>
                                             <p class="text-gray-500">Nothing to display at the moment.</p>
                                         </div>
                                     @endif
@@ -366,8 +366,8 @@
         
         <!-- Pagination -->
         @if($barangays->hasPages())
-            <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-200">
-                <div class="text-sm text-gray-700 text-center sm:text-left bg-gray-50 card-bg px-4 py-2 rounded-lg border border-gray-200">
+            <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-color">
+                <div class="text-sm text-gray-700 text-center sm:text-left bg-gray-50 card-bg px-4 py-2 rounded-lg border border-color">
                     <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
