@@ -582,34 +582,71 @@ class _CommunityViewState extends State<CommunityView> {
                                   itemCount: images.length,
                                   itemBuilder: (context, imgIdx) {
                                     final img = images[imgIdx];
-                                    return Container(
-                                      width: 130,
-                                      height: 130,
-                                      margin: const EdgeInsets.only(right: 10), 
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10), 
-                                        child: Image.network(
-                                          img['image_url'] ?? '',
-                                          fit: BoxFit.cover,
-                                          loadingBuilder: (context, child, loadingProgress) {
-                                            if (loadingProgress == null) return child;
-                                            return Container(
-                                              color: Colors.grey[200],
-                                              child: const Center(
-                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                    return GestureDetector(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => Dialog(
+                                            backgroundColor: Colors.transparent,
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.of(context).pop(),
+                                              child: InteractiveViewer(
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  child: Image.network(
+                                                    img['image_url'] ?? '',
+                                                    fit: BoxFit.contain,
+                                                    errorBuilder: (context, error, stackTrace) => Container(
+                                                      color: Colors.grey[300],
+                                                      height: 300,
+                                                      width: 300,
+                                                      child: const Icon(Icons.broken_image, color: Colors.grey, size: 64),
+                                                    ),
+                                                    loadingBuilder: (context, child, loadingProgress) {
+                                                      if (loadingProgress == null) return child;
+                                                      return Container(
+                                                        height: 300,
+                                                        width: 300,
+                                                        color: Colors.grey[200],
+                                                        child: const Center(child: CircularProgressIndicator()),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
                                               ),
-                                            );
-                                          },
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              color: Colors.grey[300],
-                                              child: const Icon(
-                                                Icons.broken_image,
-                                                color: Colors.grey,
-                                                size: 32,
-                                              ),
-                                            );
-                                          },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        width: 130,
+                                        height: 130,
+                                        margin: const EdgeInsets.only(right: 10),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Image.network(
+                                            img['image_url'] ?? '',
+                                            fit: BoxFit.cover,
+                                            loadingBuilder: (context, child, loadingProgress) {
+                                              if (loadingProgress == null) return child;
+                                              return Container(
+                                                color: Colors.grey[200],
+                                                child: const Center(
+                                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                                ),
+                                              );
+                                            },
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Container(
+                                                color: Colors.grey[300],
+                                                child: const Icon(
+                                                  Icons.broken_image,
+                                                  color: Colors.grey,
+                                                  size: 32,
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
                                       ),
                                     );

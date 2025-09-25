@@ -27,18 +27,22 @@
 
 @php
   $breedOptions = [
-    'Dog' => ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever'],
-    'Cat' => ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair'],
+    'dog' => ['Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle'],
+    'cat' => ['Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue'],
   ];
 @endphp
 
 <div x-data="animalModals" x-init="init()">
   <h1 class="title-style mb-4 sm:mb-8">Animals</h1>
 
-  <!-- Add Animal Button -->
+  <!-- Add Animal Buttons -->
   <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
+    <a href="{{ route('admin.animals.batch-register') }}" class="bg-purple-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-purple-600 transition">
+      <span class="hidden sm:inline">Batch Register</span>
+      <span class="sm:hidden">📦 Batch</span>
+    </a>
     <button @click="showAddModal = true" class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
-      <span class="hidden sm:inline">+ New animal</span>
+      <span class="hidden sm:inline">Register Pet</span>
       <span class="sm:hidden">+ Add</span>
     </button>
   </div>
@@ -50,13 +54,21 @@
 <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
   <!-- Filter Form -->
   <div class="mb-4">
-    <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-end">
+    <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-between">
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <select name="type" id="type-select" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
+        <select name="type" id="type-select" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm" onchange="this.form.submit()">
           <option value="">All Species</option>
           @foreach(array_keys($breedOptions) as $type)
             <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
           @endforeach
+        </select>
+
+        <select name="per_page" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm" onchange="this.form.submit()">
+          <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 per page</option>
+          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 per page</option>
+          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per page</option>
+          <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 per page</option>
+          <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
         </select>
 
         <button type="submit" class="bg-[#d9d9d9] text-[#6F6969] px-3 py-2 sm:px-4 rounded hover:bg-green-600 hover:text-white text-sm">
@@ -68,7 +80,43 @@
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name" class="w-full border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm">
       </div>
     </form>
+
+    <!-- Active Filters Display -->
+    @if(request()->hasAny(['type', 'search', 'per_page']))
+      <div class="mt-3 flex flex-wrap gap-2">
+        <span class="text-sm font-medium text-gray-700">Active filters:</span>
+        @if(request('type'))
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+            Species: {{ request('type') }}
+          </span>
+        @endif
+        @if(request('search'))
+          <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+            Search: "{{ request('search') }}"
+          </span>
+        @endif
+        @if(request('per_page') && request('per_page') != '10')
+          <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+            Per page: {{ request('per_page') }}
+          </span>
+        @endif
+      </div>
+    @endif
   </div>
+
+  <!-- Results Count -->
+  @if($animals->count() > 0)
+    <div class="mb-4 text-sm text-gray-600">
+      @if(request('per_page') == 'all')
+        Showing all {{ $animals->total() }} animals
+      @else
+        Showing {{ $animals->firstItem() }} to {{ $animals->lastItem() }} of {{ $animals->total() }} animals
+      @endif
+      @if(request()->hasAny(['type', 'search']))
+        (filtered)
+      @endif
+    </div>
+  @endif
 
   <!-- Table Container with horizontal scroll -->
   <div class="overflow-x-auto -mx-2 sm:mx-0">
@@ -150,7 +198,7 @@
   </div>
 
   <!-- Pagination -->
-  @if(method_exists($animals, 'links'))
+  @if(method_exists($animals, 'links') && request('per_page') != 'all')
     <div class="mt-4 sm:mt-6">
       {{ $animals->links() }}
     </div>
@@ -491,7 +539,7 @@
           }
 
           debounceTimeout = setTimeout(() => {
-              fetch(`/admin/users/search?q=${encodeURIComponent(query)}`)
+              fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`)
                   .then(response => {
                       if (!response.ok) {
                           throw new Error(`HTTP error! status: ${response.status}`);
@@ -509,11 +557,11 @@
 
                       users.forEach(user => {
                           const div = document.createElement('div');
-                          div.textContent = `${user.name} (${user.email})`;
+                          div.textContent = `${user.first_name} ${user.last_name} (${user.email})`;
                           div.classList.add('p-2', 'cursor-pointer', 'hover:bg-gray-200');
                           
                           div.addEventListener('click', () => {
-                              ownerSearchInput.value = user.name;
+                              ownerSearchInput.value = `${user.first_name} ${user.last_name}`;
                               ownerIdInput.value = user.id;
                               ownerSuggestions.innerHTML = '';
                               ownerSuggestions.classList.add('hidden');

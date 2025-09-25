@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Web;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\VaccinationReportsExport;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportController
 {
@@ -60,10 +63,40 @@ class ReportController
                 $query->where('users.barangay_id', $request->barangay_id);
             }
 
-            $vaccinationReports = $query
-                ->orderBy('animal_vaccine.date_given', 'desc')
-                ->paginate(10)
-                ->appends($request->only(['animal_type', 'owner_role', 'barangay_id']));
+            // Filter by date range
+            if ($request->filled('date_from')) {
+                $query->whereDate('animal_vaccine.date_given', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('animal_vaccine.date_given', '<=', $request->date_to);
+            }
+
+            // Handle pagination
+            $perPage = $request->filled('per_page') ? $request->per_page : 10;
+            
+            if ($perPage === 'all') {
+                $vaccinationReports = $query
+                    ->orderBy('animal_vaccine.date_given', 'desc')
+                    ->get();
+                // Create a mock paginator for "all" results
+                $vaccinationReports = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $vaccinationReports,
+                    $vaccinationReports->count(),
+                    $vaccinationReports->count(),
+                    1,
+                    [
+                        'path' => request()->url(),
+                        'pageName' => 'page',
+                    ]
+                );
+                $vaccinationReports->appends($request->only(['animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to', 'per_page']));
+            } else {
+                $vaccinationReports = $query
+                    ->orderBy('animal_vaccine.date_given', 'desc')
+                    ->paginate((int)$perPage)
+                    ->appends($request->only(['animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to', 'per_page']));
+            }
 
             // Get all barangays for the filter dropdown
             $barangays = DB::table('barangays')
@@ -219,6 +252,41 @@ class ReportController
 
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to generate report: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate Excel report for vaccination records
+     */
+    public function generateVaccinationExcel(Request $request)
+    {
+        try {
+            // Get current filters from session or request
+            $filters = [
+                'animal_type' => $request->input('animal_type'),
+                'barangay_id' => $request->input('barangay_id'),
+                'owner_role' => $request->input('owner_role'),
+                'date_from' => $request->input('date_from'),
+                'date_to' => $request->input('date_to'),
+            ];
+
+            // Get filters from the current page if not in request
+            if (empty(array_filter($filters))) {
+                $filters = [
+                    'animal_type' => request()->get('animal_type'),
+                    'barangay_id' => request()->get('barangay_id'),
+                    'owner_role' => request()->get('owner_role'),
+                    'date_from' => request()->get('date_from'),
+                    'date_to' => request()->get('date_to'),
+                ];
+            }
+
+            $filename = 'vaccination_reports_' . now()->format('Ymd_His') . '.xlsx';
+            
+            return Excel::download(new VaccinationReportsExport($filters), $filename);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to generate Excel report: ' . $e->getMessage());
         }
     }
 }

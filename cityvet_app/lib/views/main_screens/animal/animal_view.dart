@@ -1,4 +1,3 @@
-import 'package:cityvet_app/modals/animal_modals/select_category_modal.dart';
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
@@ -36,13 +35,10 @@ class _AnimalViewState extends State<AnimalView> {
     });
   }
 
-  void _openCategoryModal(BuildContext context, AnimalViewModel animalViewModel) async {
-    final selected = await showAnimalCategorySelectionModal(context);
-    if (selected != null) {
-      final createdAnimal = await Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalForm()));
-      if (createdAnimal == true) {
-        animalViewModel.fetchAnimals();
-      }
+  void _openAnimalForm(BuildContext context, AnimalViewModel animalViewModel) async {
+    final createdAnimal = await Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalForm()));
+    if (createdAnimal == true) {
+      animalViewModel.fetchAnimals();
     }
   }
 
@@ -269,7 +265,7 @@ class _AnimalViewState extends State<AnimalView> {
 
   Widget _buildAddAnimalButton(BuildContext context, AnimalViewModel viewModel) {
     return InkWell(
-      onTap: () => _openCategoryModal(context, viewModel),
+      onTap: () => _openAnimalForm(context, viewModel),
       borderRadius: BorderRadius.circular(15),
       child: Container(
         decoration: BoxDecoration(

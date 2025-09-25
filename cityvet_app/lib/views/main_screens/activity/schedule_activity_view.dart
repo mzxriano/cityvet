@@ -42,7 +42,7 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
 
   String? selectedBarangay;
   String? selectedCategory;
-  String? selectedStatus = 'pending'; // Default to pending for AEW requests
+  String? selectedStatus = 'pending';
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 

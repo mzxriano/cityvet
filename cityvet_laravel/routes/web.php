@@ -86,12 +86,21 @@ Route::prefix('admin')->group(function () {
 
         Route::prefix('animals')->group(function () {
             Route::get('/', [AnimalController::class, 'index'])->name('admin.animals');
+            Route::get('/batch-register', [AnimalController::class, 'showBatchRegistration'])->name('admin.animals.batch-register');
+            Route::post('/batch-store', [AnimalController::class, 'batchStore'])->name('admin.animals.batch-store');
+            Route::post('/csv-import', [AnimalController::class, 'csvImport'])->name('admin.animals.csv-import');
+            Route::get('/csv-template', [AnimalController::class, 'csvTemplate'])->name('admin.animals.csv-template');
             Route::get('/{id}/show', [AnimalController::class, 'show'])->name('admin.animals.show');
             Route::post('/', [AnimalController::class, 'store'])->name('admin.animals.store');
             Route::put('/{id}', [AnimalController::class, 'update'])->name('admin.animals.update');
         });
 
         Route::get('/barangay', [BarangayController::class, 'index'])->name('admin.barangay');
+
+        // API endpoints for admin functionality
+        Route::prefix('api')->group(function () {
+            Route::get('/users/search', [App\Http\Controllers\Web\ApiController::class, 'searchUsers']);
+        });
 
         Route::prefix('vaccines')->group(function () {
             Route::get('/', [VaccineController::class, 'index'])->name('admin.vaccines');
@@ -118,6 +127,7 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
         Route::post('/reports/generate-vaccination', [ReportController::class, 'generateVaccinationReport'])->name('reports.generate-vaccination');
+        Route::post('/reports/generate-vaccination-excel', [ReportController::class, 'generateVaccinationExcel'])->name('reports.generate-vaccination-excel');
 
         Route::get('/archives', function () {
             return view('admin.archives');

@@ -56,52 +56,49 @@
     <!-- Vaccination Reports Tab -->
     <div x-show="activeTab === 'vaccination'" class="w-full bg-white rounded-xl p-[2rem] shadow-md overflow-x-auto">
         <!-- Header Actions -->
-        <form method="POST" action="{{ route('reports.generate-vaccination') }}" id="vaccinationReportForm">
-            @csrf
-            
-            <div class="mb-4 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <!-- Select All Checkbox -->
-                    <label class="flex items-center">
-                        <input type="checkbox" 
-                               @change="toggleAllVaccination($event.target.checked)"
-                               class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                        <span class="ml-2 text-sm font-medium text-gray-700">Select All</span>
-                    </label>
-                    
-                    <!-- Selected Count -->
-                    <span class="text-sm text-gray-600" x-show="selectedVaccination.length > 0">
-                        <span x-text="selectedVaccination.length"></span> selected
-                    </span>
-                </div>
-                
-                <div class="flex gap-2">
-                    <!-- Generate Report Button -->
-                    <button type="submit"
-                            @click="submitVaccinationForm()"
-                            :disabled="selectedVaccination.length === 0"
-                            :class="selectedVaccination.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
-                            class="text-white px-4 py-2 rounded transition flex items-center gap-2">
-                        <i class="fas fa-file-pdf"></i>
-                        Generate Report
-                    </button>
-                    
-                    <!-- Search Input -->
-                    <input type="text"
-                           x-model="vaccinationSearch"
-                           placeholder="Search vaccination reports..."
-                           class="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
+        <div class="mb-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <h3 class="text-lg font-semibold text-gray-700">Vaccination Reports</h3>
             </div>
-
-            <!-- Hidden inputs for selected IDs -->
-            <template x-for="id in selectedVaccination" :key="id">
-                <input type="hidden" name="selected_ids[]" :value="id">
-            </template>
-        </form>
+            
+            <div class="flex gap-2">
+                <!-- Generate Excel Button -->
+                <form method="POST" action="{{ route('reports.generate-vaccination-excel') }}" class="inline">
+                    @csrf
+                    <!-- Include current filters -->
+                    @if(request('animal_type'))
+                        <input type="hidden" name="animal_type" value="{{ request('animal_type') }}">
+                    @endif
+                    @if(request('barangay_id'))
+                        <input type="hidden" name="barangay_id" value="{{ request('barangay_id') }}">
+                    @endif
+                    @if(request('owner_role'))
+                        <input type="hidden" name="owner_role" value="{{ request('owner_role') }}">
+                    @endif
+                    @if(request('date_from'))
+                        <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    @endif
+                    @if(request('date_to'))
+                        <input type="hidden" name="date_to" value="{{ request('date_to') }}">
+                    @endif
+                    
+                    <button type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition flex items-center gap-2">
+                        <i class="fas fa-file-excel"></i>
+                        Generate Excel
+                    </button>
+                </form>
+                
+                <!-- Search Input -->
+                <input type="text"
+                       x-model="vaccinationSearch"
+                       placeholder="Search vaccination reports..."
+                       class="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            </div>
+        </div>
 
         <form method="GET" action="{{ route('admin.reports') }}" class="mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
  
                 <!-- Animal Type Filter -->
                 <div>
@@ -117,20 +114,6 @@
                     </select>
                 </div>
 
-                <!-- Owner Role Filter -->
-                {{-- <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Owner Type</label>
-                    <select name="owner_role" class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            onchange="this.form.submit()">
-                        <option value="">All Owner Types</option>
-                        @foreach($ownerRoles as $role => $label)
-                            <option value="{{ $role }}" {{ request('owner_role') == $role ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div> --}}
-
                 <!-- Barangay Filter -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
@@ -144,17 +127,51 @@
                         @endforeach
                     </select>
                 </div>
+
+                <!-- Date From Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+                    <input type="date" 
+                           name="date_from" 
+                           value="{{ request('date_from') }}"
+                           class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                           onchange="this.form.submit()">
+                </div>
+
+                <!-- Date To Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+                    <input type="date" 
+                           name="date_to" 
+                           value="{{ request('date_to') }}"
+                           class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                           onchange="this.form.submit()">
+                </div>
+
+                <!-- Records Per Page -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Records Per Page</label>
+                    <select name="per_page" class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                </div>
+
                 <!-- Clear Filters Button -->
-                <div class="mt-8">
+                <div class="flex items-end">
                     <a href="{{ route('admin.reports') }}" 
-                    class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition">
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition w-full text-center">
                         Clear All Filters
                     </a>
                 </div>
             </div>
 
             <!-- Active Filters Display -->
-            @if(request()->hasAny(['species', 'animal_type', 'owner_role', 'barangay_id']))
+            @if(request()->hasAny(['species', 'animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to', 'per_page']))
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm font-medium text-gray-700">Active filters:</span>
                     @if(request('species'))
@@ -177,6 +194,21 @@
                             Barangay: {{ $barangays->firstWhere('id', request('barangay_id'))->name ?? 'Unknown' }}
                         </span>
                     @endif
+                    @if(request('date_from'))
+                        <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs">
+                            From: {{ \Carbon\Carbon::parse(request('date_from'))->format('M d, Y') }}
+                        </span>
+                    @endif
+                    @if(request('date_to'))
+                        <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs">
+                            To: {{ \Carbon\Carbon::parse(request('date_to'))->format('M d, Y') }}
+                        </span>
+                    @endif
+                    @if(request('per_page') && request('per_page') != '10')
+                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                            Per page: {{ request('per_page') }}
+                        </span>
+                    @endif
                 </div>
             @endif
         </form>
@@ -185,12 +217,7 @@
         <table class="table-auto w-full border-collapse">
             <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
                 <tr>
-                    <th class="px-4 py-2 rounded-tl-xl font-medium w-12">
-                        <input type="checkbox" 
-                               @change="toggleAllVaccination($event.target.checked)"
-                               class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                    </th>
-                    <th class="px-4 py-2 font-medium">No.</th>
+                    <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
                     <th class="px-4 py-2 font-medium">Owner Name</th>
                     <th class="px-4 py-2 font-medium">Pet Name</th>
                     <th class="px-4 py-2 font-medium">Species</th>
@@ -212,12 +239,6 @@
                                 '{{ strtolower($report->animal_type) }}'.includes(vaccinationSearch.toLowerCase()) ||
                                 '{{ strtolower($report->breed) }}'.includes(vaccinationSearch.toLowerCase()) ||
                                 '{{ strtolower($report->barangay_name ?? '') }}'.includes(vaccinationSearch.toLowerCase())">
-                        <td class="px-4 py-2">
-                            <input type="checkbox" 
-                                   value="{{ $report->id }}"
-                                   x-model="selectedVaccination"
-                                   class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                        </td>
                         <td class="px-4 py-2">{{ $vaccinationReports->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-2">{{ $report->owner_name }}</td>
                         <td class="px-4 py-2">{{ $report->animal_name }}</td>
@@ -237,14 +258,14 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="text-center py-8 text-gray-500">
+                        <td colspan="10" class="text-center py-8 text-gray-500">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 <p class="text-lg font-medium text-gray-900 mb-1">No vaccination reports found</p>
                                 <p class="text-gray-500">
-                                    @if(request()->hasAny(['species', 'animal_type', 'owner_role', 'barangay_id']))
+                                    @if(request()->hasAny(['species', 'animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to']))
                                         No records match the selected filters. Try adjusting your filters.
                                     @else
                                         No vaccination reports available in the system.
@@ -279,30 +300,7 @@
 function reportsData() {
     return {
         activeTab: 'vaccination',
-        vaccinationSearch: '',
-        selectedVaccination: [],
-        
-        toggleAllVaccination(checked) {
-            if (checked) {
-                // Get all visible vaccination report IDs
-                this.selectedVaccination = [];
-                document.querySelectorAll('input[type="checkbox"][x-model="selectedVaccination"]').forEach(checkbox => {
-                    if (checkbox.closest('tr').style.display !== 'none') {
-                        this.selectedVaccination.push(parseInt(checkbox.value));
-                    }
-                });
-            } else {
-                this.selectedVaccination = [];
-            }
-        },
-        
-        submitVaccinationForm() {
-            if (this.selectedVaccination.length === 0) {
-                alert('Please select at least one vaccination record to generate a report.');
-                return false;
-            }
-            return true;
-        }
+        vaccinationSearch: ''
     }
 }
 </script>
