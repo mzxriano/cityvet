@@ -13,6 +13,7 @@ import 'package:cityvet_app/views/main_screens/notification/notification_view.da
 import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
+import 'package:cityvet_app/views/register_owner_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -272,6 +273,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     {'label': 'Notifications', 'builder': (_) => const NotificationView(), 'icon': Icons.notifications_outlined},
     if (canAccessVaccination)
       {'label': 'Vaccination History', 'builder': (_) => const VaccinationHistoryView(), 'icon': Icons.vaccines},
+    if (canAccessVaccination)
+      {'label': 'Register Animal Owner', 'builder': (_) => const RegisterOwnerView(), 'icon': Icons.person_add_outlined},
   ];
   
   String query = '';
@@ -690,6 +693,15 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
               context,
               MaterialPageRoute(builder: (_) => const VaccinationHistoryView()),
             ),
+          ),
+        if (canAccessVaccination)
+          _buildDrawerItem(
+            'Register Animal Owner',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RegisterOwnerView()),
+            ),
+            icon: Icons.person_add_outlined,
           ),
         if (userRole == 'aew')
           _buildDrawerItem(

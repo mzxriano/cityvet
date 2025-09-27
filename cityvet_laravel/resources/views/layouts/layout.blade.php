@@ -89,7 +89,11 @@
 @php
   $currentTheme = \App\Models\Setting::get('app_theme', 'light');
 @endphp
-<body class="h-screen m-0 p-0 {{ $currentTheme === 'dark' ? 'dark' : '' }}" x-data="{ sidebarOpen: false }">
+<body class="h-screen m-0 p-0 {{ $currentTheme === 'dark' ? 'dark' : '' }}" x-data="{ sidebarOpen: false }" x-init="
+  Alpine.store('app', {
+    showLogoutModal: false
+  })
+">
   <!-- Mobile menu button -->
   <button @click="sidebarOpen = !sidebarOpen" 
           class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -118,5 +122,29 @@
       @yield('content')
     </section>
   </main>
+
+  <!-- Logout Confirmation Modal - Positioned at viewport level -->
+  <div x-show="$store.app.showLogoutModal" x-cloak x-transition 
+       class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Confirm Logout</h3>
+      <p class="mb-6 text-gray-600 dark:text-gray-300">Are you sure you want to logout?</p>
+      <div class="flex justify-end gap-3">
+        <button type="button" @click="$store.app.showLogoutModal = false" 
+                class="px-4 py-2 rounded-md border text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+          Cancel
+        </button>
+        <button type="button" @click="$refs.logoutForm.submit()" 
+                class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden form for logout submission -->
+  <form x-ref="logoutForm" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
+    @csrf
+  </form>
 </body>
 </html>

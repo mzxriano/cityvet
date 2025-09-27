@@ -81,7 +81,7 @@
 
     <form action="{{ route('admin.logout') }}" method="POST">
         @csrf
-        <button @click="" class="w-full mt-auto text-left p-3 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-colors">
+        <button type="button" @click="$store.app.showLogoutModal = true" class="w-full mt-auto text-left p-3 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-colors">
             Logout
         </button>
     </form>
