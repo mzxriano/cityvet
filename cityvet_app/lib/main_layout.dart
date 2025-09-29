@@ -701,7 +701,6 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
               context,
               MaterialPageRoute(builder: (_) => const RegisterOwnerView()),
             ),
-            icon: Icons.person_add_outlined,
           ),
         if (userRole == 'aew')
           _buildDrawerItem(

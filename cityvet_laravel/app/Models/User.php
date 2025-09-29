@@ -23,6 +23,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'first_name',
         'last_name',
         'birth_date',
+        'gender',
         'phone_number',
         'barangay_id',
         'street',
@@ -31,7 +32,12 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'image_url',
         'image_public_id',
         'force_password_change',
-        'status'
+        'status',
+        'role_id',
+        'is_active',
+        'has_no_email',
+        'has_no_phone',
+        'created_by'
     ];
 
     /**

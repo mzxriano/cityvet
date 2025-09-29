@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreign('created_by')->references('id')->on('users');
         });
 
-        // Update the status enum to include 'pending'
-        DB::statement("ALTER TABLE activities MODIFY status ENUM('pending', 'up_coming', 'on_going', 'completed', 'failed') DEFAULT 'up_coming'");
+        // Update the status enum to include 'pending' and 'rejected'
+        DB::statement("ALTER TABLE activities MODIFY status ENUM('pending', 'up_coming', 'on_going', 'completed', 'failed', 'rejected') DEFAULT 'up_coming'");
     }
 
     /**
@@ -33,6 +33,9 @@ return new class extends Migration
             $table->dropColumn('created_by');
         });
 
+        // Clean up any rejected statuses before reverting
+        DB::statement("UPDATE activities SET status = 'failed' WHERE status = 'rejected'");
+        
         // Revert the status enum to original values
         DB::statement("ALTER TABLE activities MODIFY status ENUM('up_coming', 'on_going', 'completed', 'failed') DEFAULT 'up_coming'");
     }

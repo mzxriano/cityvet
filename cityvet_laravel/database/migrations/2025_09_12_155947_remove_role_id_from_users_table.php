@@ -10,6 +10,9 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'role_id')) {
+                // Drop foreign key constraint first
+                $table->dropForeign(['role_id']);
+                // Then drop the column
                 $table->dropColumn('role_id');
             }
         });
@@ -19,6 +22,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->unsignedBigInteger('role_id')->nullable();
+            $table->foreign('role_id')->references('id')->on('roles');
         });
     }
 };

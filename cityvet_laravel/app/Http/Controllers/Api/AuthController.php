@@ -303,5 +303,149 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP is valid.'], 200);
     }
 
+    /**
+     * Register animal owner (Admin/Staff only)
+     */
+    public function registerOwner(Request $request)
+    {
+        // Check if user has permission to register owners
+        $user = auth()->user();
+        \Log::info('User roles:', $user->roles->pluck('name')->toArray());
+        if (!in_array($user->roles->pluck('name')->first(), ['admin', 'veterinarian', 'aew'])) {
+
+            return response()->json([
+                'message' => 'Unauthorized. Only admin, veterinarian, and AEW users can register animal owners.'
+            ], 403);
+        }
+
+        // Get the flags first
+        $hasNoEmail = $request->boolean('has_no_email');
+        $hasNoPhone = $request->boolean('has_no_phone');
+        
+        // Build validation rules dynamically
+        $rules = [
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'birth_date' => 'required|date',
+            'gender' => 'required|in:male,female,other',
+            'role' => 'required|in:pet_owner,livestock_owner,poultry_owner',
+            'barangay_id' => 'required|exists:barangays,id',
+            'street' => 'required|string|max:255',
+            'has_no_email' => 'boolean',
+            'has_no_phone' => 'boolean',
+        ];
+        
+        // Only validate email uniqueness if they actually have an email
+        if (!$hasNoEmail) {
+            $rules['email'] = 'required|email|unique:users,email';
+        } else {
+            $rules['email'] = 'nullable';
+        }
+        
+        // Only validate phone uniqueness if they actually have a phone
+        if (!$hasNoPhone) {
+            $rules['phone_number'] = 'required|string|size:11|unique:users,phone_number';
+        } else {
+            $rules['phone_number'] = 'nullable';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        
+        // Generate unique placeholder values for users without email/phone
+        $email = $hasNoEmail ? 'no-email-' . uniqid() . '@cityvet.local' : $validated['email'];
+        $phoneNumber = $hasNoPhone ? '0000' . str_pad(rand(1, 9999999), 7, '0') : $validated['phone_number'];
+        
+        // Generate random password
+        $password = Str::random(12);
+        
+        try {
+            DB::beginTransaction();
+
+            // Get role
+            $role = Role::where('name', $validated['role'])->first();
+            if (!$role) {
+                return response()->json([
+                    'message' => 'Invalid role specified.'
+                ], 400);
+            }
+
+            // Create the user
+            $newUser = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'birth_date' => $validated['birth_date'],
+                'gender' => $validated['gender'],
+                'barangay_id' => $validated['barangay_id'],
+                'street' => $validated['street'],
+                'email' => $email,
+                'phone_number' => $phoneNumber,
+                'password' => Hash::make($password),
+                'email_verified_at' => now(), // Auto-verify admin-created accounts
+                'status' => 'active', // Auto-approve admin-created accounts
+                'force_password_change' => true,
+                'has_no_email' => $hasNoEmail,
+                'has_no_phone' => $hasNoPhone
+            ]);
+
+            // Attach role to user using the many-to-many relationship
+            $newUser->roles()->attach($role->id);
+
+            // Send password via email only if they have a real email (not placeholder)
+            if (!$hasNoEmail && filter_var($email, FILTER_VALIDATE_EMAIL) 
+                && !str_contains($email, 'no-email') && !str_contains($email, '@cityvet.local')) {
+                
+                try {
+                    Mail::send('emails.new_account_credentials', [
+                        'user' => $newUser,
+                        'password' => $password,
+                        'created_by' => $user->first_name . ' ' . $user->last_name
+                    ], function ($message) use ($email) {
+                        $message->to($email)
+                                ->subject('CityVet Account Created - Your Login Credentials');
+                    });
+                } catch (\Exception $e) {
+                    // Log email error but don't fail the registration
+                    \Log::error('Failed to send credentials email: ' . $e->getMessage());
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Animal owner registered successfully!',
+                'user' => [
+                    'id' => $newUser->id,
+                    'first_name' => $newUser->first_name,
+                    'last_name' => $newUser->last_name,
+                    'email' => $newUser->email,
+                    'phone_number' => $newUser->phone_number,
+                    'role' => $newUser->roles()->first()->name,
+                    'has_no_email' => $hasNoEmail,
+                    'has_no_phone' => $hasNoPhone,
+                ],
+                'credentials_sent' => !$hasNoEmail && 
+                    filter_var($email, FILTER_VALIDATE_EMAIL) && 
+                    !str_contains($email, 'no-email') && 
+                    !str_contains($email, '@cityvet.local')
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Registration failed. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }

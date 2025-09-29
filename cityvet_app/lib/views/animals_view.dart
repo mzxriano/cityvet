@@ -6,6 +6,7 @@ import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_preview.dart';
+import 'package:cityvet_app/views/main_screens/animal/add_animal_for_owner.dart';
 
 class AnimalManagementView extends StatefulWidget {
   const AnimalManagementView({super.key});
@@ -25,6 +26,8 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Clear any previous messages
+      context.read<AnimalViewModel>().setMessage(null);
       context.read<AnimalViewModel>().fetchAllAnimals();
     });
   }
@@ -35,6 +38,8 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
     super.dispose();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<UserViewModel, AnimalViewModel>(
@@ -42,7 +47,7 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
         final isOwner = userViewModel.user?.role == Role.petOwner 
         || userViewModel.user?.role == Role.livestockOwner || 
         userViewModel.user?.role == Role.poultryOwner;
-        final animals = animalViewModel.allAnimals ?? [];
+        final animals = animalViewModel.allAnimals;
 
         // Enhanced filtering logic with vaccination status
         final filteredAnimals = animals.where((animal) {
@@ -98,12 +103,23 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
                         Expanded(child: _buildAnimalList(filteredAnimals)),
                       ],
                     ),
-          floatingActionButton: isOwner
+          floatingActionButton: !isOwner
               ? FloatingActionButton.extended(
                   backgroundColor: Config.primaryColor,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Animal'),
-                  onPressed: () {},
+                  icon: const Icon(Icons.add, color: Colors.white,),
+                  label: const Text('Add Animal', style: TextStyle(color: Colors.white),),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddAnimalForOwnerPage(),
+                      ),
+                    );
+                    if (result == true) {
+                      // Refresh the animals list
+                      context.read<AnimalViewModel>().fetchAllAnimals();
+                    }
+                  },
                 )
               : null,
         );

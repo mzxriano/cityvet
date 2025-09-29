@@ -146,4 +146,75 @@ class AnimalService {
         
     return response;
   }
+
+  Future<Response> searchOwners(String query) async {
+    final token = await storage.getToken();
+    
+    final response = await _dio.get(
+      '/search-owners',
+      queryParameters: {'query': query},
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        }
+      )
+    );
+    
+    return response;
+  }
+
+  Future<Response> addAnimalForOwner({
+    required int ownerId,
+    required String type,
+    required String name,
+    String? breed,
+    String? birthDate,
+    String? gender,
+    String? color,
+    double? weight,
+    double? height,
+    String? uniqueSpot,
+    String? knownConditions,
+    dynamic animalProfile,
+  }) async {
+    final token = await storage.getToken();
+    
+    FormData formData = FormData.fromMap({
+      'user_id': ownerId,
+      'type': type,
+      'name': name,
+      'breed': breed ?? '',
+      'birth_date': birthDate,
+      'gender': gender ?? 'male',
+      'color': color ?? 'Not specified',
+      if (weight != null) 'weight': weight,
+      if (height != null) 'height': height,
+      'unique_spot': uniqueSpot ?? '',
+      'known_conditions': knownConditions ?? '',
+    });
+
+    // Add profile image if provided
+    if (animalProfile != null) {
+      String fileName = animalProfile.path.split('/').last;
+      formData.files.add(MapEntry(
+        'profile_image',
+        await MultipartFile.fromFile(animalProfile.path, filename: fileName),
+      ));
+    }
+
+    final response = await _dio.post(
+      '/animals/add-for-owner',
+      data: formData,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        }
+      )
+    );
+    
+    return response;
+  }
 }

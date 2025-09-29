@@ -175,4 +175,73 @@ Future<void> deleteAnimal(AnimalModel animalModel) async {
     }
   }
 
+  Future<List<Map<String, dynamic>>> searchOwners(String query) async {
+    if (_disposed) return [];
+    try {
+      final response = await _animalService.searchOwners(query);
+      if (_disposed) return [];
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        final responseData = response.data as Map<String, dynamic>;
+        final List<dynamic> jsonList = responseData['data'] ?? [];
+        
+        return jsonList.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Failed to search owners');
+      }
+    } on DioException catch (e) {
+      if (_disposed) return [];
+      throw Exception(DioExceptionHandler.handleException(e));
+    } catch (e) {
+      if (_disposed) return [];
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<void> addAnimalForOwner({
+    required int ownerId,
+    required String type,
+    required String name,
+    String? breed,
+    String? birthDate,
+    String? gender,
+    String? color,
+    double? weight,
+    double? height,
+    String? uniqueSpot,
+    String? knownConditions,
+    dynamic animalProfile,
+  }) async {
+    if (_disposed) return;
+    try {
+      final response = await _animalService.addAnimalForOwner(
+        ownerId: ownerId,
+        type: type,
+        name: name,
+        breed: breed,
+        birthDate: birthDate,
+        gender: gender,
+        color: color,
+        weight: weight,
+        height: height,
+        uniqueSpot: uniqueSpot,
+        knownConditions: knownConditions,
+        animalProfile: animalProfile,
+      );
+      if (_disposed) return;
+
+      if (response.statusCode == 201) {
+        setMessage(response.data['message'] ?? 'Animal added successfully');
+      } else {
+        throw Exception('Failed to add animal');
+      }
+    } on DioException catch (e) {
+      if (_disposed) return;
+      throw Exception(DioExceptionHandler.handleException(e));
+    } catch (e) {
+      if (_disposed) return;
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
 }

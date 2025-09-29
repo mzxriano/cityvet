@@ -286,6 +286,121 @@ class AnimalController
         ]);
     }
 
+    /**
+     * Search for owners by name, email, or phone number
+     */
+    public function searchOwners(Request $request)
+    {
+        $query = $request->query('query');
+        
+        if (empty($query)) {
+            return response()->json([
+                'message' => 'Query parameter is required.',
+                'data' => []
+            ], 400);
+        }
+
+        // Search users with owner roles (pet_owner, livestock_owner, poultry_owner)
+        $owners = \App\Models\User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['pet_owner', 'livestock_owner', 'poultry_owner']);
+            })
+            ->where(function ($q) use ($query) {
+                $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"])
+                  ->orWhere('email', 'LIKE', "%{$query}%")
+                  ->orWhere('phone_number', 'LIKE', "%{$query}%");
+            })
+            ->select('id', 'first_name', 'last_name', 'email', 'phone_number')
+            ->limit(20)
+            ->get();
+
+        return response()->json([
+            'message' => 'Owners retrieved successfully.',
+            'data' => $owners
+        ]);
+    }
+
+    /**
+     * Add animal for a specific owner (Admin/Staff only)
+     */
+    public function addAnimalForOwner(Request $request)
+    {
+        // Check if user has permission
+        $user = auth()->user();
+        $userRoles = $user->roles->pluck('name')->toArray();
+        
+        if (in_array($userRoles[0] ?? '', ['pet_owner', 'livestock_owner', 'poultry_owner'])) {
+            return response()->json([
+                'message' => 'Unauthorized. Only admin, veterinarian, and AEW users can add animals for owners.'
+            ], 403);
+        }
+
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'type' => 'required|string|max:50',
+            'name' => 'required|string|max:100',
+            'breed' => 'nullable|string|max:100',
+            'birth_date' => 'nullable|date',
+            'gender' => 'required|string|in:male,female',
+            'color' => 'required|string|max:100',
+            'weight' => 'nullable|numeric|min:0|max:999.99',
+            'height' => 'nullable|numeric|min:0|max:999.99',
+            'unique_spot' => 'nullable|string|max:500',
+            'known_conditions' => 'nullable|string|max:1000',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validate->errors(),
+            ], 422);
+        }
+
+        $validated = $validate->validated();
+
+        // Verify the user is actually an owner
+        $owner = \App\Models\User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['pet_owner', 'livestock_owner', 'poultry_owner']);
+            })
+            ->find($validated['user_id']);
+
+        if (!$owner) {
+            return response()->json([
+                'message' => 'Selected user is not a valid animal owner.'
+            ], 400);
+        }
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            $profileImage = $request->file('profile_image');
+            $imageName = time() . '_' . $profileImage->getClientOriginalName();
+            $profileImage->move(public_path('storage/animals'), $imageName);
+            $validated['profile_image'] = 'animals/' . $imageName;
+        }
+
+        $animal = Animal::create($validated);
+
+        return response()->json([
+            'message' => 'Animal successfully created for owner.',
+            'data' => [
+                'id' => $animal->id,
+                'type' => $animal->type,
+                'name' => $animal->name,
+                'breed' => $animal->breed,
+                'birth_date' => $animal->birth_date,
+                'gender' => $animal->gender,
+                'color' => $animal->color,
+                'weight' => $animal->weight,
+                'height' => $animal->height,
+                'unique_spot' => $animal->unique_spot,
+                'known_conditions' => $animal->known_conditions,
+                'profile_image' => $animal->profile_image,
+                'code' => $animal->code,
+                'owner' => "{$owner->first_name} {$owner->last_name}",
+                'qr_code_url' => $animal->getQrCodeUrl(),
+            ],
+        ], 201);
+    }
 
     /**
      * Display animal by QR code (public route)

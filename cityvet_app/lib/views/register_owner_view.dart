@@ -21,8 +21,6 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   final _streetController = TextEditingController();
   final _birthDateController = TextEditingController();
 
@@ -31,6 +29,8 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
   String? _selectedRole;
   String? _selectedBarangay;
   DateTime? _selectedBirthDate;
+  bool _hasNoEmail = false;
+  bool _hasNoPhone = false;
 
   // Data lists
   List<Map<String, dynamic>> _barangays = [];
@@ -54,8 +54,6 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
     _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _streetController.dispose();
     _birthDateController.dispose();
     super.dispose();
@@ -67,7 +65,7 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
       if (token == null) return;
 
       final response = await _dio.get(
-        '${ApiConstant.baseUrl}/barangays',
+        '${ApiConstant.baseUrl}/barangay',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
@@ -75,7 +73,7 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
 
       if (response.statusCode == 200 && mounted) {
         setState(() {
-          _barangays = List<Map<String, dynamic>>.from(response.data['data'] ?? []);
+          _barangays = List<Map<String, dynamic>>.from(response.data ?? []);
         });
       }
     } catch (e) {
@@ -134,12 +132,13 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
         'last_name': _lastNameController.text.trim(),
         'email': _emailController.text.trim(),
         'phone_number': _phoneController.text.trim(),
-        'password': _passwordController.text,
         'birth_date': _birthDateController.text,
         'gender': _selectedGender,
         'role': _selectedRole,
-        'barangay_id': _selectedBarangay,
+        'barangay_id': int.parse(_selectedBarangay!),
         'street': _streetController.text.trim(),
+        'has_no_email': _hasNoEmail,
+        'has_no_phone': _hasNoPhone,
       };
 
       final response = await _dio.post(
@@ -160,13 +159,14 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
       if (mounted) {
         if (e is DioException && e.response?.data != null) {
           final errorData = e.response!.data;
-          if (errorData['errors'] != null) {
-            final errors = errorData['errors'] as Map<String, dynamic>;
-            final firstError = errors.values.first;
-            _showMessage(firstError is List ? firstError.first : firstError.toString());
-          } else {
-            _showMessage(errorData['message'] ?? 'Registration failed');
-          }
+          print(errorData);
+          // if (errorData['errors'] != null) {
+          //   final errors = errorData['errors'] as Map<String, dynamic>;
+          //   final firstError = errors.values.first;
+          //   _showMessage(firstError is List ? firstError.first : firstError.toString());
+          // } else {
+          //   _showMessage(errorData['message'] ?? 'Registration failed');
+          // }
         } else {
           _showMessage('Registration failed: ${e.toString()}');
         }
@@ -191,7 +191,17 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
             const Text('Success!'),
           ],
         ),
-        content: const Text('Animal owner registered successfully!'),
+        content: Text(() {
+          if (_hasNoEmail && _hasNoPhone) {
+            return 'Animal owner registered successfully! They will need to visit the office to claim their account credentials.';
+          } else if (_hasNoEmail && !_hasNoPhone) {
+            return 'Animal owner registered successfully! Account notifications will be sent via SMS.';
+          } else if (!_hasNoEmail) {
+            return 'Animal owner registered successfully! Login credentials have been sent to their email.';
+          } else {
+            return 'Animal owner registered successfully!';
+          }
+        }()),
         actions: [
           ElevatedButton(
             onPressed: () {
@@ -220,13 +230,23 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
     );
   }
 
+  String _getContactInfoMessage() {
+    if (_hasNoEmail && _hasNoPhone) {
+      return 'Owner will need to visit the office to claim account credentials.';
+    } else if (_hasNoEmail && !_hasNoPhone) {
+      return 'Account notifications will be sent via SMS to the provided phone number.';
+    } else if (!_hasNoEmail && _hasNoPhone) {
+      return 'The password will be automatically sent to the provided email address.';
+    } else {
+      return 'The password will be automatically sent to the provided email address.';
+    }
+  }
+
   void _clearForm() {
     _firstNameController.clear();
     _lastNameController.clear();
     _emailController.clear();
     _phoneController.clear();
-    _passwordController.clear();
-    _confirmPasswordController.clear();
     _streetController.clear();
     _birthDateController.clear();
     setState(() {
@@ -234,6 +254,8 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
       _selectedRole = null;
       _selectedBarangay = null;
       _selectedBirthDate = null;
+      _hasNoEmail = false;
+      _hasNoPhone = false;
     });
   }
 
@@ -272,7 +294,7 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Config.primaryColor.withOpacity(0.1),
+                  color: Config.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -348,12 +370,113 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
 
               const SizedBox(height: 16),
 
+              // Contact Information Options
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Contact Information Options',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange[800],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // No Email Checkbox
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _hasNoEmail,
+                          onChanged: (value) {
+                            setState(() {
+                              _hasNoEmail = value ?? false;
+                              if (_hasNoEmail) {
+                                _emailController.text = 'no-email@cityvet.local';
+                              } else {
+                                _emailController.clear();
+                              }
+                            });
+                          },
+                          activeColor: Colors.orange[600],
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Owner has no email address',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // No Phone Checkbox
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _hasNoPhone,
+                          onChanged: (value) {
+                            setState(() {
+                              _hasNoPhone = value ?? false;
+                              if (_hasNoPhone) {
+                                _phoneController.text = '00000000000';
+                              } else {
+                                _phoneController.clear();
+                              }
+                            });
+                          },
+                          activeColor: Colors.orange[600],
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Owner has no phone number',
+                            style: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    Text(
+                      'Check the appropriate boxes if the owner doesn\'t have email or phone. They will need to visit the office for account access.',
+                      style: TextStyle(
+                        fontFamily: Config.primaryFont,
+                        fontSize: 12,
+                        color: Colors.orange[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               _buildTextField(
                 controller: _emailController,
                 label: 'Email Address',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                enabled: !_hasNoEmail,
                 validator: (value) {
+                  if (_hasNoEmail) return null; // Skip validation if no email
                   if (value?.isEmpty ?? true) return 'Email is required';
                   if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
                     return 'Please enter a valid email';
@@ -369,7 +492,9 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
                 label: 'Phone Number',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
+                enabled: !_hasNoPhone,
                 validator: (value) {
+                  if (_hasNoPhone) return null; // Skip validation if no phone
                   if (value?.isEmpty ?? true) return 'Phone number is required';
                   if (!RegExp(r'^09\d{9}$').hasMatch(value!)) {
                     return 'Please enter a valid Philippine mobile number (09xxxxxxxxx)';
@@ -378,6 +503,11 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
                 },
               ),
 
+              const SizedBox(height: 8),
+              Text(
+                _getContactInfoMessage(),
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
               const SizedBox(height: 16),
 
               Row(
@@ -416,40 +546,6 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
                   child: Text(role['label']!),
                 )).toList(),
                 onChanged: (value) => setState(() => _selectedRole = value),
-              ),
-
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _passwordController,
-                      label: 'Password',
-                      icon: Icons.lock_outline,
-                      obscureText: true,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Password is required';
-                        if (value!.length < 8) return 'Password must be at least 8 characters';
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirm Password',
-                      icon: Icons.lock_outline,
-                      obscureText: true,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Please confirm password';
-                        if (value != _passwordController.text) return 'Passwords do not match';
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
               ),
 
               const SizedBox(height: 24),
@@ -543,12 +639,14 @@ class _RegisterOwnerViewState extends State<RegisterOwnerView> {
     required IconData icon,
     TextInputType? keyboardType,
     bool obscureText = false,
+    bool enabled = true,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      enabled: enabled,
       validator: validator,
       style: TextStyle(
         fontFamily: Config.primaryFont,

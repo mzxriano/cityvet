@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -43,6 +44,8 @@ return new class extends Migration
             $table->string('image_public_id')->nullable();
             $table->enum('status', ['active', 'inactive', 'pending', 'rejected', 'banned'])->default('pending');
             $table->boolean('force_password_change')->default(false);
+            $table->boolean('has_no_email')->default(false);
+            $table->boolean('has_no_phone')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
@@ -96,11 +99,17 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Disable foreign key checks to allow dropping tables with data
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('animals');
         Schema::dropIfExists('users');
         Schema::dropIfExists('barangays');
         Schema::dropIfExists('roles');
+        
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 };

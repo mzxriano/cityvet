@@ -17,7 +17,6 @@ return new class extends Migration
             $table->text('value')->nullable();
             $table->string('type')->default('string'); // string, boolean, integer, json
             $table->string('group')->default('general'); // general, appearance, system, etc
-            $table->string('label');
             $table->text('description')->nullable();
             $table->timestamps();
         });

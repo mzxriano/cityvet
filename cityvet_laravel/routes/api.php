@@ -19,7 +19,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class,'register']);
 
-    
+    Route::middleware(['auth:api'])->group(function () {
+        // Register Animal Owner (Admin/Staff only)
+        Route::post('/register-owner', [AuthController::class, 'registerOwner']);
+    });
 
     // Password reset (OTP)
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -64,6 +67,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/', [AnimalController::class,'store']);
             Route::get('/', [AnimalController::class,'index']);
             Route::get('/all', [AnimalController::class,'fetchAllAnimals']);
+            Route::post('/add-for-owner', [AnimalController::class,'addAnimalForOwner']);
             Route::get('/{qrCode}', [AnimalController::class,'showByQrCode']);
             Route::put('/{id}', [AnimalController::class,'update']);
             Route::post('/{id}', [AnimalController::class,'update']);
@@ -71,6 +75,9 @@ Route::prefix('auth')->group(function () {
             Route::post('/{animalId}/vaccines', [AnimalController::class, 'attachVaccines']);
             Route::post('/activity/{activityId}/vaccinate', [AnimalController::class, 'attachVaccinesToActivity']);
         });
+
+        // Search Owners
+        Route::get('/search-owners', [AnimalController::class, 'searchOwners']);
 
         // Vaccines
         Route::get('/vaccines', [VaccineController::class, 'index']);
