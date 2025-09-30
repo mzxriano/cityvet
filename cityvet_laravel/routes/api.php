@@ -109,6 +109,16 @@ Route::prefix('auth')->group(function () {
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/send-notification', [NotificationController::class, 'sendPushNotification']);
         Route::post('/save-device-token', [DeviceTokenController::class, 'save']);
+        
+        // Incident Reporting
+        Route::prefix('incidents')->group(function () {
+            Route::get('/', [\App\Http\Controllers\IncidentController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\IncidentController::class, 'store']);
+            Route::get('/statistics', [\App\Http\Controllers\IncidentController::class, 'statistics']);
+            Route::get('/{id}', [\App\Http\Controllers\IncidentController::class, 'show']);
+            Route::put('/{id}', [\App\Http\Controllers\IncidentController::class, 'update']);
+            Route::delete('/{id}', [\App\Http\Controllers\IncidentController::class, 'destroy']);
+        });
     }); 
 
 });

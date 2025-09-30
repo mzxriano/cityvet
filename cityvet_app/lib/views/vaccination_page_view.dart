@@ -106,10 +106,6 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
   }
 
   void _submit() async {
-    print(selectedVaccine?.id);
-    print(selectedDate);
-    print(doseController.text);
-    print(adminController.text);
 
     if (!mounted) return; 
 

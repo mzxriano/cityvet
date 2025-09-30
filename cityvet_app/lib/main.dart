@@ -2,6 +2,7 @@ import 'package:cityvet_app/firebase_options.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
+import 'package:cityvet_app/viewmodels/incident_viewmodel.dart';
 import 'package:cityvet_app/views/force_password_change_view.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,7 +18,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AnimalViewModel()),
-        ChangeNotifierProvider(create: (_) => UserViewModel())
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
+        ChangeNotifierProvider(create: (_) => IncidentViewModel()),
       ],
       child: const MainApp(),
     ),

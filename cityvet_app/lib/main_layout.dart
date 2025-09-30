@@ -14,6 +14,7 @@ import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
 import 'package:cityvet_app/views/register_owner_view.dart';
+import 'package:cityvet_app/views/report_incident_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -702,6 +703,13 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
               MaterialPageRoute(builder: (_) => const RegisterOwnerView()),
             ),
           ),
+        _buildDrawerItem(
+          'Report Incident',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ReportIncidentView()),
+          ),
+        ),
         if (userRole == 'aew')
           _buildDrawerItem(
             'Schedule Activity',
