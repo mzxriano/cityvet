@@ -192,7 +192,10 @@ class AuthController extends Controller
             ], 500);
         }
 
-        return redirect()->route('email.successful')->with('success', 'Verification email sent successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email sent successfully!'
+        ], 200);
     }
 
     public function logout(Request $request)

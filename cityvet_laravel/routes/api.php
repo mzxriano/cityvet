@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CommunityLikeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\VaccineController;
+use App\Http\Controllers\Api\IncidentController;
 
 Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
 
@@ -112,12 +113,13 @@ Route::prefix('auth')->group(function () {
         
         // Incident Reporting
         Route::prefix('incidents')->group(function () {
-            Route::get('/', [\App\Http\Controllers\IncidentController::class, 'index']);
-            Route::post('/', [\App\Http\Controllers\IncidentController::class, 'store']);
-            Route::get('/statistics', [\App\Http\Controllers\IncidentController::class, 'statistics']);
-            Route::get('/{id}', [\App\Http\Controllers\IncidentController::class, 'show']);
-            Route::put('/{id}', [\App\Http\Controllers\IncidentController::class, 'update']);
-            Route::delete('/{id}', [\App\Http\Controllers\IncidentController::class, 'destroy']);
+            Route::get('/', [IncidentController::class, 'index']);
+            Route::post('/', [IncidentController::class, 'store']);
+            Route::get('/statistics', [IncidentController::class, 'statistics']);
+            Route::get('/{id}', [IncidentController::class, 'show']);
+            Route::put('/{id}', [IncidentController::class, 'update']);
+            Route::put('/{id}/status', [IncidentController::class, 'updateStatus']);
+            Route::delete('/{id}', [IncidentController::class, 'destroy']);
         });
     }); 
 

@@ -12,6 +12,9 @@ class IncidentModel {
   final String? photoPath;
   final DateTime? reportedAt;
   final String? reportedBy;
+  final String status; // 'pending', 'under_review', 'confirmed', 'disputed'
+  final String? confirmedBy;
+  final DateTime? confirmedAt;
 
   IncidentModel({
     this.id,
@@ -27,6 +30,9 @@ class IncidentModel {
     this.photoPath,
     this.reportedAt,
     this.reportedBy,
+    this.status = 'pending',
+    this.confirmedBy,
+    this.confirmedAt,
   });
 
   factory IncidentModel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +54,11 @@ class IncidentModel {
           ? DateTime.parse(json['reported_at'])
           : null,
       reportedBy: json['reported_by'],
+      status: json['status'] ?? 'pending',
+      confirmedBy: json['confirmed_by'],
+      confirmedAt: json['confirmed_at'] != null
+          ? DateTime.parse(json['confirmed_at'])
+          : null,
     );
   }
 
@@ -66,6 +77,9 @@ class IncidentModel {
       'photo_path': photoPath,
       'reported_at': reportedAt?.toIso8601String(),
       'reported_by': reportedBy,
+      'status': status,
+      'confirmed_by': confirmedBy,
+      'confirmed_at': confirmedAt?.toIso8601String(),
     };
   }
 
@@ -83,6 +97,9 @@ class IncidentModel {
     String? photoPath,
     DateTime? reportedAt,
     String? reportedBy,
+    String? status,
+    String? confirmedBy,
+    DateTime? confirmedAt,
   }) {
     return IncidentModel(
       id: id ?? this.id,
@@ -98,6 +115,30 @@ class IncidentModel {
       photoPath: photoPath ?? this.photoPath,
       reportedAt: reportedAt ?? this.reportedAt,
       reportedBy: reportedBy ?? this.reportedBy,
+      status: status ?? this.status,
+      confirmedBy: confirmedBy ?? this.confirmedBy,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
     );
+  }
+  
+  // Helper methods to check status
+  bool get isPending => status == 'pending';
+  bool get isUnderReview => status == 'under_review';
+  bool get isConfirmed => status == 'confirmed';
+  bool get isDisputed => status == 'disputed';
+  
+  String get statusDisplayName {
+    switch (status) {
+      case 'pending':
+        return 'Pending Review';
+      case 'under_review':
+        return 'Under Review';
+      case 'confirmed':
+        return 'Confirmed';
+      case 'disputed':
+        return 'Disputed';
+      default:
+        return 'Unknown';
+    }
   }
 }

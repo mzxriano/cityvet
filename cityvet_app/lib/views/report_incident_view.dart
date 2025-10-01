@@ -5,10 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:provider/provider.dart';
 import '../models/incident_model.dart';
+import '../services/incident_service.dart';
 import '../utils/config.dart';
-import '../viewmodels/incident_viewmodel.dart';
 
 class ReportIncidentView extends StatefulWidget {
   const ReportIncidentView({Key? key}) : super(key: key);
@@ -51,44 +50,30 @@ class _ReportIncidentViewState extends State<ReportIncidentView> {
   }
 
   Future<void> _loadIncidents() async {
-    final incidentViewModel = Provider.of<IncidentViewModel>(context, listen: false);
-    await incidentViewModel.loadIncidents(refresh: true);
-    
-    if (mounted) {
-      setState(() {
-        _incidents = incidentViewModel.incidents;
-        // Add some mock data for demo if no incidents
-        if (_incidents.isEmpty) {
-          _incidents = [
-            IncidentModel(
-              victimName: 'Juan Dela Cruz',
-              age: 28,
-              species: 'Dog',
-              biteProvocation: 'Unprovoked',
-              latitude: 15.9759,
-              longitude: 120.5715,
-              locationAddress: 'Barangay Poblacion, Urdaneta City',
-              incidentTime: DateTime.now().subtract(const Duration(days: 2)),
-              remarks: 'Minor bite on right arm',
-              reportedAt: DateTime.now().subtract(const Duration(days: 2)),
-              reportedBy: 'Maria Santos',
-            ),
-            IncidentModel(
-              victimName: 'Ana Rodriguez',
-              age: 35,
-              species: 'Cat',
-              biteProvocation: 'Provoked',
-              latitude: 15.9800,
-              longitude: 120.5680,
-              locationAddress: 'Barangay San Jose, Urdaneta City',
-              incidentTime: DateTime.now().subtract(const Duration(hours: 8)),
-              remarks: 'Scratch marks on left hand',
-              reportedAt: DateTime.now().subtract(const Duration(hours: 8)),
-              reportedBy: 'Dr. Reyes',
-            ),
-          ];
-        }
-      });
+    try {
+      final incidentService = IncidentService();
+      final result = await incidentService.getIncidents(); // Use getIncidents instead of fetchIncidentsForBarangay
+      
+      if (mounted) {
+        setState(() {
+          if (result['success']) {
+            // Only show confirmed incidents to regular users on the public map
+            _incidents = (result['data'] as List<IncidentModel>)
+                .where((incident) => incident.status == 'confirmed')
+                .toList();
+          } else {
+            _incidents = [];
+            print('Failed to load incidents: ${result['message']}');
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading incidents: $e');
+      if (mounted) {
+        setState(() {
+          _incidents = [];
+        });
+      }
     }
   }
 
@@ -543,7 +528,11 @@ class _ReportIncidentViewState extends State<ReportIncidentView> {
     });
 
     try {
-      final incident = IncidentModel(
+      // Import incident service
+      final incidentService = IncidentService();
+      
+      // Submit incident to the API
+      final result = await incidentService.reportIncident(
         victimName: _victimNameController.text,
         age: int.tryParse(_ageController.text) ?? 0,
         species: _speciesController.text,
@@ -553,34 +542,41 @@ class _ReportIncidentViewState extends State<ReportIncidentView> {
         locationAddress: _locationController.text,
         incidentTime: _selectedDateTime,
         remarks: _remarksController.text.isEmpty ? null : _remarksController.text,
-        photoPath: _selectedImage?.path,
-        reportedAt: DateTime.now(),
-        reportedBy: 'Current User',
+        photoFile: _selectedImage,
       );
 
-      setState(() {
-        _incidents.add(incident);
-        _isSubmittingReport = false;
-        _showReportForm = false;
-      });
+      if (result['success']) {
+        // Clear form on success
+        _victimNameController.clear();
+        _ageController.clear();
+        _speciesController.clear();
+        _biteProvocationController.clear();
+        _remarksController.clear();
+        _locationController.clear();
+        _selectedLocation = null;
+        _selectedImage = null;
+        _selectedDateTime = DateTime.now();
 
-      // Clear form
-      _victimNameController.clear();
-      _ageController.clear();
-      _speciesController.clear();
-      _biteProvocationController.clear();
-      _remarksController.clear();
-      _locationController.clear();
-      _selectedLocation = null;
-      _selectedImage = null;
-      _selectedDateTime = DateTime.now();
+        setState(() {
+          _isSubmittingReport = false;
+          _showReportForm = false;
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Incident reported successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+        // Reload incidents from server to show the new one
+        await _loadIncidents();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Incident reported successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        setState(() {
+          _isSubmittingReport = false;
+        });
+        _showError(result['message'] ?? 'Failed to submit report');
+      }
     } catch (e) {
       setState(() {
         _isSubmittingReport = false;

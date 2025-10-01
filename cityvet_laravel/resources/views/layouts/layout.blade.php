@@ -19,6 +19,7 @@
     }
   </style>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @yield('styles')
   <script>
     // Auto-apply dark theme classes to common elements
     document.addEventListener('DOMContentLoaded', function() {
@@ -146,5 +147,7 @@
   <form x-ref="logoutForm" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
     @csrf
   </form>
+
+  @yield('scripts')
 </body>
 </html>

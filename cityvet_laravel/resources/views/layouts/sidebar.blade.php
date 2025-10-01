@@ -32,6 +32,7 @@
             'barangay' => ['label' => 'Barangay'],
             'vaccines' => ['label' => 'Vaccines'],
             'community' => ['label' => 'Community'],
+            'bite-case' => ['label' => 'Bite Case'],
             'reports' => ['label' => 'Reports'],
             'settings' => ['label' => 'Settings'],
         ];

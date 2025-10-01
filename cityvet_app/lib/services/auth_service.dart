@@ -40,21 +40,19 @@ class AuthService {
   }
 
     static Future<Response> resendVerification(String email) async {
-
-
     final Dio dio = Dio(BaseOptions(
-      baseUrl: ApiConstant.baseUrl,
+      baseUrl: 'http://${ApiConstant.baseIp}:8000/api',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
     ));
 
-      final response = await dio.post('/resend-verification', data: {
-        'email': email,
-      });
+    final response = await dio.post('/auth/resend-verification', data: {
+      'email': email,
+    });
 
-      return response;
-
+    return response;
   }
 
   Future<Response> forgotPassword(String email) async {

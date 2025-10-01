@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\VaccineController;
 use App\Http\Controllers\Web\ReportController;
+use App\Http\Controllers\Web\IncidentController;
 
 
 Route::get('/successful-verification', function () {
@@ -147,6 +148,10 @@ Route::prefix('admin')->group(function () {
         
         Route::post('/settings/system', [App\Http\Controllers\Web\SettingsController::class, 'updateSettings'])
             ->name('settings.system.update');
+
+        Route::get('/bite-case', [IncidentController::class, 'index'])->name('admin.bite-case');
+        Route::get('/incidents/{id}', [IncidentController::class, 'show'])->name('admin.incidents.show');
+        // Admin can only view incidents, status management is handled by barangay personnel
         
     });
 });

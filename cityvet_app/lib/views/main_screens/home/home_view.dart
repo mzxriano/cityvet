@@ -1,5 +1,7 @@
 import 'package:cityvet_app/components/card.dart';
 import 'package:cityvet_app/models/aew_model.dart';
+import 'package:cityvet_app/models/incident_model.dart';
+import 'package:cityvet_app/services/incident_service.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/home_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
@@ -8,6 +10,7 @@ import 'package:cityvet_app/views/main_screens/home/all_aew_page.dart';
 import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
 import 'package:cityvet_app/views/main_screens/home/disease_info_page.dart';
 import 'package:cityvet_app/views/chat_screen_view.dart';
+import 'package:cityvet_app/views/incident_details_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -24,11 +27,15 @@ class HomeViewState extends State<HomeView> {
   late HomeViewModel _homeViewModel;
   List<AewModel> _aewUsers = [];
   bool _isLoadingAEW = false;
+  late final IncidentService _incidentService;
+  List<IncidentModel> _incidents = [];
+  bool _isLoadingIncidents = false;
 
   @override
   void initState() {
     super.initState();
     _homeViewModel = HomeViewModel();
+    _incidentService = IncidentService();
     // Initialize data fetching
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _homeViewModel.fetchUpcomingActivities();
@@ -36,6 +43,7 @@ class HomeViewState extends State<HomeView> {
       _homeViewModel.fetchRecentActivities();
       _homeViewModel.fetchAEWUsers();
       _fetchAEWUsers();
+      _fetchIncidents();
     });
   }
 
@@ -166,6 +174,49 @@ class HomeViewState extends State<HomeView> {
       if (mounted) {
         setState(() {
           _isLoadingAEW = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchIncidents() async {
+    print('🔍 Starting to fetch incidents...');
+    if (mounted) {
+      setState(() {
+        _isLoadingIncidents = true;
+      });
+    }
+
+    try {
+      final result = await _incidentService.fetchIncidentsForBarangay();
+      print('📊 Incident fetch result: $result');
+      
+      if (mounted) {
+        setState(() {
+          if (result['success']) {
+            // Show pending and under_review incidents for barangay personnel to manage
+            _incidents = (result['data'] as List<IncidentModel>)
+                .where((incident) => incident.status == 'pending' || incident.status == 'under_review')
+                .toList();
+            print('✅ Successfully loaded ${_incidents.length} incidents for review');
+          } else {
+            _incidents = [];
+            print('❌ Failed to fetch incidents: ${result['message']}');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Failed to fetch incidents'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          _isLoadingIncidents = false;
+        });
+      }
+    } catch (e) {
+      print('💥 Error fetching incidents: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingIncidents = false;
         });
       }
     }
@@ -509,12 +560,242 @@ class HomeViewState extends State<HomeView> {
 
     print(userRole);
     
+    // Show incidents section for barangay personnel
+    if (userRole == 'barangay_personnel') {
+      return _buildIncidentsSection();
+    }
     // Check if user is veterinarian or staff to show ongoing activities
-    if (userRole != 'pet_owner' && userRole != 'poultry_owner' && userRole != 'livestock_owner') {
+    else if (userRole != 'pet_owner' && userRole != 'poultry_owner' && userRole != 'livestock_owner') {
       return _buildSingleOngoingActivity(homeViewModel);
     } else {
       return _buildAEWSection();
     }
+  }
+
+  // Incidents section for barangay personnel
+  Widget _buildIncidentsSection() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Incident Reports (For Review)',
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontMedium,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            TextButton(
+              onPressed: _isLoadingIncidents ? null : () => _fetchIncidents(),
+              child: const Text(
+                'Refresh',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: Config.fontSmall,
+                  color: Config.tertiaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Config.heightSmall,
+        if (_isLoadingIncidents)
+          const Center(child: CircularProgressIndicator())
+        else if (_incidents.isEmpty)
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.report_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'No incident reports found.',
+                    style: TextStyle(
+                      fontFamily: Config.primaryFont,
+                      fontSize: Config.fontSmall,
+                      color: Config.secondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Column(
+            children: _incidents.take(3).map((incident) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => _navigateToIncidentDetails(incident),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(incident.status).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              _getStatusIcon(incident.status),
+                              color: _getStatusColor(incident.status),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  incident.victimName,
+                                  style: const TextStyle(
+                                    fontFamily: Config.primaryFont,
+                                    fontSize: Config.fontMedium,
+                                    fontWeight: Config.fontW600,
+                                    color: Color(0xFF524F4F),
+                                  ),
+                                ),
+                                Text(
+                                  '${incident.species} - ${incident.age} years old',
+                                  style: const TextStyle(
+                                    fontFamily: Config.primaryFont,
+                                    fontSize: Config.fontSmall,
+                                    color: Config.tertiaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(incident.status).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              incident.statusDisplayName,
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: 10,
+                                color: _getStatusColor(incident.status),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Text(
+                            DateFormat('MMM d, yyyy • h:mm a').format(incident.incidentTime),
+                            style: const TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontSmall,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              incident.locationAddress,
+                              style: const TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: Config.fontSmall,
+                                color: Colors.grey,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )).toList(),
+          ),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'under_review':
+        return Colors.blue;
+      case 'confirmed':
+        return Colors.red;
+      case 'disputed':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'pending':
+        return Icons.pending;
+      case 'under_review':
+        return Icons.search;
+      case 'confirmed':
+        return Icons.check_circle;
+      case 'disputed':
+        return Icons.report_problem;
+      default:
+        return Icons.help;
+    }
+  }
+
+  void _navigateToIncidentDetails(IncidentModel incident) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => IncidentDetailsView(
+          incident: incident,
+          canManageStatus: true, // Barangay personnel can manage status
+        ),
+      ),
+    ).then((_) {
+      // Refresh incidents when returning from details
+      _fetchIncidents();
+    });
   }
 
   // Single Ongoing Activity section for veterinarian/staff
@@ -1126,40 +1407,5 @@ void _navigateToAllAEWs(BuildContext context) {
     }
   }
 
-  Widget _activityDetailsPopup(dynamic activity) {
-    final formattedDate = DateFormat('MMMM d, yyyy').format(activity.date);
-    final formattedTime = DateFormat('h:mm a').format(activity.time);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(activity.details),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
-            const SizedBox(width: 8),
-            Text(formattedDate),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.access_time, size: 18, color: Colors.grey),
-            const SizedBox(width: 8),
-            Text(formattedTime),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.location_on, size: 18, color: Colors.grey),
-            const SizedBox(width: 8),
-            Text(activity.barangay.toString()),
-          ],
-        ),
-      ],
-    );
-  }
 }

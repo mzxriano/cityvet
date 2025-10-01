@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:cityvet_app/utils/api_constant.dart';
-import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:cityvet_app/models/incident_model.dart';
 
@@ -49,17 +48,13 @@ class IncidentService {
         ));
       }
 
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      
       final response = await _dio.post(
-        '/incidents',
+        '/incidents/report',
         data: formData,
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
             'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
           },
         ),
       );
@@ -130,28 +125,18 @@ class IncidentService {
   // Fetch incidents for barangay personnel
   Future<Map<String, dynamic>> fetchIncidentsForBarangay() async {
     try {
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      print('🔑 Using auth token: ${token?.substring(0, 10)}...');
-      
       final response = await _dio.get(
-        '/incidents',
+        '/incidents/barangay',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
           },
         ),
       );
 
-      print('📡 Response status: ${response.statusCode}');
-      print('📄 Response data: ${response.data}');
-
       if (response.statusCode == 200) {
-        List<dynamic> incidentsData = response.data['incidents'] ?? [];
-        print('📝 Found ${incidentsData.length} incidents in response');
-        
+        List<dynamic> incidentsData = response.data['data'] ?? [];
         List<IncidentModel> incidents = incidentsData
             .map((incident) => IncidentModel.fromJson(incident))
             .toList();
@@ -169,7 +154,6 @@ class IncidentService {
         };
       }
     } catch (e) {
-      print('💥 Exception in fetchIncidentsForBarangay: $e');
       return {
         'success': false,
         'message': 'An unexpected error occurred: ${e.toString()}',
@@ -184,13 +168,6 @@ class IncidentService {
     required String status,
   }) async {
     try {
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      
-      print('🔑 Using token: ${token?.substring(0, 10)}...');
-      print('📡 Making PUT request to: /incidents/$incidentId/status');
-      print('📄 Data: {"status": "$status"}');
-      
       final response = await _dio.put(
         '/incidents/$incidentId/status',
         data: {'status': status},
@@ -198,13 +175,9 @@ class IncidentService {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
           },
         ),
       );
-
-      print('📊 Response status: ${response.statusCode}');
-      print('📄 Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         return {
@@ -219,47 +192,7 @@ class IncidentService {
           'data': {},
         };
       }
-    } on DioException catch (dioError) {
-      print('💥 DioException: ${dioError.message}');
-      print('📊 Response status: ${dioError.response?.statusCode}');
-      print('📄 Response data: ${dioError.response?.data}');
-      
-      String errorMessage = 'Network error occurred';
-      
-      if (dioError.response != null) {
-        switch (dioError.response!.statusCode) {
-          case 400:
-            errorMessage = dioError.response!.data['message'] ?? 'Bad request';
-            break;
-          case 401:
-            errorMessage = 'Unauthorized access - please login again';
-            break;
-          case 403:
-            errorMessage = 'Access denied';
-            break;
-          case 422:
-            final errors = dioError.response!.data['errors'] as Map<String, dynamic>?;
-            if (errors != null) {
-              errorMessage = errors.values.first.first;
-            } else {
-              errorMessage = dioError.response!.data['message'] ?? 'Validation failed';
-            }
-            break;
-          case 500:
-            errorMessage = 'Server error occurred';
-            break;
-          default:
-            errorMessage = dioError.response!.data['message'] ?? 'Request failed';
-        }
-      }
-      
-      return {
-        'success': false,
-        'message': errorMessage,
-        'data': {},
-      };
     } catch (e) {
-      print('💥 General exception: $e');
       return {
         'success': false,
         'message': 'An unexpected error occurred: ${e.toString()}',
@@ -271,16 +204,12 @@ class IncidentService {
   // Get incident details
   Future<Map<String, dynamic>> getIncidentDetails(int incidentId) async {
     try {
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      
       final response = await _dio.get(
         '/incidents/$incidentId',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
           },
         ),
       );
@@ -304,125 +233,6 @@ class IncidentService {
         'success': false,
         'message': 'An unexpected error occurred: ${e.toString()}',
         'data': null,
-      };
-    }
-  }
-
-  // Get incidents with pagination and filters
-  Future<Map<String, dynamic>> getIncidents({
-    int page = 1,
-    String? search,
-    String? species,
-    DateTime? fromDate,
-    DateTime? toDate,
-  }) async {
-    try {
-      Map<String, dynamic> queryParams = {'page': page};
-      
-      if (search != null && search.isNotEmpty) {
-        queryParams['search'] = search;
-      }
-      if (species != null && species.isNotEmpty) {
-        queryParams['species'] = species;
-      }
-      if (fromDate != null) {
-        queryParams['from_date'] = fromDate.toIso8601String();
-      }
-      if (toDate != null) {
-        queryParams['to_date'] = toDate.toIso8601String();
-      }
-
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      
-      final response = await _dio.get(
-        '/incidents',
-        queryParameters: queryParams,
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        List<dynamic> incidentsData = response.data['incidents'] ?? [];
-        List<IncidentModel> incidents = incidentsData
-            .map((incident) => IncidentModel.fromJson(incident))
-            .toList();
-
-        return {
-          'success': true,
-          'message': 'Incidents fetched successfully',
-          'data': incidents,
-          'total': response.data['total'] ?? 0,
-          'current_page': response.data['current_page'] ?? 1,
-          'total_pages': response.data['last_page'] ?? 1,
-        };
-      } else {
-        return {
-          'success': false,
-          'message': response.data['message'] ?? 'Failed to fetch incidents',
-          'data': [],
-          'total': 0,
-          'current_page': 1,
-          'total_pages': 1,
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred: ${e.toString()}',
-        'data': [],
-        'total': 0,
-        'current_page': 1,
-        'total_pages': 1,
-      };
-    }
-  }
-
-  // Get incident by ID (alias for getIncidentDetails for compatibility)
-  Future<Map<String, dynamic>> getIncidentById(int incidentId) async {
-    return await getIncidentDetails(incidentId);
-  }
-
-  // Get incident statistics
-  Future<Map<String, dynamic>> getIncidentStatistics() async {
-    try {
-      final authStorage = AuthStorage();
-      final token = await authStorage.getToken();
-      
-      final response = await _dio.get(
-        '/incidents/statistics',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'message': 'Statistics fetched successfully',
-          'data': response.data['data'] ?? {},
-        };
-      } else {
-        return {
-          'success': false,
-          'message': response.data['message'] ?? 'Failed to fetch statistics',
-          'data': {},
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred: ${e.toString()}',
-        'data': {},
       };
     }
   }

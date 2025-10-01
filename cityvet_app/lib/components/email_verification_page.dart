@@ -1,6 +1,7 @@
 import 'package:cityvet_app/services/auth_service.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
 class EmailVerificationPage extends StatelessWidget {
   final String email;
@@ -12,7 +13,7 @@ class EmailVerificationPage extends StatelessWidget {
       final response = await AuthService.resendVerification(email);
       
       // Check response status or data
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -21,21 +22,58 @@ class EmailVerificationPage extends StatelessWidget {
             ),
           );
         }
+      } else if (response.statusCode == 302) {
+        // Handle redirect - might indicate the user is already verified
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Your account may already be verified. Please try logging in.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
       } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to resend. Status: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } on DioException catch (dioError) {
+      print('DioException resending verification email: ${dioError.message}');
+      print('Status Code: ${dioError.response?.statusCode}');
+      print('Response Data: ${dioError.response?.data}');
+      
+      String errorMessage = 'Failed to resend verification email.';
+      
+      if (dioError.response?.statusCode == 302) {
+        errorMessage = 'Your account may already be verified. Please try logging in.';
+      } else if (dioError.response?.statusCode == 404) {
+        errorMessage = 'Verification service not found. Please contact support.';
+      } else if (dioError.response?.statusCode == 422) {
+        errorMessage = 'Invalid email address or verification request.';
+      } else if (dioError.response?.statusCode == 429) {
+        errorMessage = 'Too many requests. Please wait before trying again.';
+      }
+      
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to resend.'),
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      print('Error resending verification email: $e');
+      print('General error resending verification email: $e');
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to resend verification email. Please try again.'),
+            content: Text('An unexpected error occurred. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
