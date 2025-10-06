@@ -72,21 +72,133 @@ class AnimalController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'type'       => 'required|string',
-            'breed'      => 'required|string',
-            'name'       => 'required|string',
-            'birth_date' => 'nullable|date',
-            'gender'     => 'required|in:male,female',
-            'weight'     => 'nullable|numeric',
-            'height'     => 'nullable|numeric',
-            'color'      => 'required|string',
-            'user_id'   => 'required|exists:users,id',
-        ]);
-        
-        Animal::create($validated);
+        try {
+            // Check if we're receiving multiple animals
+            if ($request->has('animals') && is_array($request->input('animals'))) {
+                return $this->storeMultiple($request);
+            }
 
-        return redirect()->route('admin.animals')->with('success', 'Animal added successfully.');
+            // Single animal validation
+            $validated = $request->validate([
+                'type'       => 'required|string',
+                'breed'      => 'required|string',
+                'name'       => 'required|string',
+                'birth_date' => 'nullable|date',
+                'gender'     => 'required|in:male,female',
+                'weight'     => 'nullable|numeric',
+                'height'     => 'nullable|numeric',
+                'color'      => 'required|string',
+                'unique_spot' => 'nullable|string|max:255',
+                'known_conditions' => 'nullable|string|max:255',
+                'user_id'   => 'required|exists:users,id',
+            ]);
+            
+            $animal = Animal::create($validated);
+
+            // Check if request is AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Animal registered successfully!',
+                    'animal' => $animal
+                ]);
+            }
+
+            return redirect()->route('admin.animals')->with('success', 'Animal added successfully.');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while registering the animal'
+                ], 500);
+            }
+            return redirect()->back()->with('error', 'An error occurred while registering the animal');
+        }
+    }
+
+    /**
+     * Store multiple animals from the modal form.
+     */
+    private function storeMultiple(Request $request)
+    {
+        try {
+            // Validate the animals array
+            $validated = $request->validate([
+                'animals' => 'required|array|min:1|max:10',
+                'animals.*.type' => 'required|string',
+                'animals.*.breed' => 'required|string',
+                'animals.*.name' => 'required|string',
+                'animals.*.birth_date' => 'nullable|date',
+                'animals.*.gender' => 'required|in:male,female',
+                'animals.*.weight' => 'nullable|numeric',
+                'animals.*.height' => 'nullable|numeric',
+                'animals.*.color' => 'required|string',
+                'animals.*.unique_spot' => 'nullable|string|max:255',
+                'animals.*.known_conditions' => 'nullable|string|max:255',
+                'animals.*.user_id' => 'required|exists:users,id',
+            ]);
+
+            $animalsCreated = 0;
+            $createdAnimals = [];
+
+            DB::beginTransaction();
+            
+            foreach ($validated['animals'] as $animalData) {
+                // Remove empty values
+                $animalData = array_filter($animalData, function($value) {
+                    return $value !== '' && $value !== null;
+                });
+
+                $animal = Animal::create($animalData);
+                $createdAnimals[] = $animal;
+                $animalsCreated++;
+            }
+
+            DB::commit();
+
+            // Check if request is AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "{$animalsCreated} animal" . ($animalsCreated > 1 ? 's' : '') . " registered successfully!",
+                    'animals' => $createdAnimals,
+                    'count' => $animalsCreated
+                ]);
+            }
+
+            return redirect()->route('admin.animals')
+                ->with('success', "{$animalsCreated} animal" . ($animalsCreated > 1 ? 's' : '') . " added successfully.");
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while registering the animals'
+                ], 500);
+            }
+            return redirect()->back()->with('error', 'An error occurred while registering the animals');
+        }
     }
 
     /**
@@ -343,6 +455,8 @@ class AnimalController extends Controller
             'weight'     => 'nullable|numeric',
             'height'     => 'nullable|numeric',
             'color'      => 'required|string',
+            'unique_spot' => 'nullable|string|max:255',
+            'known_conditions' => 'nullable|string|max:255',
             'user_id'   => 'required|exists:users,id',
         ]);
 

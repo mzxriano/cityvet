@@ -129,6 +129,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
         Route::post('/reports/generate-vaccination', [ReportController::class, 'generateVaccinationReport'])->name('reports.generate-vaccination');
         Route::post('/reports/generate-vaccination-excel', [ReportController::class, 'generateVaccinationExcel'])->name('reports.generate-vaccination-excel');
+        Route::post('/reports/generate-bite-case-excel', [ReportController::class, 'generateBiteCaseExcel'])->name('reports.generate-bite-case-excel');
 
         Route::get('/archives', function () {
             return view('admin.archives');

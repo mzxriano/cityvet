@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\VaccinationReportsExport;
+use App\Models\Incident;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportController
@@ -118,7 +119,80 @@ class ReportController
                 'poultry_owner' => 'Poultry Owner'
             ];
 
-            $biteCaseReports = collect([]);
+            // Get confirmed bite case reports with filtering
+            $biteCaseQuery = Incident::confirmed()
+                ->select([
+                    'id',
+                    'victim_name',
+                    'age',
+                    'species',
+                    'bite_provocation',
+                    'location_address',
+                    'incident_time',
+                    'remarks',
+                    'confirmed_by',
+                    'confirmed_at',
+                    'created_at'
+                ]);
+
+            // Filter bite cases by date range
+            if ($request->filled('bite_date_from')) {
+                $biteCaseQuery->whereDate('incident_time', '>=', $request->bite_date_from);
+            }
+
+            if ($request->filled('bite_date_to')) {
+                $biteCaseQuery->whereDate('incident_time', '<=', $request->bite_date_to);
+            }
+
+            // Filter by species
+            if ($request->filled('bite_species')) {
+                $biteCaseQuery->bySpecies($request->bite_species);
+            }
+
+            // Filter by provocation
+            if ($request->filled('bite_provocation')) {
+                $biteCaseQuery->byProvocation($request->bite_provocation);
+            }
+
+            // Handle pagination for bite cases
+            $bitePerPage = $request->filled('bite_per_page') ? $request->bite_per_page : 10;
+            
+            if ($bitePerPage === 'all') {
+                $biteCaseReports = $biteCaseQuery
+                    ->orderBy('incident_time', 'desc')
+                    ->get();
+                // Create a mock paginator for "all" results
+                $biteCaseReports = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $biteCaseReports,
+                    $biteCaseReports->count(),
+                    $biteCaseReports->count(),
+                    1,
+                    [
+                        'path' => request()->url(),
+                        'pageName' => 'bite_page',
+                    ]
+                );
+                $biteCaseReports->appends($request->only(['bite_species', 'bite_provocation', 'bite_date_from', 'bite_date_to', 'bite_per_page']));
+            } else {
+                $biteCaseReports = $biteCaseQuery
+                    ->orderBy('incident_time', 'desc')
+                    ->paginate((int)$bitePerPage, ['*'], 'bite_page')
+                    ->appends($request->only(['bite_species', 'bite_provocation', 'bite_date_from', 'bite_date_to', 'bite_per_page']));
+            }
+
+            // Get distinct species for bite case filters
+            $biteSpecies = Incident::confirmed()
+                ->select('species')
+                ->distinct()
+                ->orderBy('species')
+                ->pluck('species');
+
+            // Get distinct bite provocations for filters
+            $biteProvocations = Incident::confirmed()
+                ->select('bite_provocation')
+                ->distinct()
+                ->orderBy('bite_provocation')
+                ->pluck('bite_provocation');
 
             return view('admin.reports', [
                 'vaccinationReports' => $vaccinationReports,
@@ -126,6 +200,8 @@ class ReportController
                 'barangays' => $barangays,
                 'animalTypes' => $animalTypes,
                 'ownerRoles' => $ownerRoles,
+                'biteSpecies' => $biteSpecies,
+                'biteProvocations' => $biteProvocations,
                 'selectedSpecies' => $request->species,
                 'selectedAnimalType' => $request->animal_type,
                 'selectedOwnerRole' => $request->owner_role,
@@ -287,6 +363,73 @@ class ReportController
 
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to generate Excel report: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate Excel report for bite case records
+     */
+    public function generateBiteCaseExcel(Request $request)
+    {
+        try {
+            $query = Incident::confirmed()
+                ->select([
+                    'victim_name',
+                    'age',
+                    'species',
+                    'bite_provocation',
+                    'location_address',
+                    'incident_time',
+                    'remarks',
+                    'confirmed_by',
+                    'confirmed_at'
+                ]);
+
+            // Apply filters
+            if ($request->filled('bite_species')) {
+                $query->bySpecies($request->bite_species);
+            }
+
+            if ($request->filled('bite_provocation')) {
+                $query->byProvocation($request->bite_provocation);
+            }
+
+            if ($request->filled('bite_date_from')) {
+                $query->whereDate('incident_time', '>=', $request->bite_date_from);
+            }
+
+            if ($request->filled('bite_date_to')) {
+                $query->whereDate('incident_time', '<=', $request->bite_date_to);
+            }
+
+            $biteCases = $query->orderBy('incident_time', 'desc')->get();
+
+            // Create CSV content
+            $csvContent = "Victim Name,Age,Animal Species,Bite Provocation,Location,Incident Date,Remarks,Confirmed By,Confirmed Date\n";
+            
+            foreach ($biteCases as $case) {
+                $csvContent .= sprintf(
+                    '"%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                    str_replace('"', '""', $case->victim_name),
+                    $case->age,
+                    str_replace('"', '""', $case->species),
+                    str_replace('"', '""', $case->bite_provocation),
+                    str_replace('"', '""', $case->location_address),
+                    $case->incident_time->format('Y-m-d H:i:s'),
+                    str_replace('"', '""', $case->remarks ?? ''),
+                    str_replace('"', '""', $case->confirmed_by ?? ''),
+                    $case->confirmed_at ? $case->confirmed_at->format('Y-m-d H:i:s') : ''
+                );
+            }
+
+            $filename = 'bite_case_reports_' . now()->format('Ymd_His') . '.csv';
+            
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to generate bite case Excel report: ' . $e->getMessage());
         }
     }
 }

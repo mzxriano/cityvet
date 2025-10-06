@@ -1,0 +1,13 @@
+{
+  "dart.flutterSdkPath": "/home/benedict/flutter",
+  "dart.checkForSdkUpdates": true,
+  "dart.previewLsp": true,
+  "dart.analysisServerFolding": true,
+  "dart.openDevTools": "flutter",
+  "dart.warnWhenEditingFilesOutsideWorkspace": false,
+  "files.exclude": {
+    "**/.dart_tool": true,
+    "**/.packages": true,
+    "**/build": true
+  }
+}

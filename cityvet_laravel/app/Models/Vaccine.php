@@ -13,6 +13,7 @@ class Vaccine extends Model
         'brand',
         'description',
         'stock',
+        'received_stock',
         'image_url',
         'image_public_id',
         'protect_against',

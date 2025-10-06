@@ -49,6 +49,7 @@
                     brand: data.brand || '',
                     category: data.category,
                     stock: data.stock,
+                    received_stock: data.received_stock || data.stock,
                     description: data.description || '',
                     received_date: data.received_date || '',
                     expiration_date: data.expiration_date || '',
@@ -148,9 +149,10 @@
                         <label class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Stock:</label>
                         <select name="stock_status" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                             <option value="">All Stock Levels</option>
-                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low (≤5)</option>
-                            <option value="medium" {{ request('stock_status') == 'medium' ? 'selected' : '' }}>Medium (6-20)</option>
-                            <option value="high" {{ request('stock_status') == 'high' ? 'selected' : '' }}>High (>20)</option>
+                            <option value="critical" {{ request('stock_status') == 'critical' ? 'selected' : '' }}>Critical (<100)</option>
+                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low (100-299)</option>
+                            <option value="medium" {{ request('stock_status') == 'medium' ? 'selected' : '' }}>Medium (300-499)</option>
+                            <option value="high" {{ request('stock_status') == 'high' ? 'selected' : '' }}>High (≥500)</option>
                         </select>
                     </div>
 
@@ -247,9 +249,11 @@
                                     <div class="text-gray-500 text-xs sm:hidden">
                                         @php $stock = $vaccine->stock ?? 0; @endphp
                                         Stock: {{ $stock }} 
-                                        @if($stock <= 5)
-                                            <span class="text-red-500">(Low)</span>
-                                        @elseif($stock <= 20)
+                                        @if($stock < 100)
+                                            <span class="text-red-500">(Critical)</span>
+                                        @elseif($stock < 300)
+                                            <span class="text-orange-500">(Low)</span>
+                                        @elseif($stock < 500)
                                             <span class="text-yellow-500">(Medium)</span>
                                         @else
                                             <span class="text-green-500">(High)</span>
@@ -261,9 +265,11 @@
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">
                                     @php $stock = $vaccine->stock ?? 0; @endphp
-                                    @if($stock <= 5)
-                                        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Low</span>
-                                    @elseif($stock <= 20)
+                                    @if($stock < 100)
+                                        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Critical</span>
+                                    @elseif($stock < 300)
+                                        <span class="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">Low</span>
+                                    @elseif($stock < 500)
                                         <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Medium</span>
                                     @else
                                         <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">High</span>
@@ -315,7 +321,7 @@
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Category</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Brand</th>
-                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Received Stock</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Original Stock</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Received Date</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Expiration Date</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
@@ -334,7 +340,7 @@
                                     <div class="font-medium text-primary">{{ $vaccine->name }}</div>
                                     <!-- Mobile-only additional info -->
                                     <div class="text-gray-500 text-xs md:hidden">
-                                        <div>Stock: {{ $vaccine->stock ?? 0 }}</div>
+                                        <div>Original Stock: {{ $vaccine->received_stock ?? 0 }}</div>
                                         <div>
                                             Rcvd: {{ $vaccine->received_date ? \Carbon\Carbon::parse($vaccine->received_date)->format('M j, Y') : 'N/A' }}
                                         </div>
@@ -347,8 +353,8 @@
                                     <span class="font-medium">{{ $vaccine->brand ?? '-' }}</span>
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
-                                    @if($vaccine->stock)
-                                        {{ $vaccine->stock }}
+                                    @if($vaccine->received_stock)
+                                        {{ $vaccine->received_stock }}
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif
@@ -688,11 +694,15 @@
                     @method('PUT')
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Category</label>
-                        <input type="text" 
-                               name="category"
+                        <select name="category"
                                x-model="currentVaccine.category"
                                required
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                            <option value="">Select Category</option>
+                            <option value="vaccine">Vaccine</option>
+                            <option value="deworming">Deworming</option>
+                            <option value="vitamin">Vitamin</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Name</label>
@@ -701,6 +711,35 @@
                                x-model="currentVaccine.name"
                                required
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Brand</label>
+                        <input type="text" 
+                               name="brand"
+                               x-model="currentVaccine.brand"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Current Stock</label>
+                            <input type="number" 
+                                   name="stock"
+                                   x-model="currentVaccine.stock"
+                                   min="0"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                            <p class="text-xs text-gray-500 mt-1">Available stock (decreases when used)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Received Stock</label>
+                            <input type="number" 
+                                   name="received_stock"
+                                   x-model="currentVaccine.received_stock"
+                                   min="0"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 border text-sm">
+                            <p class="text-xs text-gray-500 mt-1">Original amount received</p>
+                        </div>
                     </div>
 
                     <div>

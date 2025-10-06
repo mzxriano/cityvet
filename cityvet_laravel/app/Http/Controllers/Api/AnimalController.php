@@ -710,8 +710,8 @@ class AnimalController
                         'remaining_stock' => $vaccineModel->fresh()->stock
                     ]);
                     
-                    if ($vaccineModel->fresh()->stock <= 5) {
-                        \Log::warning('Low vaccine stock', [
+                    if ($vaccineModel->fresh()->stock < 100) {
+                        \Log::warning('Critical vaccine stock', [
                             'vaccine_id' => $vaccineId,
                             'vaccine_name' => $vaccineModel->name,
                             'remaining_stock' => $vaccineModel->fresh()->stock

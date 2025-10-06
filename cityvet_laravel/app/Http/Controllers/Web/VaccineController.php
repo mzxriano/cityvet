@@ -34,6 +34,7 @@ class VaccineController extends Controller
             'category' => 'required|in:vaccine,deworming,vitamin',
             'description' => 'nullable|string|max:1000',
             'stock' => 'nullable|integer|min:0|max:999999',
+            'received_stock' => 'nullable|integer|min:0|max:999999',
             'received_date' => 'required|date|before_or_equal:today',
             'expiration_date' => 'required|date|after:received_date',
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:2048',
@@ -95,14 +96,17 @@ class VaccineController extends Controller
         // Stock status filter
         if ($request->filled('stock_status')) {
             switch ($request->stock_status) {
+                case 'critical':
+                    $query->where('stock', '<', 100);
+                    break;
                 case 'low':
-                    $query->where('stock', '<=', 5);
+                    $query->whereBetween('stock', [100, 299]);
                     break;
                 case 'medium':
-                    $query->whereBetween('stock', [6, 20]);
+                    $query->whereBetween('stock', [300, 499]);
                     break;
                 case 'high':
-                    $query->where('stock', '>', 20);
+                    $query->where('stock', '>=', 500);
                     break;
             }
         }
@@ -188,6 +192,9 @@ class VaccineController extends Controller
                 $validatedData['stock'] = 0;
             }
 
+            // Set received_stock to the same value as stock when creating new vaccine
+            $validatedData['received_stock'] = $validatedData['stock'];
+
             Vaccine::create($validatedData);
 
             return redirect()->route('admin.vaccines')->with('success', 'Vaccine added successfully!');
@@ -245,8 +252,16 @@ class VaccineController extends Controller
         try {
             $validatedData = $request->only([
                 'name', 'brand', 'category', 'description', 
-                'stock', 'received_date', 'expiration_date'
+                'stock', 'received_stock', 'received_date', 'expiration_date'
             ]);
+
+            // If stock is being updated and received_stock is not provided, update received_stock to match unless it's already set
+            if (isset($validatedData['stock']) && !isset($validatedData['received_stock']) && $validatedData['stock'] != $vaccine->stock) {
+                // Only update received_stock if it's currently 0 or if the new stock is larger than current received_stock
+                if ($vaccine->received_stock == 0 || $validatedData['stock'] > $vaccine->received_stock) {
+                    $validatedData['received_stock'] = $validatedData['stock'];
+                }
+            }
 
             if ($request->hasFile('image')) {
                 $imageData = $this->handleImageUpload(

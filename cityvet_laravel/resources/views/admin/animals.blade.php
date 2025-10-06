@@ -39,7 +39,7 @@
   <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
     <a href="{{ route('admin.animals.batch-register') }}" class="bg-purple-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-purple-600 transition">
       <span class="hidden sm:inline">Batch Register</span>
-      <span class="sm:hidden">📦 Batch</span>
+      <span class="sm:hidden">Batch</span>
     </a>
     <button @click="showAddModal = true" class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
       <span class="hidden sm:inline">Register Pet</span>
@@ -209,97 +209,221 @@
   <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
+      <div class="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
         <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 bg-white z-10">
-          <h2 class="text-lg sm:text-xl font-semibold text-primary">Add New Animal</h2>
+          <div>
+            <h2 class="text-lg sm:text-xl font-semibold text-primary">Add New Animals</h2>
+            <p class="text-xs text-gray-500 mt-1">Register multiple animals at once</p>
+          </div>
           <button @click="showAddModal = false" class="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
         </div>
-        <form method="POST" action="{{ route('admin.animals.store') }}" class="px-4 sm:px-6 py-4 space-y-4">
+        <form id="add-animal-form" method="POST" action="{{ route('admin.animals.store') }}" class="px-4 sm:px-6 py-4">
           @csrf
+          
+          <div id="animals-container" class="space-y-6">
+            <!-- First animal form (template will be cloned) -->
+            <template x-for="(animal, index) in animalForms" :key="index">
+              <div class="animal-form-section border border-gray-200 rounded-lg p-4 relative">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-md font-semibold text-primary" x-text="`Animal ${index + 1}`"></h3>
+                  <button 
+                    type="button" 
+                    @click="removeAnimalForm(index)" 
+                    x-show="animalForms.length > 1"
+                    class="text-red-500 hover:text-red-700 text-lg font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Species</label>
+                    <select 
+                      :name="`animals[${index}][type]`" 
+                      x-model="animal.type" 
+                      @change="updateBreeds(index)"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" 
+                      required
+                    >
+                      <option value="" disabled>Select Species</option>
+                      @foreach(array_keys($breedOptions) as $type)
+                        <option value="{{ $type }}">{{ $type }}</option>
+                      @endforeach
+                    </select>
+                  </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-medium text-sm text-primary">Species</label>
-              <select name="type" id="modal-type" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-                <option value="" disabled selected>Select Species</option>
-                @foreach(array_keys($breedOptions) as $type)
-                  <option value="{{ $type }}">{{ $type }}</option>
-                @endforeach
-              </select>
-            </div>
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Breed</label>
+                    <select 
+                      :name="`animals[${index}][breed]`" 
+                      x-model="animal.breed" 
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" 
+                      required
+                    >
+                      <option value="" disabled>Select Breed</option>
+                      <template x-for="breed in getAvailableBreeds(animal.type)">
+                        <option :value="breed" x-text="breed"></option>
+                      </template>
+                    </select>
+                  </div>
+                </div>
 
-            <div>
-              <label class="block font-medium text-sm text-primary">Breed</label>
-              <select name="breed" id="modal-breed" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-                <option value="" disabled selected>Select Breed</option>
-              </select>
-            </div>
+                <div class="mt-4">
+                  <label class="block font-medium text-sm text-primary">Name</label>
+                  <input 
+                    type="text" 
+                    :name="`animals[${index}][name]`" 
+                    x-model="animal.name"
+                    class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" 
+                    required
+                  >
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Birth Date</label>
+                    <input 
+                      type="date" 
+                      :name="`animals[${index}][birth_date]`" 
+                      x-model="animal.birth_date"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    >
+                  </div>
+
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Gender</label>
+                    <select 
+                      :name="`animals[${index}][gender]`" 
+                      x-model="animal.gender"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" 
+                      required
+                    >
+                      <option value="" disabled>Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Weight (kg)</label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      :name="`animals[${index}][weight]`" 
+                      x-model="animal.weight"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    >
+                  </div>
+
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Height (cm)</label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      :name="`animals[${index}][height]`" 
+                      x-model="animal.height"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    >
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="block font-medium text-sm text-primary">Color</label>
+                  <input 
+                    type="text" 
+                    :name="`animals[${index}][color]`" 
+                    x-model="animal.color"
+                    class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" 
+                    required
+                  >
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Unique Spot</label>
+                    <input 
+                      type="text" 
+                      :name="`animals[${index}][unique_spot]`" 
+                      x-model="animal.unique_spot"
+                      placeholder="e.g., White patch on forehead"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    >
+                  </div>
+
+                  <div>
+                    <label class="block font-medium text-sm text-primary">Known Conditions</label>
+                    <input 
+                      type="text" 
+                      :name="`animals[${index}][known_conditions]`" 
+                      x-model="animal.known_conditions"
+                      placeholder="e.g., Allergies, medical conditions"
+                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    >
+                  </div>
+                </div>
+
+                <!-- Owner autocomplete input -->
+                <div class="relative w-full mt-4">
+                  <label class="block font-medium text-sm mb-1 text-primary">Owner</label>
+                  <input
+                    type="text"
+                    :id="`owner-search-${index}`"
+                    placeholder="Search owner by name or email"
+                    autocomplete="off"
+                    x-model="animal.ownerDisplay"
+                    @input="searchOwners(index, $event.target.value)"
+                    @click.away="animal.suggestions = []"
+                    class="w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                    required
+                  />
+                  <input type="hidden" :name="`animals[${index}][user_id]`" x-model="animal.user_id" required />
+                  <div
+                    :id="`owner-suggestions-${index}`"
+                    x-show="animal.suggestions && animal.suggestions.length > 0"
+                    class="border border-gray-300 bg-white absolute w-full max-h-40 overflow-y-auto z-10 rounded-md shadow-lg"
+                  >
+                    <template x-for="user in animal.suggestions">
+                      <div 
+                        @click="selectOwner(index, user)"
+                        class="p-2 cursor-pointer hover:bg-gray-200"
+                        x-text="`${user.first_name} ${user.last_name} (${user.email})`"
+                      ></div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
 
-          <div>
-            <label class="block font-medium text-sm text-primary">Name</label>
-            <input type="text" name="name" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
+          <!-- Add Another Animal Button -->
+          <div class="mt-4 flex justify-center">
+            <button 
+              type="button" 
+              @click="addAnimalForm()" 
+              class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 text-sm flex items-center gap-2"
+            >
+              <span>+ Add Another Animal</span>
+            </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-medium text-sm text-primary">Birth Date</label>
-              <input type="date" name="birth_date" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
-            </div>
-
-            <div>
-              <label class="block font-medium text-sm text-primary">Gender</label>
-              <select name="gender" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-                <option value="" disabled selected>Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-medium text-sm text-primary">Weight (kg)</label>
-              <input type="number" step="0.01" name="weight" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
-            </div>
-
-            <div>
-              <label class="block font-medium text-sm text-primary">Height (cm)</label>
-              <input type="number" step="0.01" name="height" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-medium text-sm text-primary">Color</label>
-            <input type="text" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
-          </div>
-
-          <!-- Owner autocomplete input -->
-          <div class="relative w-full">
-            <label for="owner-search" class="block font-medium text-sm mb-1 text-primary">Owner</label>
-            <input
-              type="text"
-              id="owner-search"
-              placeholder="Search owner by name or email"
-              autocomplete="off"
-              class="w-full border border-gray-300 rounded-md p-2 sm:p-3 text-sm"
-              required
-            />
-            <input type="hidden" id="owner-id" name="user_id" required />
-            <div
-              id="owner-suggestions"
-              class="border border-gray-300 bg-white absolute w-full max-h-40 overflow-y-auto hidden z-10 rounded-md shadow-lg"
-            ></div>
-          </div>
-
-          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t sticky bottom-0 bg-white">
-            <button type="button" @click="showAddModal = false" class="w-full sm:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t sticky bottom-0 bg-white mt-6">
+            <button type="button" @click="showAddModal = false" class="w-full sm:w-auto px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100 text-sm" :disabled="isSubmitting">
               Cancel
             </button>
-            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-              Save Animal
+            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm" :disabled="isSubmitting">
+              <span x-show="!isSubmitting" x-text="`Save ${animalForms.length} Animal${animalForms.length > 1 ? 's' : ''}`"></span>
+              <span x-show="isSubmitting" class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </span>
             </button>
           </div>
         </form>
@@ -379,6 +503,18 @@
             <input type="text" x-model="currentAnimal.color" name="color" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
           </div>
 
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-sm text-primary">Unique Spot</label>
+              <input type="text" x-model="currentAnimal.unique_spot" name="unique_spot" placeholder="e.g., White patch on forehead" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+
+            <div>
+              <label class="block font-medium text-sm text-primary">Known Conditions</label>
+              <input type="text" x-model="currentAnimal.known_conditions" name="known_conditions" placeholder="e.g., Allergies, medical conditions" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+            </div>
+          </div>
+
           <!-- Owner autocomplete input for edit modal -->
           <div class="relative w-full">
             <label for="owner-search-edit" class="block font-medium text-sm mb-1 text-primary">Owner</label>
@@ -419,13 +555,32 @@
       showEditModal: false,
       currentAnimal: null,
       breedData: JSON.parse(document.getElementById('breed-data').value),
+      isSubmitting: false,
+      animalForms: [
+        {
+          type: '',
+          breed: '',
+          name: '',
+          birth_date: '',
+          gender: '',
+          weight: '',
+          height: '',
+          color: '',
+          unique_spot: '',
+          known_conditions: '',
+          user_id: '',
+          ownerDisplay: '',
+          suggestions: [],
+          searchTimeout: null
+        }
+      ],
 
       init() {
         this.$watch('showAddModal', (value) => {
           if (value) {
-            this.resetAddModalBreedOptions();
-            this.setupAddModalBreedListener();
-            setupOwnerAutocomplete('owner-search', 'owner-id', 'owner-suggestions');
+            this.resetAnimalForms();
+          } else {
+            this.isSubmitting = false;
           }
         });
 
@@ -439,33 +594,210 @@
         });
       },
 
-      resetAddModalBreedOptions() {
-        const typeSelect = document.getElementById('modal-type');
-        const breedSelect = document.getElementById('modal-breed');
-        if (!breedSelect) return;
-        
-        breedSelect.innerHTML = '<option value="" disabled selected>Select Breed</option>';
+      addAnimalForm() {
+        this.animalForms.push({
+          type: '',
+          breed: '',
+          name: '',
+          birth_date: '',
+          gender: '',
+          weight: '',
+          height: '',
+          color: '',
+          unique_spot: '',
+          known_conditions: '',
+          user_id: '',
+          ownerDisplay: '',
+          suggestions: [],
+          searchTimeout: null
+        });
+      },
 
-        if (typeSelect) {
-          typeSelect.addEventListener('change', () => {
-            const breeds = this.breedData[typeSelect.value] || [];
-            breedSelect.innerHTML = '<option value="" disabled selected>Select Breed</option>';
-            breeds.forEach(b => {
-              const option = document.createElement('option');
-              option.value = b;
-              option.textContent = b;
-              breedSelect.appendChild(option);
+      removeAnimalForm(index) {
+        if (this.animalForms.length > 1) {
+          this.animalForms.splice(index, 1);
+        }
+      },
+
+      resetAnimalForms() {
+        this.animalForms = [
+          {
+            type: '',
+            breed: '',
+            name: '',
+            birth_date: '',
+            gender: '',
+            weight: '',
+            height: '',
+            color: '',
+            unique_spot: '',
+            known_conditions: '',
+            user_id: '',
+            ownerDisplay: '',
+            suggestions: [],
+            searchTimeout: null
+          }
+        ];
+      },
+
+      updateBreeds(index) {
+        this.animalForms[index].breed = '';
+      },
+
+      getAvailableBreeds(type) {
+        return this.breedData[type] || [];
+      },
+
+      searchOwners(index, query) {
+        // Clear existing timeout for this index
+        if (this.animalForms[index].searchTimeout) {
+          clearTimeout(this.animalForms[index].searchTimeout);
+        }
+
+        if (query.length < 2) {
+          this.animalForms[index].suggestions = [];
+          this.animalForms[index].user_id = '';
+          return;
+        }
+
+        // Set a new timeout for debouncing
+        this.animalForms[index].searchTimeout = setTimeout(() => {
+          fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(users => {
+              this.animalForms[index].suggestions = users;
+              if (users.length === 0) {
+                this.animalForms[index].user_id = '';
+              }
+            })
+            .catch(error => {
+              console.error('Fetch error:', error);
+              this.animalForms[index].suggestions = [];
+              this.animalForms[index].user_id = '';
             });
+        }, 300);
+      },
+
+      selectOwner(index, user) {
+        this.animalForms[index].ownerDisplay = `${user.first_name} ${user.last_name}`;
+        this.animalForms[index].user_id = user.id;
+        this.animalForms[index].suggestions = [];
+      },
+
+      submitMultipleAnimalsForm() {
+        if (this.isSubmitting) return;
+        
+        this.isSubmitting = true;
+        
+        const form = document.querySelector('#add-animal-form');
+        if (form) {
+          const formData = new FormData(form);
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            this.isSubmitting = false;
+            
+            if (data.success) {
+              const count = this.animalForms.length;
+              this.showSuccessMessage(data.message || `${count} animal${count > 1 ? 's' : ''} registered successfully!`);
+              
+              this.showAddModal = false;
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else {
+              this.showErrorMessage(data.message || 'Failed to register animals');
+              if (data.errors) {
+                this.displayValidationErrors(data.errors);
+              }
+            }
+          })
+          .catch(error => {
+            this.isSubmitting = false;
+            console.error('Error:', error);
+            this.showErrorMessage('An error occurred while registering the animals');
           });
         }
       },
 
-      setupAddModalBreedListener() {
-        const typeSelect = document.getElementById('modal-type');
-        const breedSelect = document.getElementById('modal-breed');
-        if (typeSelect && breedSelect) {
-          typeSelect.addEventListener('change', () => {
-            breedSelect.value = '';
+
+
+      showSuccessMessage(message) {
+        const existingAlert = document.querySelector('.success-alert');
+        if (existingAlert) existingAlert.remove();
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'success-alert fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow-lg max-w-sm';
+        alertDiv.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-green-700 hover:text-green-900 font-bold">×</button>
+          </div>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.remove();
+          }
+        }, 5000);
+      },
+
+      showErrorMessage(message) {
+        const existingAlert = document.querySelector('.error-alert');
+        if (existingAlert) existingAlert.remove();
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'error-alert fixed top-4 right-4 z-50 p-4 bg-red-100 border border-red-400 text-red-700 rounded shadow-lg max-w-sm';
+        alertDiv.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-700 hover:text-red-900 font-bold">×</button>
+          </div>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.remove();
+          }
+        }, 5000);
+      },
+
+      displayValidationErrors(errors) {
+        this.clearValidationErrors();
+        Object.keys(errors).forEach(field => {
+          // Handle nested animal field errors
+          const input = document.querySelector(`#add-animal-form [name="${field}"]`);
+          if (input) {
+            input.classList.add('border-red-500');
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'text-red-500 text-xs mt-1 validation-error';
+            errorDiv.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+            
+            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+          }
+        });
+      },
+
+      clearValidationErrors() {
+        const form = document.querySelector('#add-animal-form');
+        if (form) {
+          form.querySelectorAll('input, select').forEach(input => {
+            input.classList.remove('border-red-500');
+          });
+          
+          form.querySelectorAll('.validation-error').forEach(errorDiv => {
+            errorDiv.remove();
           });
         }
       },
