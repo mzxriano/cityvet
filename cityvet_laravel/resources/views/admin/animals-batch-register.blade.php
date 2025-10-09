@@ -152,17 +152,111 @@
           </div>
         </div>
 
-        <div class="mt-4 flex justify-between items-center">
-          <p class="text-sm text-gray-600">Common fields will be applied to all animals. Individual animals can override these values.</p>
-          <button type="button" @click="addAnimal" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
-            + Add Animal
-          </button>
+        <!-- Registration Mode Toggle -->
+        <div class="mt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <p class="text-sm text-gray-600">Common fields will be applied to all animals. Choose registration mode below:</p>
+          <div class="flex items-center gap-4">
+            <!-- Mode Toggle -->
+            <div class="flex bg-gray-100 rounded-lg p-1">
+              <button type="button" @click="registrationMode = 'individual'" 
+                      :class="registrationMode === 'individual' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:text-gray-800'"
+                      class="px-3 py-1 rounded text-sm font-medium transition">
+                Individual Mode
+              </button>
+              <button type="button" @click="registrationMode = 'quantity'" 
+                      :class="registrationMode === 'quantity' ? 'bg-green-500 text-white' : 'text-gray-600 hover:text-gray-800'"
+                      class="px-3 py-1 rounded text-sm font-medium transition">
+                Quantity Mode
+              </button>
+            </div>
+            <!-- Add Animal Button (Individual Mode Only) -->
+            <button x-show="registrationMode === 'individual'" type="button" @click="addAnimal" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+              + Add Animal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity Mode Section -->
+      <div x-show="registrationMode === 'quantity'" class="mb-6 bg-green-50 rounded-lg p-6 border border-green-200">
+        <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+          <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">#</span>
+          Quantity Registration - Perfect for Large Herds
+        </h3>
+        <p class="text-sm text-gray-600 mb-4">Register multiple identical animals quickly. Names will be auto-generated (e.g., Cattle-001, Cattle-002, etc.)</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Quantity -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Quantity *</label>
+            <input type="number" x-model="quantityRegistration.quantity" min="1" max="500" 
+                   placeholder="How many animals?" 
+                   class="w-full border-gray-300 rounded-md p-3 text-sm" required>
+            <p class="text-xs text-gray-500 mt-1">Max: 500 animals</p>
+          </div>
+
+          <!-- Name Prefix -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Name Prefix</label>
+            <input type="text" x-model="quantityRegistration.namePrefix" 
+                   placeholder="e.g., Cattle, Cow, Chicken" 
+                   class="w-full border-gray-300 rounded-md p-3 text-sm">
+            <p class="text-xs text-gray-500 mt-1">Will create: Prefix-001, Prefix-002...</p>
+          </div>
+
+          <!-- Gender -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Gender *</label>
+            <select x-model="quantityRegistration.gender" class="w-full border-gray-300 rounded-md p-3 text-sm" required>
+              <option value="">Select Gender</option>
+              <option value="male">All Male</option>
+              <option value="female">All Female</option>
+              <option value="mixed">Mixed (50/50)</option>
+            </select>
+          </div>
+
+          <!-- Color -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Color *</label>
+            <input type="text" x-model="quantityRegistration.color" 
+                   placeholder="e.g., Brown, Black, White" 
+                   class="w-full border-gray-300 rounded-md p-3 text-sm" required>
+          </div>
+
+          <!-- Weight Range -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Average Weight (kg)</label>
+            <input type="number" step="0.1" x-model="quantityRegistration.avgWeight" 
+                   placeholder="Average weight" 
+                   class="w-full border-gray-300 rounded-md p-3 text-sm">
+          </div>
+
+          <!-- Birth Date -->
+          <div>
+            <label class="block font-medium text-sm mb-1 text-primary">Birth Date</label>
+            <input type="date" x-model="quantityRegistration.birthDate" 
+                   class="w-full border-gray-300 rounded-md p-3 text-sm">
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div x-show="quantityRegistration.quantity > 0" class="mt-4 p-3 bg-white rounded border">
+          <p class="text-sm font-medium text-gray-700 mb-2">Preview (first 5 animals):</p>
+          <div class="text-sm text-gray-600 space-y-1">
+            <template x-for="i in Math.min(quantityRegistration.quantity, 5)" :key="i">
+              <div x-text="`${quantityRegistration.namePrefix || commonFields.type || 'Animal'}-${String(i).padStart(3, '0')} (${quantityRegistration.gender === 'mixed' ? (i % 2 === 1 ? 'Male' : 'Female') : quantityRegistration.gender || 'Gender not set'}, ${quantityRegistration.color || 'Color not set'})`"></div>
+            </template>
+            <div x-show="quantityRegistration.quantity > 5" class="text-gray-400 italic" x-text="`... and ${quantityRegistration.quantity - 5} more animals`"></div>
+          </div>
         </div>
       </div>
 
       <!-- Individual Animals Section -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold text-primary mb-4">Individual Animals (<span x-text="animals.length"></span>)</h3>
+      <div x-show="registrationMode === 'individual'" class="mb-6">
+        <h3 class="text-lg font-semibold text-primary mb-4 flex items-center">
+          <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">1</span>
+          Individual Animals (<span x-text="animals.length"></span>)
+        </h3>
         
         <div x-show="animals.length === 0" class="text-center py-8 text-gray-500">
           No animals added yet. Click "Add Animal" to start registering animals.
@@ -290,14 +384,23 @@
       <!-- Submit Section -->
       <div class="border-t pt-6 flex justify-between items-center">
         <div class="text-sm text-gray-600">
-          Total animals to register: <span class="font-semibold" x-text="animals.length"></span>
+          <span x-show="registrationMode === 'individual'">
+            Total animals to register: <span class="font-semibold" x-text="animals.length"></span>
+          </span>
+          <span x-show="registrationMode === 'quantity'">
+            Total animals to register: <span class="font-semibold" x-text="quantityRegistration.quantity || 0"></span>
+          </span>
         </div>
         <div class="flex gap-3">
           <button type="button" @click="window.location.href = '{{ route("admin.animals") }}'" class="px-6 py-2 border rounded-md text-gray-600 hover:bg-gray-100">
             Cancel
           </button>
-          <button type="submit" :disabled="animals.length === 0" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
-            Register <span x-text="animals.length"></span> Animals
+          <button type="submit" 
+                  :disabled="(registrationMode === 'individual' && animals.length === 0) || (registrationMode === 'quantity' && (!quantityRegistration.quantity || !quantityRegistration.gender || !quantityRegistration.color))" 
+                  @click="prepareSubmission"
+                  class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+            <span x-show="registrationMode === 'individual'">Register <span x-text="animals.length"></span> Animals</span>
+            <span x-show="registrationMode === 'quantity'">Register <span x-text="quantityRegistration.quantity || 0"></span> Animals</span>
           </button>
         </div>
       </div>
@@ -369,6 +472,9 @@
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('batchAnimalRegistration', () => ({
+    // Registration mode: 'individual' or 'quantity'
+    registrationMode: 'individual',
+    
     // Common fields that apply to all animals
     commonFields: {
       userId: '',
@@ -377,6 +483,16 @@ document.addEventListener('alpine:init', () => {
       breed: '',
       gender: '',
       color: '',
+      birthDate: ''
+    },
+    
+    // Quantity registration fields
+    quantityRegistration: {
+      quantity: '',
+      namePrefix: '',
+      gender: '',
+      color: '',
+      avgWeight: '',
       birthDate: ''
     },
     
@@ -447,6 +563,43 @@ document.addEventListener('alpine:init', () => {
       const count = parseInt(this.quickAddCount) || 1;
       for (let i = 0; i < count && this.animals.length < 100; i++) {
         this.addAnimal();
+      }
+    },
+
+    // Prepare form data based on registration mode
+    prepareSubmission() {
+      if (this.registrationMode === 'quantity') {
+        this.generateQuantityAnimals();
+      }
+    },
+
+    // Generate animals array from quantity mode
+    generateQuantityAnimals() {
+      this.animals = []; // Clear existing animals
+      const quantity = parseInt(this.quantityRegistration.quantity) || 0;
+      const prefix = this.quantityRegistration.namePrefix || this.commonFields.type || 'Animal';
+      
+      for (let i = 1; i <= quantity; i++) {
+        const paddedNumber = String(i).padStart(3, '0');
+        let gender = this.quantityRegistration.gender;
+        
+        // Handle mixed gender (alternating)
+        if (gender === 'mixed') {
+          gender = i % 2 === 1 ? 'male' : 'female';
+        }
+        
+        const animal = {
+          name: `${prefix}-${paddedNumber}`,
+          gender: gender,
+          color: this.quantityRegistration.color,
+          weight: this.quantityRegistration.avgWeight || '',
+          height: '',
+          birthDate: this.quantityRegistration.birthDate || this.commonFields.birthDate || '',
+          uniqueSpot: '',
+          knownConditions: ''
+        };
+        
+        this.animals.push(animal);
       }
     }
   }));

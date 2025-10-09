@@ -26,7 +26,9 @@
             'animals' => [                               
                 'label' => 'Animals',
                 'children' => [
-                    ['label' => 'Pet', 'route' => 'animals'],
+                    ['label' => 'Pets', 'route' => 'animals', 'params' => 'type=pet'],
+                    ['label' => 'Livestock', 'route' => 'animals', 'params' => 'type=livestock'],
+                    ['label' => 'Poultry', 'route' => 'animals', 'params' => 'type=poultry'],
                 ],
             ],
             'barangay' => ['label' => 'Barangay'],
@@ -34,6 +36,7 @@
             'community' => ['label' => 'Community'],
             'bite-case' => ['label' => 'Bite Case'],
             'reports' => ['label' => 'Reports'],
+            'archives' => ['label' => 'Archives'],
             'settings' => ['label' => 'Settings'],
         ];
     @endphp
@@ -57,9 +60,17 @@
                             class="pl-4 mt-1 space-y-1">
                             @foreach ($item['children'] as $child)
                                 <li>
-                                    <a href="{{ route('admin.' . $child['route']) }}"
+                                    @php
+                                        $url = route('admin.' . $child['route']);
+                                        if (isset($child['params'])) {
+                                            $url .= '?' . $child['params'];
+                                        }
+                                        $isActive = request()->routeIs('admin.' . $child['route']) && 
+                                                   (isset($child['params']) ? request()->getQueryString() === $child['params'] : !request()->has('type'));
+                                    @endphp
+                                    <a href="{{ $url }}"
                                         class="block p-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-[#8ED968] hover:text-white
-                                            {{ request()->routeIs('admin.' . $child['route']) ? 'bg-[#8ED968] text-white' : '' }}"
+                                            {{ $isActive ? 'bg-[#8ED968] text-white' : '' }}"
                                         @click="$dispatch('close-mobile-menu')">
                                         {{ $child['label'] }}
                                     </a>

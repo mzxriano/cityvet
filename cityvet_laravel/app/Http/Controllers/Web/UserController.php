@@ -125,8 +125,8 @@ class UserController
     {
         $user = User::findOrFail($id);
         
-        // Start with the user's animals relationship
-        $animalsQuery = $user->animals();
+        // Start with the user's animals relationship (only alive animals)
+        $animalsQuery = $user->animals()->where('status', 'alive');
         
         // Apply animal type filter if provided
         if ($request->filled('animal_type')) {
@@ -145,8 +145,8 @@ class UserController
         
         $animals = $animalsQuery->get();
         
-        // Get distinct animal types for the filter dropdown
-        $animalTypes = $user->animals()->distinct()->pluck('type')->filter()->sort();
+        // Get distinct animal types for the filter dropdown (only alive animals)
+        $animalTypes = $user->animals()->where('status', 'alive')->distinct()->pluck('type')->filter()->sort();
 
         return view('admin.users_view', compact([
             'user', 

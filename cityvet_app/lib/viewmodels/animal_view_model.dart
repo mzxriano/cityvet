@@ -349,4 +349,77 @@ Future<void> archiveAnimal(AnimalModel animalModel, {
       setLoading(false);
     }
   }
+
+  /// Restore an archived animal back to active animals
+  Future<void> restoreArchivedAnimal(AnimalArchiveModel archive) async {
+    if (_disposed) return;
+    try {
+      setLoading(true);
+      setErrors(''); // Clear previous errors
+      setMessage(null); // Clear previous messages
+
+      final token = await AuthStorage().getToken();
+      if (token == null) {
+        setErrors('Authentication token not found');
+        return;
+      }
+
+      print('Restoring animal: ${archive.animal.name} (Archive ID: ${archive.id})');
+      
+      final response = await _animalService.restoreArchivedAnimal(
+        token,
+        archive.id,
+      );
+      
+      if (_disposed) return;
+
+      print('Restore response: ${response.statusCode} - ${response.data}');
+
+      if (response.statusCode == 200) {
+        // Remove from archived list
+        _archivedAnimals.removeWhere((a) => a.id == archive.id);
+        
+        // Add back to active animals list if the response contains the animal data
+        if (response.data is Map<String, dynamic>) {
+          final responseData = response.data as Map<String, dynamic>;
+          if (responseData['data'] != null) {
+            final restoredAnimal = AnimalModel.fromJson(responseData['data'] as Map<String, dynamic>);
+            _animals.add(restoredAnimal);
+            _allAnimals.add(restoredAnimal);
+          }
+        }
+        
+        setMessage('Animal ${archive.animal.name} has been restored successfully');
+        notifyListeners();
+      } else {
+        print('Unexpected response code: ${response.statusCode}');
+        setErrors('Failed to restore animal: unexpected response');
+      }
+
+    } on DioException catch (e) {
+      if (_disposed) return;
+      final data = e.response?.data;
+      
+      print('DioException in restoreArchivedAnimal: ${e.response?.statusCode} - $data');
+      
+      if (data is Map<String, dynamic>) {
+        if (data['message'] != null) {
+          setErrors('Failed to restore animal: ${data['message']}');
+        } else if (data['errors'] != null) {
+          setErrors('Validation error: ${data['errors']}');
+        } else {
+          setErrors('Failed to restore animal: Unknown server error');
+        }
+      } else {
+        setErrors(DioExceptionHandler.handleException(e));
+      }
+    } catch (e) {
+      if (_disposed) return;
+      print('Unexpected error in restoreArchivedAnimal: $e');
+      setErrors('An unexpected error occurred: $e');
+    } finally {
+      if (_disposed) return;
+      setLoading(false);
+    }
+  }
 }

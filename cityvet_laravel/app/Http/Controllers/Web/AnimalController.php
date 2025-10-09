@@ -18,10 +18,22 @@ class AnimalController extends Controller
     public function index(Request $request)
     {
                 
-        $query = Animal::with('user');
+        $query = Animal::with('user')->where('status', 'alive');
 
         if($request->filled('type')){
-            $query->where('type', $request->input('type'));
+            $type = $request->input('type');
+            
+            // Handle category filtering
+            if ($type === 'pet') {
+                $query->whereIn('type', ['dog', 'cat']);
+            } elseif ($type === 'livestock') {
+                $query->whereIn('type', ['cattle', 'goat', 'carabao']);
+            } elseif ($type === 'poultry') {
+                $query->whereIn('type', ['chicken', 'duck']);
+            } else {
+                // Specific animal type
+                $query->where('type', $type);
+            }
         }
 
         if($request->filled('gender')){
@@ -95,6 +107,12 @@ class AnimalController extends Controller
             
             $animal = Animal::create($validated);
 
+            // Automatically assign appropriate role based on animal type
+            $owner = \App\Models\User::find($validated['user_id']);
+            if ($owner) {
+                $this->assignRoleBasedOnAnimalType($owner, $animal->type);
+            }
+
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -160,6 +178,13 @@ class AnimalController extends Controller
                 });
 
                 $animal = Animal::create($animalData);
+                
+                // Automatically assign appropriate role based on animal type
+                $owner = \App\Models\User::find($animalData['user_id']);
+                if ($owner) {
+                    $this->assignRoleBasedOnAnimalType($owner, $animal->type);
+                }
+                
                 $createdAnimals[] = $animal;
                 $animalsCreated++;
             }
@@ -271,7 +296,14 @@ class AnimalController extends Controller
                     continue;
                 }
 
-                Animal::create($finalData);
+                $animal = Animal::create($finalData);
+                
+                // Automatically assign appropriate role based on animal type
+                $owner = \App\Models\User::find($finalData['user_id']);
+                if ($owner) {
+                    $this->assignRoleBasedOnAnimalType($owner, $animal->type);
+                }
+                
                 $animalsCreated++;
             }
 
@@ -361,7 +393,11 @@ class AnimalController extends Controller
                     }
                 }
 
-                Animal::create($animalData);
+                $animal = Animal::create($animalData);
+                
+                // Automatically assign appropriate role based on animal type
+                $this->assignRoleBasedOnAnimalType($user, $animal->type);
+                
                 $animalsCreated++;
             }
 
@@ -407,9 +443,9 @@ class AnimalController extends Controller
 
         $csvData = [
             ['owner_email', 'type', 'breed', 'name', 'gender', 'color', 'birth_date', 'weight', 'height', 'unique_spot', 'known_conditions'],
-            ['john@example.com', 'cattle', 'Holstein', 'Cow #1', 'female', 'Black and White', '2023-01-15', '450.5', '140', 'White spot on forehead', ''],
-            ['john@example.com', 'cattle', 'Holstein', 'Cow #2', 'male', 'Black', '2022-12-20', '500.0', '145', '', 'Vaccinated'],
-            ['jane@example.com', 'chicken', 'Rhode Island Red', 'Hen #1', 'female', 'Reddish-brown', '2024-03-10', '2.5', '25', '', ''],
+            ['dev.mariano509@gmail.com', 'cattle', 'Holstein', 'Cow #1', 'female', 'Black and White', '2023-01-15', '450.5', '140', 'White spot on forehead', ''],
+            ['dev.mariano509@gmail.com', 'cattle', 'Holstein', 'Cow #2', 'male', 'Black', '2022-12-20', '500.0', '145', '', 'Vaccinated'],
+            ['dev.mariano509@gmail.com', 'chicken', 'Rhode Island Red', 'Hen #1', 'female', 'Reddish-brown', '2024-03-10', '2.5', '25', '', ''],
         ];
 
         $callback = function() use ($csvData) {
@@ -472,5 +508,53 @@ class AnimalController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Automatically assign role to user based on animal type
+     */
+    private function assignRoleBasedOnAnimalType($user, $animalType)
+    {
+        // Define the mapping between animal types and roles
+        $animalTypeToRole = [
+            // Pets
+            'dog' => 'pet_owner',
+            'cat' => 'pet_owner',
+            
+            // Livestock
+            'cattle' => 'livestock_owner',
+            'goat' => 'livestock_owner',
+            'carabao' => 'livestock_owner',
+            
+            // Poultry
+            'chicken' => 'poultry_owner',
+            'duck' => 'poultry_owner',
+        ];
+
+        $roleName = $animalTypeToRole[strtolower($animalType)] ?? null;
+        
+        if (!$roleName) {
+            \Log::warning("Unknown animal type for role assignment: {$animalType}");
+            return;
+        }
+
+        // Check if user already has this role
+        $existingRole = $user->roles()->where('name', $roleName)->first();
+        if ($existingRole) {
+            // User already has this role, no need to assign again
+            return;
+        }
+
+        // Find the role in the database
+        $role = \App\Models\Role::where('name', $roleName)->first();
+        if (!$role) {
+            \Log::error("Role not found in database: {$roleName}");
+            return;
+        }
+
+        // Assign the role to the user
+        $user->roles()->attach($role->id);
+        
+        \Log::info("Role '{$roleName}' automatically assigned to user {$user->id} based on animal type '{$animalType}'");
     }
 }

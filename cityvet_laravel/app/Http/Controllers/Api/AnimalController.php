@@ -152,6 +152,9 @@ class AnimalController
             'user_id' => auth()->id(),
         ]);
 
+        // Automatically assign appropriate role based on animal type
+        $this->assignRoleBasedOnAnimalType(auth()->user(), $animal->type);
+
         return response()->json([
             'message' => 'Animal successfully created.',
             'data' => [
@@ -396,6 +399,9 @@ class AnimalController
         }
 
         $animal = Animal::create($validated);
+
+        // Automatically assign appropriate role based on animal type
+        $this->assignRoleBasedOnAnimalType($owner, $animal->type);
 
         return response()->json([
             'message' => 'Animal successfully created for owner.',
@@ -1055,5 +1061,126 @@ class AnimalController
             ->generate($animal->getQrCodeUrl());
 
         return base64_encode($qrCodePng);
+    }
+
+    /**
+     * Automatically assign role to user based on animal type
+     */
+    private function assignRoleBasedOnAnimalType($user, $animalType)
+    {
+        // Define the mapping between animal types and roles
+        $animalTypeToRole = [
+            // Pets
+            'dog' => 'pet_owner',
+            'cat' => 'pet_owner',
+            
+            // Livestock
+            'cattle' => 'livestock_owner',
+            'goat' => 'livestock_owner',
+            'carabao' => 'livestock_owner',
+            
+            // Poultry
+            'chicken' => 'poultry_owner',
+            'duck' => 'poultry_owner',
+        ];
+
+        $roleName = $animalTypeToRole[strtolower($animalType)] ?? null;
+        
+        if (!$roleName) {
+            \Log::warning("Unknown animal type for role assignment: {$animalType}");
+            return;
+        }
+
+        // Check if user already has this role
+        $existingRole = $user->roles()->where('name', $roleName)->first();
+        if ($existingRole) {
+            // User already has this role, no need to assign again
+            return;
+        }
+
+        // Find the role in the database
+        $role = \App\Models\Role::where('name', $roleName)->first();
+        if (!$role) {
+            \Log::error("Role not found in database: {$roleName}");
+            return;
+        }
+
+        // Assign the role to the user
+        $user->roles()->attach($role->id);
+        
+        \Log::info("Role '{$roleName}' automatically assigned to user {$user->id} based on animal type '{$animalType}'");
+    }
+
+    /**
+     * Restore an archived animal (only for deleted animals).
+     */
+    public function restoreArchivedAnimal(string $archiveId)
+    {
+        try {
+            \DB::beginTransaction();
+
+            // Find the archive record
+            $archive = AnimalArchive::where('id', $archiveId)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            if (!$archive) {
+                return response()->json([
+                    'message' => 'Archive record not found.'
+                ], 404);
+            }
+
+            // Only allow restoration of deleted animals, not deceased ones
+            if ($archive->archive_type !== 'deleted') {
+                return response()->json([
+                    'message' => 'Only deleted animals can be restored. Deceased animals cannot be restored.'
+                ], 400);
+            }
+
+            // Check if animal still exists and is marked as deleted
+            $animal = Animal::where('id', $archive->animal_id)
+                ->where('user_id', auth()->id())
+                ->where('status', 'deleted')
+                ->first();
+
+            if (!$animal) {
+                return response()->json([
+                    'message' => 'Original animal record not found or not in deleted status.'
+                ], 404);
+            }
+
+            // Restore the animal by changing status back to alive
+            $animal->update([
+                'status' => 'alive',
+            ]);
+
+            // Delete the archive record since animal is restored
+            $archive->delete();
+
+            \DB::commit();
+
+            \Log::info('Animal restored successfully', [
+                'animal_id' => $animal->id, 
+                'archive_id' => $archiveId,
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'message' => 'Animal restored successfully.',
+                'data' => $animal->load(['user', 'vaccinations'])
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            \Log::error('Failed to restore animal', [
+                'archive_id' => $archiveId,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to restore animal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

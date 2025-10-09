@@ -115,6 +115,11 @@ class Animal extends Model
         return $this->status === 'transferred';
     }
 
+    public function isDeleted()
+    {
+        return $this->status === 'deleted';
+    }
+
     /**
      * Mark animal as deceased
      */
@@ -151,6 +156,11 @@ class Animal extends Model
     public function scopeTransferred($query)
     {
         return $query->where('status', 'transferred');
+    }
+
+    public function scopeDeleted($query)
+    {
+        return $query->where('status', 'deleted');
     }
 
     public function scopeByStatus($query, $status)

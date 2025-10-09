@@ -35,17 +35,20 @@ class _AnimalEditState extends State<AnimalEdit> {
   DateTime? selectedDate;
   String? selectedColor;
 
-  String? petTypeError;
   String? breedError;
   String? genderError;
-  String? colorError;
 
   Map<String, List<String>> petBreeds = {
-    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever', 'Mixed-Breed'],
-    'Cat': ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair', 'Mixed-Breed'],
+    'Dog': ['No Breed', 'Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Mixed-Breed'],
+    'Cat': ['No Breed', 'Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue', 'Mixed-Breed'],
+    'Cattle': ['No Breed', 'Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
+    'Goat': ['No Breed', 'Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
+    'Chicken': ['No Breed', 'Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
+    'Duck': ['No Breed', 'Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
+    'Carabao': ['No Breed', 'Native', 'Murrah', 'River Type', 'Swamp Type'],
   };
 
-  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Orange'];
+
 
   Future<bool> _onWillPop() async {
     final isFormDirty = petNameController.text.isNotEmpty ||
@@ -53,7 +56,6 @@ class _AnimalEditState extends State<AnimalEdit> {
         heightController.text.isNotEmpty ||
         uniqueSpotController.text.isNotEmpty ||
         knownConditionsController.text.isNotEmpty ||
-        selectedPetType != null ||
         selectedBreed != null ||
         selectedGender != null ||
         selectedDate != null ||
@@ -128,7 +130,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                   },
                   icon: Config.backButtonIcon,
                 ),
-                title: const Text('Edit Pet'),
+                title: const Text('Edit Animal'),
               ),
               body: Padding(
                 padding: Config.paddingScreen,
@@ -158,43 +160,36 @@ class _AnimalEditState extends State<AnimalEdit> {
                           ),
                         ),
 
-                        /// Pet Type
+                        /// Animal Type (Read-only)
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Type',
+                          'Animal Type',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
                           ),
                         ),
-                        DropdownButtonFormField<String>(
-                          value: selectedPetType,
-                          decoration: _buildInputDecoration(),
-                          items: petBreeds.keys
-                              .map((type) => DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type),
-                                  ))
-                              .toList(),
-                          onChanged: ref.isLoading ? null : (value) {
-                            setState(() {
-                              selectedPetType = value;
-                              selectedBreed = null;
-                              petTypeError = null;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Please select a pet type';
-                            }
-                            return null;
-                          },
+                        Container(
+                          width: double.infinity,
+                          padding: Config.paddingTextfield,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: const BorderRadius.all(Radius.circular(10)),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Text(
+                            selectedPetType ?? 'Unknown',
+                            style: TextStyle(
+                              fontSize: Config.fontMedium,
+                              color: Colors.grey[700],
+                            ),
+                          ),
                         ),
 
                         /// Breed
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Breed',
+                          'Animal Breed',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -203,7 +198,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         DropdownButtonFormField<String>(
                           value: selectedBreed,
                           decoration: _buildInputDecoration(),
-                          items: (selectedPetType != null
+                          items: (selectedPetType != null && petBreeds.containsKey(selectedPetType)
                                   ? petBreeds[selectedPetType]!
                                   : <String>[])
                               .map((breed) => DropdownMenuItem(
@@ -225,10 +220,10 @@ class _AnimalEditState extends State<AnimalEdit> {
                           },
                         ),
 
-                        /// Pet Name
+                        /// Animal Name
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Name',
+                          'Animal Name',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -242,7 +237,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                           enabled: !ref.isLoading,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter pet name';
+                              return 'Please enter animal name';
                             }
                             return null;
                           },
@@ -251,7 +246,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         /// Date of Birth
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Birthdate',
+                          'Animal Birthdate',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -289,7 +284,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         /// Gender
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Gender',
+                          'Animal Gender',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -331,7 +326,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         /// Weight
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Weight (kg)',
+                          'Animal Weight (kg)',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -358,7 +353,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                         /// Height
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Height (cm)',
+                          'Animal Height (cm)',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
@@ -385,28 +380,27 @@ class _AnimalEditState extends State<AnimalEdit> {
                         /// Color
                         const SizedBox(height: 12),
                         Text(
-                          'Pet Color',
+                          'Animal Color',
                           style: TextStyle(
                             fontFamily: Config.primaryFont,
                             fontSize: Config.fontMedium,
                           ),
                         ),
-                        DropdownButtonFormField<String>(
-                          value: selectedColor,
-                          decoration: _buildInputDecoration(),
-                          items: colors
-                              .map((color) =>
-                                  DropdownMenuItem(value: color, child: Text(color)))
-                              .toList(),
-                          onChanged: ref.isLoading ? null : (value) {
+                        TextFormField(
+                          controller: TextEditingController(text: selectedColor ?? ''),
+                          keyboardType: TextInputType.text,
+                          decoration: _buildInputDecoration().copyWith(
+                            hintText: 'e.g., Brown, Black and White, Mixed Color',
+                          ),
+                          enabled: !ref.isLoading,
+                          onChanged: (value) {
                             setState(() {
-                              selectedColor = value;
-                              colorError = null;
+                              selectedColor = value.trim().isEmpty ? null : value.trim();
                             });
                           },
                           validator: (value) {
-                            if (value == null) {
-                              return 'Please select a color';
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter animal color';
                             }
                             return null;
                           },
@@ -474,6 +468,12 @@ class _AnimalEditState extends State<AnimalEdit> {
                                 genderError = 'Please select a gender';
                               });
                               manualValid = false;
+                            }
+
+                            if (selectedPetType == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Animal type is missing')));
+                              return;
                             }
 
                             if (!manualValid || !isValid) {

@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\VaccineController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\IncidentController;
+use App\Http\Controllers\Web\ArchiveController;
 
 
 Route::get('/successful-verification', function () {
@@ -131,9 +132,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/reports/generate-vaccination-excel', [ReportController::class, 'generateVaccinationExcel'])->name('reports.generate-vaccination-excel');
         Route::post('/reports/generate-bite-case-excel', [ReportController::class, 'generateBiteCaseExcel'])->name('reports.generate-bite-case-excel');
 
-        Route::get('/archives', function () {
-            return view('admin.archives');
-        })->name('admin.archives');
+        Route::prefix('archives')->group(function () {
+            Route::get('/', [ArchiveController::class, 'index'])->name('admin.archives');
+            Route::get('/memorial/{id}', [ArchiveController::class, 'memorial'])->name('admin.archives.memorial');
+            Route::get('/record/{id}', [ArchiveController::class, 'record'])->name('admin.archives.record');
+            Route::post('/restore/{id}', [ArchiveController::class, 'restore'])->name('admin.archives.restore');
+        });
 
         Route::get('/settings', [App\Http\Controllers\Web\SettingsController::class, 'index'])
             ->name('admin.settings');

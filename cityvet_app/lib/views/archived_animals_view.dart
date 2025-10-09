@@ -369,24 +369,65 @@ class _ArchivedAnimalsViewState extends State<ArchivedAnimalsView> {
                                     ),
                                   ),
                                   // Archive type badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: archive.isDeceased ? Colors.red[100] : Colors.orange[100],
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: archive.isDeceased ? Colors.red[300]! : Colors.orange[300]!,
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: archive.isDeceased ? Colors.red[100] : Colors.orange[100],
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: archive.isDeceased ? Colors.red[300]! : Colors.orange[300]!,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          archive.isDeceased ? 'DECEASED' : 'DELETED',
+                                          style: TextStyle(
+                                            color: archive.isDeceased ? Colors.red[700] : Colors.orange[700],
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: Config.primaryFont,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    child: Text(
-                                      archive.isDeceased ? 'DECEASED' : 'DELETED',
-                                      style: TextStyle(
-                                        color: archive.isDeceased ? Colors.red[700] : Colors.orange[700],
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: Config.primaryFont,
-                                      ),
-                                    ),
+                                      if (archive.isDeleted) ...[
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: () => _showRestoreDialog(context, archive),
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[100],
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.green[300]!,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.restore,
+                                                  size: 12,
+                                                  color: Colors.green[700],
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'RESTORE',
+                                                  style: TextStyle(
+                                                    color: Colors.green[700],
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: Config.primaryFont,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ),
@@ -477,5 +518,107 @@ class _ArchivedAnimalsViewState extends State<ArchivedAnimalsView> {
         );
       },
     );
+  }
+
+  void _showRestoreDialog(BuildContext context, AnimalArchiveModel archive) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Restore Animal'),
+          content: Text(
+            'Are you sure you want to restore ${archive.animal.name} back to your active animals list?',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Restore',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _restoreAnimal(archive);
+    }
+  }
+
+  Future<void> _restoreAnimal(AnimalArchiveModel archive) async {
+    try {
+      final animalViewModel = context.read<AnimalViewModel>();
+      
+      // Call the restore method from the view model
+      await animalViewModel.restoreArchivedAnimal(archive);
+      
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${archive.animal.name} has been restored successfully!',
+              style: const TextStyle(
+                fontFamily: Config.primaryFont,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+      
+      // Refresh the archived animals list
+      animalViewModel.fetchArchivedAnimals();
+      
+    } catch (e) {
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to restore animal: $e',
+              style: const TextStyle(
+                fontFamily: Config.primaryFont,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
   }
 }

@@ -29,6 +29,11 @@
   $breedOptions = [
     'dog' => ['Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle'],
     'cat' => ['Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue'],
+    'cattle' => ['Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
+    'goat' => ['Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
+    'chicken' => ['Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
+    'duck' => ['Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
+    'carabao' => ['Native', 'Murrah', 'River Type', 'Swamp Type']
   ];
 @endphp
 
@@ -42,7 +47,7 @@
       <span class="sm:hidden">Batch</span>
     </a>
     <button @click="showAddModal = true" class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
-      <span class="hidden sm:inline">Register Pet</span>
+      <span class="hidden sm:inline">Add Animal</span>
       <span class="sm:hidden">+ Add</span>
     </button>
   </div>
@@ -57,10 +62,22 @@
     <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-between">
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <select name="type" id="type-select" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm" onchange="this.form.submit()">
-          <option value="">All Species</option>
-          @foreach(array_keys($breedOptions) as $type)
-            <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-          @endforeach
+          <option value="">All Animals</option>
+          <optgroup label="Categories">
+            <option value="pet" {{ request('type') == 'pet' ? 'selected' : '' }}>Pets</option>
+            <option value="livestock" {{ request('type') == 'livestock' ? 'selected' : '' }}>Livestock</option>
+            <option value="poultry" {{ request('type') == 'poultry' ? 'selected' : '' }}>Poultry</option>
+          </optgroup>
+          <optgroup label="Specific Types">
+            @foreach(array_keys($breedOptions) as $type)
+              <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+            @endforeach
+            <option value="cattle" {{ request('type') == 'cattle' ? 'selected' : '' }}>Cattle</option>
+            <option value="goat" {{ request('type') == 'goat' ? 'selected' : '' }}>Goat</option>
+            <option value="carabao" {{ request('type') == 'carabao' ? 'selected' : '' }}>Carabao</option>
+            <option value="chicken" {{ request('type') == 'chicken' ? 'selected' : '' }}>Chicken</option>
+            <option value="duck" {{ request('type') == 'duck' ? 'selected' : '' }}>Duck</option>
+          </optgroup>
         </select>
 
         <select name="per_page" class="border border-gray-300 px-2 py-2 sm:px-3 rounded-md text-sm" onchange="this.form.submit()">
@@ -249,9 +266,19 @@
                       required
                     >
                       <option value="" disabled>Select Species</option>
-                      @foreach(array_keys($breedOptions) as $type)
-                        <option value="{{ $type }}">{{ $type }}</option>
-                      @endforeach
+                      <optgroup label="Pets">
+                        <option value="dog">Dog</option>
+                        <option value="cat">Cat</option>
+                      </optgroup>
+                      <optgroup label="Livestock">
+                        <option value="cattle">Cattle</option>
+                        <option value="goat">Goat</option>
+                        <option value="carabao">Carabao</option>
+                      </optgroup>
+                      <optgroup label="Poultry">
+                        <option value="chicken">Chicken</option>
+                        <option value="duck">Duck</option>
+                      </optgroup>
                     </select>
                   </div>
 
@@ -451,9 +478,19 @@
               <label class="block font-medium text-sm text-primary">Species</label>
               <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled>Select Species</option>
-                @foreach(array_keys($breedOptions) as $type)
-                  <option value="{{ $type }}">{{ $type }}</option>
-                @endforeach
+                <optgroup label="Pets">
+                  <option value="dog">Dog</option>
+                  <option value="cat">Cat</option>
+                </optgroup>
+                <optgroup label="Livestock">
+                  <option value="cattle">Cattle</option>
+                  <option value="goat">Goat</option>
+                  <option value="carabao">Carabao</option>
+                </optgroup>
+                <optgroup label="Poultry">
+                  <option value="chicken">Chicken</option>
+                  <option value="duck">Duck</option>
+                </optgroup>
               </select>
             </div>
 

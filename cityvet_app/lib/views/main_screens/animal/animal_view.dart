@@ -16,8 +16,18 @@ class AnimalView extends StatefulWidget {
 class _AnimalViewState extends State<AnimalView> {
   final TextEditingController _animalSearchController = TextEditingController();
   String _animalSearchQuery = '';
-  String _selectedType = 'All';
-  final List<String> _animalTypes = ['All', 'Dog', 'Cat', 'Bird', 'Others'];
+  String _selectedCategory = 'All';
+  String _selectedVaccinationStatus = 'All';
+  final List<String> _animalCategories = ['All', 'Pets', 'Livestock', 'Poultry'];
+  final List<String> _vaccinationStatuses = ['All', 'Vaccinated', 'Not Vaccinated'];
+  bool _isFiltersExpanded = false;
+  
+  // Animal type mappings
+  final Map<String, List<String>> _categoryMap = {
+    'Pets': ['dog', 'cat'],
+    'Livestock': ['cattle', 'goat', 'carabao'],
+    'Poultry': ['chicken', 'duck'],
+  };
 
   @override
   void initState() {
@@ -236,10 +246,22 @@ class _AnimalViewState extends State<AnimalView> {
           animal.type.toLowerCase().contains(_animalSearchQuery.toLowerCase()) ||
           animal.color.toLowerCase().contains(_animalSearchQuery.toLowerCase());
 
-      final matchesType = _selectedType == 'All' || 
-          animal.type.toLowerCase() == _selectedType.toLowerCase();
+      // Category filtering
+      bool matchesCategory = _selectedCategory == 'All';
+      if (!matchesCategory) {
+        final categoryTypes = _categoryMap[_selectedCategory] ?? [];
+        matchesCategory = categoryTypes.contains(animal.type.toLowerCase());
+      }
 
-      return matchesSearch && matchesType;
+      // Vaccination status filtering
+      bool matchesVaccination = _selectedVaccinationStatus == 'All';
+      if (!matchesVaccination) {
+        final hasVaccinations = animal.vaccinations?.isNotEmpty ?? false;
+        matchesVaccination = (_selectedVaccinationStatus == 'Vaccinated' && hasVaccinations) ||
+                           (_selectedVaccinationStatus == 'Not Vaccinated' && !hasVaccinations);
+      }
+
+      return matchesSearch && matchesCategory && matchesVaccination;
     }).toList();
 
     final animalCards = filteredAnimals
@@ -253,130 +275,463 @@ class _AnimalViewState extends State<AnimalView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Owned Animals',
-          style: TextStyle(
-            fontFamily: Config.primaryFont,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Search bar and filters for animals
-        Container(
-          width: double.infinity,
-          child: Column(
-            children: [
-              // Search and Type filter row
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Container(
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _animalSearchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _animalSearchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search animals...',
-                      hintStyle: TextStyle(
-                        fontFamily: Config.primaryFont,
-                        fontSize: Config.fontSmall,
-                        color: Colors.grey.shade500,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 15),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
-                    ),
-                    style: const TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
-                    ),
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Owned Animals',
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Config.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${animalViewModel.animals.length} Total',
+                style: TextStyle(
+                  fontFamily: Config.primaryFont,
+                  fontSize: Config.fontSmall,
+                  color: Config.primaryColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        
+        // Search and Filter Section
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Header with toggle button
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search,
+                      color: Config.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Search & Filter',
+                        style: TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: ButtonTheme(
-                      alignedDropdown: true,
-                      child: DropdownButton<String>(
-                        value: _selectedType,
-                        isExpanded: true,
-                        icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
-                        items: _animalTypes.map((String type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(
-                              type,
+                    ),
+                    // Active filters indicator
+                    if (_selectedCategory != 'All' || _selectedVaccinationStatus != 'All' || _animalSearchQuery.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Config.primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Active',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    // Toggle button
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _isFiltersExpanded = !_isFiltersExpanded;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          _isFiltersExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: Config.primaryColor,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Expandable search and filter content
+              if (_isFiltersExpanded)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                      // Animal categories summary
+                      if (animalViewModel.animals.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildCategorySummary('Pets', animalViewModel.animals),
+                              _buildCategorySummary('Livestock', animalViewModel.animals),
+                              _buildCategorySummary('Poultry', animalViewModel.animals),
+                            ],
+                          ),
+                        ),
+
+                      // Add Animal Button (shown when many animals exist)
+                      if (animalViewModel.animals.length >= 10)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: ElevatedButton.icon(
+                            onPressed: () => _openAnimalForm(context, animalViewModel),
+                            icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                            label: const Text(
+                              'Add New Animal',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Config.primaryColor,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 4,
+                              shadowColor: Config.primaryColor.withOpacity(0.3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Search bar
+                      Container(
+                        width: double.infinity,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: TextField(
+                          controller: _animalSearchController,
+                          onChanged: (value) {
+                            setState(() {
+                              _animalSearchQuery = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search animals by name, breed, or color...',
+                            hintStyle: TextStyle(
+                              fontFamily: Config.primaryFont,
+                              fontSize: Config.fontSmall,
+                              color: Colors.grey.shade500,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+                            prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                            suffixIcon: _animalSearchQuery.isNotEmpty 
+                              ? IconButton(
+                                  icon: Icon(Icons.clear, color: Colors.grey.shade500),
+                                  onPressed: () {
+                                    setState(() {
+                                      _animalSearchController.clear();
+                                      _animalSearchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                          ),
+                          style: const TextStyle(
+                            fontFamily: Config.primaryFont,
+                            fontSize: Config.fontSmall,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Filter row
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Category filter
+                          Expanded(
+                            child: Container(
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: ButtonTheme(
+                                  alignedDropdown: true,
+                                  child: DropdownButton<String>(
+                                    value: _selectedCategory,
+                                    isExpanded: true,
+                                    icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
+                                    items: _animalCategories.map((String category) {
+                                      return DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              category == 'All' ? Icons.pets : 
+                                              category == 'Pets' ? Icons.pets :
+                                              category == 'Livestock' ? Icons.agriculture :
+                                              Icons.egg,
+                                              size: 16,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                category,
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: Config.fontSmall,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        _selectedCategory = newValue ?? 'All';
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(width: 12),
+                          
+                          // Vaccination status filter
+                          Expanded(
+                            child: Container(
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: ButtonTheme(
+                                  alignedDropdown: true,
+                                  child: DropdownButton<String>(
+                                    value: _selectedVaccinationStatus,
+                                    isExpanded: true,
+                                    icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
+                                    items: _vaccinationStatuses.map((String status) {
+                                      return DropdownMenuItem<String>(
+                                        value: status,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              status == 'All' ? Icons.medical_services :
+                                              status == 'Vaccinated' ? Icons.verified :
+                                              Icons.warning,
+                                              size: 16,
+                                              color: status == 'Vaccinated' ? Colors.green :
+                                                     status == 'Not Vaccinated' ? Colors.orange :
+                                                     Colors.grey.shade600,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                status,
+                                                style: TextStyle(
+                                                  fontFamily: Config.primaryFont,
+                                                  fontSize: Config.fontSmall,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        _selectedVaccinationStatus = newValue ?? 'All';
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      // Filter chips for quick access
+                      if (_selectedCategory != 'All' || _selectedVaccinationStatus != 'All')
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 12),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.start,
+                            children: [
+                              if (_selectedCategory != 'All')
+                                Chip(
+                                  label: Text(
+                                    _selectedCategory,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  backgroundColor: Config.primaryColor,
+                                  deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+                                  onDeleted: () {
+                                    setState(() {
+                                      _selectedCategory = 'All';
+                                    });
+                                  },
+                                ),
+                              if (_selectedVaccinationStatus != 'All')
+                                Chip(
+                                  label: Text(
+                                    _selectedVaccinationStatus,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  backgroundColor: _selectedVaccinationStatus == 'Vaccinated' ? Colors.green : Colors.orange,
+                                  deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+                                  onDeleted: () {
+                                    setState(() {
+                                      _selectedVaccinationStatus = 'All';
+                                    });
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      
+                      // Clear all filters button
+                      if (_selectedCategory != 'All' || _selectedVaccinationStatus != 'All' || _animalSearchQuery.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 12),
+                          child: TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedCategory = 'All';
+                                _selectedVaccinationStatus = 'All';
+                                _animalSearchController.clear();
+                                _animalSearchQuery = '';
+                              });
+                            },
+                            icon: Icon(
+                              Icons.clear_all,
+                              size: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                            label: Text(
+                              'Clear All Filters',
                               style: TextStyle(
                                 fontFamily: Config.primaryFont,
                                 fontSize: Config.fontSmall,
-                                color: Colors.grey.shade700,
+                                color: Colors.grey.shade600,
                               ),
                             ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedType = newValue ?? 'All';
-                          });
-                        },
-                      ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.grey.shade100,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-                ],
-              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
+        // Results summary
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'Showing ${filteredAnimals.length} of ${animalViewModel.animals.length} animals',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        
         Expanded(
-          child: GridView.builder(
+          child: filteredAnimals.isEmpty
+              ? SingleChildScrollView(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    child: _buildEmptyState(animalViewModel),
+                  ),
+                )
+              : GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
                     childAspectRatio: 0.80,
                   ),
-                  itemCount: animalCards.length + 1,
+                  itemCount: animalCards.length + (animalViewModel.animals.length < 10 ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == animalCards.length) {
+                    if (index == animalCards.length && animalViewModel.animals.length < 10) {
                       return _buildAddAnimalButton(context, animalViewModel);
                     }
                     return animalCards[index];
@@ -384,6 +739,120 @@ class _AnimalViewState extends State<AnimalView> {
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCategorySummary(String category, List<AnimalModel> allAnimals) {
+    final categoryTypes = _categoryMap[category] ?? [];
+    final count = allAnimals.where((animal) => 
+      categoryTypes.contains(animal.type.toLowerCase())
+    ).length;
+    
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedCategory = category;
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        child: Column(
+          children: [
+            Icon(
+              _getCategoryIcon(category),
+              size: 24,
+              color: _getCategoryColor(category),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontMedium,
+                fontWeight: FontWeight.bold,
+                color: _getCategoryColor(category),
+              ),
+            ),
+            Text(
+              category,
+              style: TextStyle(
+                fontFamily: Config.primaryFont,
+                fontSize: Config.fontSmall,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Pets': return Icons.pets;
+      case 'Livestock': return Icons.agriculture;
+      case 'Poultry': return Icons.egg;
+      default: return Icons.category;
+    }
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Pets': return Colors.blue;
+      case 'Livestock': return Colors.brown;
+      case 'Poultry': return Colors.orange;
+      default: return Colors.grey;
+    }
+  }
+
+  Widget _buildEmptyState(AnimalViewModel viewModel) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No animals found',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontMedium,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try adjusting your search or filters',
+            style: TextStyle(
+              fontFamily: Config.primaryFont,
+              fontSize: Config.fontSmall,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _openAnimalForm(context, viewModel),
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Add First Animal',
+              style: TextStyle(color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Config.primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

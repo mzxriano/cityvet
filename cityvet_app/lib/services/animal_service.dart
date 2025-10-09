@@ -268,4 +268,19 @@ class AnimalService {
     return response;
   }
 
+  /// Restore an archived animal
+  Future<Response> restoreArchivedAnimal(String token, int archiveId) async {
+    final response = await _dio.post(
+      '/animals/archived/$archiveId/restore',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        }
+      )
+    );
+    
+    return response;
+  }
+
 }
