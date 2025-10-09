@@ -69,6 +69,12 @@ Route::prefix('auth')->group(function () {
             Route::get('/', [AnimalController::class,'index']);
             Route::get('/all', [AnimalController::class,'fetchAllAnimals']);
             Route::post('/add-for-owner', [AnimalController::class,'addAnimalForOwner']);
+            
+            // Specific routes must come BEFORE parameterized routes
+            Route::get('/archived', [AnimalController::class,'getArchivedAnimals']);
+            Route::post('/{id}/archive', [AnimalController::class,'archiveAnimal']);
+            
+            // Parameterized routes come last
             Route::get('/{qrCode}', [AnimalController::class,'showByQrCode']);
             Route::put('/{id}', [AnimalController::class,'update']);
             Route::post('/{id}', [AnimalController::class,'update']);

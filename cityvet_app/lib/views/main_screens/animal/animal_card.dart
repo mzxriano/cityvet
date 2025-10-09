@@ -6,8 +6,14 @@ import 'package:flutter/material.dart';
 class AnimalCard extends StatelessWidget {
   final AnimalModel animalModel;
   final VoidCallback? onDelete;
+  final VoidCallback? onMarkAsDeceased;
 
-  const AnimalCard({super.key, required this.animalModel, required this.onDelete});
+  const AnimalCard({
+    super.key, 
+    required this.animalModel, 
+    required this.onDelete,
+    this.onMarkAsDeceased,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,25 +112,73 @@ class AnimalCard extends StatelessWidget {
           ),
         ),
                 
-        // Delete button positioned at top-right
-        if (onDelete != null)
+        // No status badge needed since archived animals are in separate view
+        
+        // Action menu positioned at top-right
+        if (onDelete != null || onMarkAsDeceased != null)
           Positioned(
             top: 8,
             right: 8,
-            child: GestureDetector(
-              onTap: onDelete,
-              child: Container(
+            child: PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'delete':
+                    onDelete?.call();
+                    break;
+                  case 'deceased':
+                    onMarkAsDeceased?.call();
+                    break;
+                }
+              },
+              icon: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.8),
+                  color: Colors.black.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: const Icon(
-                  Icons.delete,
+                  Icons.more_vert,
                   size: 16,
                   color: Colors.white,
                 ),
               ),
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<String>> items = [];
+                
+                // Show "Mark as Deceased" option (all animals in main list are alive)
+                if (onMarkAsDeceased != null) {
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'deceased',
+                      child: Row(
+                        children: [
+                          Icon(Icons.sick, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text('Mark as Deceased'),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                
+                // Always show delete option
+                if (onDelete != null) {
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Delete'),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                
+                return items;
+              },
             ),
           ),
       ],

@@ -25,7 +25,11 @@ class Animal extends Model
         'code',
         'image',
         'image_url',
-        'image_public_id'
+        'image_public_id',
+        'status',
+        'deceased_date',
+        'deceased_cause',
+        'deceased_notes'
     ];
 
     protected static function boot()
@@ -87,4 +91,97 @@ class Animal extends Model
     // {
     //     return $this->birth_date ? $this->birth_date->age : null;
     // }
+
+    /**
+     * Status helper methods
+     */
+    public function isAlive()
+    {
+        return $this->status === 'alive';
+    }
+
+    public function isDeceased()
+    {
+        return $this->status === 'deceased';
+    }
+
+    public function isMissing()
+    {
+        return $this->status === 'missing';
+    }
+
+    public function isTransferred()
+    {
+        return $this->status === 'transferred';
+    }
+
+    /**
+     * Mark animal as deceased
+     */
+    public function markAsDeceased($deceasedDate, $cause = null, $notes = null)
+    {
+        $this->update([
+            'status' => 'deceased',
+            'deceased_date' => $deceasedDate,
+            'deceased_cause' => $cause,
+            'deceased_notes' => $notes,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Scopes for filtering by status
+     */
+    public function scopeAlive($query)
+    {
+        return $query->where('status', 'alive');
+    }
+
+    public function scopeDeceased($query)
+    {
+        return $query->where('status', 'deceased');
+    }
+
+    public function scopeMissing($query)
+    {
+        return $query->where('status', 'missing');
+    }
+
+    public function scopeTransferred($query)
+    {
+        return $query->where('status', 'transferred');
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        if ($status && $status !== 'all') {
+            return $query->where('status', $status);
+        }
+        return $query;
+    }
+
+    /**
+     * Get the archive records for this animal
+     */
+    public function archives()
+    {
+        return $this->hasMany(AnimalArchive::class);
+    }
+
+    /**
+     * Get the most recent archive record
+     */
+    public function latestArchive()
+    {
+        return $this->hasOne(AnimalArchive::class)->latest();
+    }
+
+    /**
+     * Check if animal is archived
+     */
+    public function isArchived()
+    {
+        return $this->archives()->exists();
+    }
 }

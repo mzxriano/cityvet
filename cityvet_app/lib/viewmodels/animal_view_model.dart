@@ -1,4 +1,5 @@
 import 'package:cityvet_app/models/animal_model.dart';
+import 'package:cityvet_app/models/animal_archive_model.dart';
 import 'package:cityvet_app/services/animal_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/dio_exception_handler.dart';
@@ -15,12 +16,14 @@ class AnimalViewModel extends ChangeNotifier{
   bool _isLoading = false;
   String? _message;
   bool _disposed = false;
+  List<AnimalArchiveModel> _archivedAnimals = [];
 
   String? get errors => _errors;
   List<AnimalModel> get animals => _animals;
   List<AnimalModel> get allAnimals => _allAnimals;
   bool get isLoading => _isLoading;
   String? get message => _message;
+  List<AnimalArchiveModel> get archivedAnimals => _archivedAnimals;
 
   @override
   void dispose() {
@@ -102,66 +105,126 @@ Future<void> fetchAnimals() async {
   if (_disposed) return;
   try {
     setLoading(true);
+    setErrors(''); // Clear previous errors
+    setMessage(null); // Clear previous messages
 
     final response = await _animalService.fetchAnimals();
     if (_disposed) return;
 
     if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
       final responseData = response.data as Map<String, dynamic>;
-      final List<dynamic> jsonList = responseData['data'];
+      
+      // Handle the case where 'data' might be null or not a list
+      final dynamic dataField = responseData['data'];
+      if (dataField is List) {
+        final animalsList = dataField
+            .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
+            .toList();
 
-      final animalsList = jsonList
-          .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      setAnimals(animalsList);
+        setAnimals(animalsList);
+        setMessage('Animals loaded successfully');
+      } else {
+        print('Data field is not a list: $dataField');
+        setAnimals([]); // Set empty list if no data
+        setMessage('No animals found');
+      }
     } else {
       print('Unexpected response format: ${response.data}');
+      setErrors('Failed to load animals: Unexpected response format');
     }
   } on DioException catch (e) {
     if (_disposed) return;
     final data = e.response?.data;
 
-    print(data);
+    print('DioException: $data');
     if (data is Map<String, dynamic> && data['errors'] != null) {
       print('Server-side errors: ${data['errors']}');
+      setErrors('Server error: ${data['errors']}');
     } else {
-      setMessage(DioExceptionHandler.handleException(e));
+      final errorMessage = DioExceptionHandler.handleException(e);
+      setErrors(errorMessage);
     }
   } catch (e) {
     if (_disposed) return;
     print('Unexpected error: $e');
+    setErrors('An unexpected error occurred: $e');
   } finally {
     if (_disposed) return;
     setLoading(false);
   }
 }
 
-Future<void> deleteAnimal(AnimalModel animalModel) async {
+/// Archive an animal (either deleted or deceased)
+Future<void> archiveAnimal(AnimalModel animalModel, {
+  required String archiveType, 
+  required String archiveDate,
+  String? reason,
+  String? notes,
+}) async {
   if (_disposed) return;
   try {
+    setLoading(true);
+    setErrors(''); // Clear previous errors
+    setMessage(null); // Clear previous messages
 
     final token = await AuthStorage().getToken();
+    if (token == null) {
+      setErrors('Authentication token not found');
+      return;
+    }
 
-    if(token == null) return;
+    print('Archiving animal: ${animalModel.name} (ID: ${animalModel.id}) as $archiveType');
     
-    final response = await AnimalService().deleteAnimal(token, animalModel);
+    final response = await _animalService.archiveAnimal(
+      token,
+      animalModel.id!,
+      archiveType: archiveType,
+      archiveDate: archiveDate,
+      reason: reason,
+      notes: notes,
+    );
+    
     if (_disposed) return;
 
-    if(response.statusCode == 200) {
-      setMessage(response.data['message']);
+    print('Archive response: ${response.statusCode} - ${response.data}');
+
+    if (response.statusCode == 200) {
+      // Remove from local list since it's now archived
+      _animals.removeWhere((a) => a.id == animalModel.id);
+      _allAnimals.removeWhere((a) => a.id == animalModel.id);
+      
+      final archiveTypeText = archiveType == 'deceased' ? 'marked as deceased' : 'deleted';
+      setMessage('Animal ${animalModel.name} has been $archiveTypeText successfully');
+      notifyListeners();
+    } else {
+      print('Unexpected response code: ${response.statusCode}');
+      setErrors('Failed to archive animal: unexpected response');
     }
 
   } on DioException catch (e) {
     if (_disposed) return;
-    final exception = e.response?.data;
-
-    if(exception is DioException) {
-      DioExceptionHandler.handleException(exception);
+    final data = e.response?.data;
+    
+    print('DioException in archiveAnimal: ${e.response?.statusCode} - $data');
+    
+    if (data is Map<String, dynamic>) {
+      if (data['message'] != null) {
+        setErrors('Failed to archive animal: ${data['message']}');
+      } else if (data['errors'] != null) {
+        setErrors('Validation error: ${data['errors']}');
+      } else {
+        setErrors('Failed to archive animal: Unknown server error');
+      }
+    } else {
+      setErrors(DioExceptionHandler.handleException(e));
     }
   } catch (e) {
     if (_disposed) return;
-    print('Error deleting animal $e');
+    print('Unexpected error in archiveAnimal: $e');
+    setErrors('An unexpected error occurred: $e');
+  } finally {
+    if (_disposed) return;
+    setLoading(false);
   }
 }
 
@@ -244,4 +307,46 @@ Future<void> deleteAnimal(AnimalModel animalModel) async {
     }
   }
 
+  /// Fetch archived animals
+  Future<void> fetchArchivedAnimals({String? archiveType}) async {
+    if (_disposed) return;
+    try {
+      setLoading(true);
+
+      final token = await AuthStorage().getToken();
+      if (token == null) return;
+
+      final response = await _animalService.getArchivedAnimals(token, archiveType: archiveType);
+      if (_disposed) return;
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        final responseData = response.data as Map<String, dynamic>;
+        final List<dynamic> jsonList = responseData['data'];
+
+        final archivesList = jsonList
+            .map((json) => AnimalArchiveModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        _archivedAnimals = archivesList;
+        notifyListeners();
+      } else {
+        print('Unexpected response format: ${response.data}');
+      }
+    } on DioException catch (e) {
+      if (_disposed) return;
+      final data = e.response?.data;
+
+      if (data is Map<String, dynamic> && data['errors'] != null) {
+        print('Server-side errors: ${data['errors']}');
+      } else {
+        setMessage(DioExceptionHandler.handleException(e));
+      }
+    } catch (e) {
+      if (_disposed) return;
+      print('Unexpected error: $e');
+    } finally {
+      if (_disposed) return;
+      setLoading(false);
+    }
+  }
 }

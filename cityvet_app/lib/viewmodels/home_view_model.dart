@@ -240,19 +240,25 @@ class HomeViewModel extends ChangeNotifier {
   bool get isLoadingAew => _isLoadingAEW;
 
   setLoadingAew(bool val) {
+    if (_disposed) return;
     _isLoadingAEW = val;
     notifyListeners();
   }
 
   Future<List<AewModel>> fetchAEWUsers() async {
+    if (_disposed) return [];
     setLoadingAew(true);
 
     final token = await AuthStorage().getToken();
 
-    if (token == null) return [];
+    if (token == null) {
+      if (!_disposed) setLoadingAew(false);
+      return [];
+    }
 
     try {
       final response = await AewService().fetchAEWUsers(token);
+      if (_disposed) return [];
 
       print(response);
 
@@ -263,10 +269,11 @@ class HomeViewModel extends ChangeNotifier {
 
       return [];
     } catch (e) {
+      if (_disposed) return [];
       print('Error fetching AEW users: $e');
       return [];
     } finally {
-      setLoadingAew(false);
+      if (!_disposed) setLoadingAew(false);
     }
   }
 }

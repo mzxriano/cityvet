@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Animal;
+use App\Models\AnimalArchive;
 use App\Notifications\PushNotification;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
@@ -33,7 +34,9 @@ class AnimalController
     public function index()
     {
 
-        $animals = Animal::where("user_id", auth()->id())->get();
+        $animals = Animal::where("user_id", auth()->id())
+                         ->where('status', 'alive')
+                         ->get();
 
         $data = $animals->map(function ($animal) {
             return [
@@ -50,6 +53,10 @@ class AnimalController
                 'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
                 'qr_code_base64' => $this->generateQrCodeBase64($animal), 
                 'qr_code_url' => $animal->getQrCodeUrl(), 
@@ -145,10 +152,6 @@ class AnimalController
             'user_id' => auth()->id(),
         ]);
 
-        $user = auth()->user();
-
-        $user->notify(new PushNotification('Add Animal', 'Animal successfully created.', []));
-
         return response()->json([
             'message' => 'Animal successfully created.',
             'data' => [
@@ -166,6 +169,10 @@ class AnimalController
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'image_public_id' => $animal->image_public_id,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
                 'qr_code_base64' => $this->generateQrCodeBase64($animal),
                 'qr_code_url' => $animal->getQrCodeUrl(),
@@ -206,6 +213,10 @@ class AnimalController
                 'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => $animal->user ? "{$animal->user->first_name} {$animal->user->last_name}" : null,
                 'qr_code_base64' => $qrCodeBase64,
                 'qr_code_url' => $animal->getQrCodeUrl(),
@@ -235,7 +246,9 @@ class AnimalController
 
     public function fetchAllAnimals()
     {
-        $animals = Animal::with(['user:id,first_name,last_name', 'vaccines'])->get();
+        $animals = Animal::with(['user:id,first_name,last_name', 'vaccines'])
+                         ->where('status', 'alive')
+                         ->get();
 
         $data = $animals->map(function ($animal) {
             return [
@@ -252,6 +265,10 @@ class AnimalController
                 'known_conditions' => $animal->known_conditions,
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => $animal->user
                     ? "{$animal->user->first_name} {$animal->user->last_name}"
                     : null,
@@ -396,6 +413,10 @@ class AnimalController
                 'known_conditions' => $animal->known_conditions,
                 'profile_image' => $animal->profile_image,
                 'code' => $animal->code,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$owner->first_name} {$owner->last_name}",
                 'qr_code_url' => $animal->getQrCodeUrl(),
             ],
@@ -432,6 +453,10 @@ class AnimalController
                 'gender' => $animal->gender,
                 'age' => $animal->birth_date,
                 'image_url' => $animal->image_url,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
                 'vaccinations' => $animal->vaccines->map(function($v) {
                     return [
@@ -563,6 +588,10 @@ class AnimalController
                 'code' => $animal->code,
                 'image_url' => $animal->image_url,
                 'image_public_id' => $animal->image_public_id,
+                'status' => $animal->status,
+                'deceased_date' => $animal->deceased_date,
+                'deceased_cause' => $animal->deceased_cause,
+                'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}" ?? null,
                 'qr_code_url' => $animal->getQrCodeUrl(),
                 'qr_code_base64' => $this->generateQrCodeBase64($animal),
@@ -587,6 +616,147 @@ class AnimalController
                     ];
                 }),
             ],
+        ]);
+    }
+
+    /**
+     * Archive an animal (deceased or deleted).
+     */
+    public function archiveAnimal(Request $request, string $id)
+    {
+        $validate = Validator::make($request->all(), [
+            'archive_type' => 'required|in:deceased,deleted',
+            'archive_date' => 'required|date|before_or_equal:today',
+            'reason' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validate->errors(),
+            ], 422);
+        }
+
+        $animal = Animal::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$animal) {
+            return response()->json([
+                'message' => 'Animal not found.'
+            ], 404);
+        }
+
+        if ($animal->isArchived()) {
+            return response()->json([
+                'message' => 'Animal is already archived.'
+            ], 422);
+        }
+
+        $validated = $validate->validated();
+
+        // Use database transaction to ensure both operations succeed
+        DB::transaction(function () use ($animal, $validated) {
+            // Create archive record with complete animal snapshot
+            $archive = AnimalArchive::create([
+                'animal_id' => $animal->id,
+                'user_id' => auth()->id(),
+                'archive_type' => $validated['archive_type'],
+                'reason' => $validated['reason'],
+                'notes' => $validated['notes'],
+                'archive_date' => $validated['archive_date'],
+                'animal_snapshot' => $animal->toArray(), // Complete snapshot
+            ]);
+
+            \Log::info('Archive record created', ['archive_id' => $archive->id]);
+
+            // Update animal status based on archive type
+            if ($validated['archive_type'] === 'deceased') {
+                $updateResult = $animal->update([
+                    'status' => 'deceased',
+                    'deceased_date' => $validated['archive_date'],
+                    'deceased_cause' => $validated['reason'],
+                    'deceased_notes' => $validated['notes'],
+                ]);
+                \Log::info('Animal status updated to deceased', ['update_result' => $updateResult, 'animal_id' => $animal->id]);
+            } elseif ($validated['archive_type'] === 'deleted') {
+                $updateResult = $animal->update([
+                    'status' => 'deleted',
+                ]);
+                \Log::info('Animal status updated to deleted', ['update_result' => $updateResult, 'animal_id' => $animal->id]);
+            }
+
+            // Refresh to get updated data
+            $animal->refresh();
+            \Log::info('Animal status after refresh', ['status' => $animal->status, 'animal_id' => $animal->id]);
+        });
+
+        // Get the archive record for response
+        $archive = AnimalArchive::where('animal_id', $animal->id)
+                                ->where('user_id', auth()->id())
+                                ->latest()
+                                ->first();
+
+        \Log::info('Animal archived', ['archive_id' => $archive->id, 'animal_id' => $animal->id]);
+
+        return response()->json([
+            'message' => 'Animal archived successfully.',
+            'data' => [
+                'archive_id' => $archive->id,
+                'animal_name' => $animal->name,
+                'archive_type' => $archive->archive_type,
+                'archive_date' => $archive->archive_date,
+                'reason' => $archive->reason,
+                'notes' => $archive->notes,
+            ]
+        ]);
+    }
+
+    /**
+     * Get archived animals for the authenticated user.
+     */
+    public function getArchivedAnimals(Request $request)
+    {
+        $archiveType = $request->query('type'); // 'deceased', 'deleted', or null for all
+
+        $query = AnimalArchive::with(['animal', 'user'])
+            ->where('user_id', auth()->id());
+
+        if ($archiveType && in_array($archiveType, ['deceased', 'deleted'])) {
+            $query->where('archive_type', $archiveType);
+        }
+
+        $archives = $query->orderBy('created_at', 'desc')->get();
+
+        $data = $archives->map(function ($archive) {
+            $animalData = $archive->animal_snapshot;
+            
+            return [
+                'archive_id' => $archive->id,
+                'archive_type' => $archive->archive_type,
+                'archive_date' => $archive->archive_date,
+                'reason' => $archive->reason,
+                'notes' => $archive->notes,
+                'archived_at' => $archive->created_at,
+                'archived_by' => $archive->user ? "{$archive->user->first_name} {$archive->user->last_name}" : 'Unknown',
+                'animal' => [
+                    'id' => $animalData['id'],
+                    'name' => $animalData['name'],
+                    'type' => $animalData['type'],
+                    'breed' => $animalData['breed'],
+                    'color' => $animalData['color'],
+                    'gender' => $animalData['gender'],
+                    'birth_date' => $animalData['birth_date'],
+                    'image_url' => $animalData['image_url'],
+                    'owner' => $animalData['owner'] ?? $archive->user->first_name . ' ' . $archive->user->last_name,
+                ],
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Archived animals retrieved successfully.',
+            'data' => $data
         ]);
     }
 

@@ -231,6 +231,8 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                               ),
                               Config.heightMedium,
 
+                              // No deceased information section since archived animals are in separate view
+
                               // Vaccination record widget
                               _buildRecordButton('Vaccination Record', (){
                                 print(myAnimal.vaccinations);
@@ -300,7 +302,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                                 fontFamily: Config.primaryFont,
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.bold,
-                                                color: Config.primaryColor ?? Color(0xFF2196F3),
+                                                color: Config.primaryColor,
                                               ),
                                               textAlign: TextAlign.center,
                                             ),
@@ -358,7 +360,7 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                                       icon: Icon(Icons.download, size: 18),
                                       label: Text('Download QR Card'),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Config.primaryColor ?? Color(0xFF2196F3),
+                                        backgroundColor: Config.primaryColor,
                                         foregroundColor: Colors.white,
                                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                         shape: RoundedRectangleBorder(

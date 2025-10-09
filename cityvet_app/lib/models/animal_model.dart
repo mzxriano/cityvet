@@ -19,6 +19,7 @@ class AnimalModel {
   final String? imageUrl;
   final String? imagePublicId;
   final List<AnimalVaccinationModel>? vaccinations;
+  // Removed status fields - now handled by archive system
 
   AnimalModel({
     this.id, 
@@ -120,5 +121,50 @@ class AnimalModel {
     } catch (_) {
       return 'Invalid birthdate';
     }
+  }
+
+  /// Since we're using archive system, animals are always "alive" in main database
+
+  /// Creates a copy of this animal with updated fields
+  AnimalModel copyWith({
+    int? id,
+    String? type,
+    String? name,
+    String? breed,
+    String? birthDate,
+    String? gender,
+    double? weight,
+    double? height,
+    String? color,
+    String? uniqueSpot,
+    String? knownConditions,
+    String? owner,
+    String? code,
+    String? qrCode,
+    String? qrCodeUrl,
+    String? imageUrl,
+    String? imagePublicId,
+    List<AnimalVaccinationModel>? vaccinations,
+  }) {
+    return AnimalModel(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      breed: breed ?? this.breed,
+      birthDate: birthDate ?? this.birthDate,
+      gender: gender ?? this.gender,
+      weight: weight ?? this.weight,
+      height: height ?? this.height,
+      color: color ?? this.color,
+      uniqueSpot: uniqueSpot ?? this.uniqueSpot,
+      knownConditions: knownConditions ?? this.knownConditions,
+      owner: owner ?? this.owner,
+      code: code ?? this.code,
+      qrCode: qrCode ?? this.qrCode,
+      qrCodeUrl: qrCodeUrl ?? this.qrCodeUrl,
+      imageUrl: imageUrl ?? this.imageUrl,
+      imagePublicId: imagePublicId ?? this.imagePublicId,
+      vaccinations: vaccinations ?? this.vaccinations,
+    );
   }
 }

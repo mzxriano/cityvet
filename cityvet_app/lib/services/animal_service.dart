@@ -217,4 +217,55 @@ class AnimalService {
     
     return response;
   }
+
+  /// Archive an animal (deceased or deleted)
+  Future<Response> archiveAnimal(
+    String token,
+    int animalId, {
+    required String archiveType,
+    required String archiveDate,
+    String? reason,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      '/animals/$animalId/archive',
+      data: {
+        'archive_type': archiveType,
+        'archive_date': archiveDate,
+        'reason': reason,
+        'notes': notes,
+      },
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      )
+    );
+    
+    return response;
+  }
+
+  /// Get archived animals
+  Future<Response> getArchivedAnimals(String token, {String? archiveType}) async {
+    Map<String, dynamic> queryParams = {};
+    if (archiveType != null) {
+      queryParams['type'] = archiveType;
+    }
+
+    final response = await _dio.get(
+      '/animals/archived',
+      queryParameters: queryParams,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        }
+      )
+    );
+    
+    return response;
+  }
+
 }

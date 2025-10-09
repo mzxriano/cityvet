@@ -42,6 +42,119 @@ class _AnimalViewState extends State<AnimalView> {
     }
   }
 
+  void _markAsDeceased(BuildContext context, AnimalViewModel animalViewModel, AnimalModel animal) async {
+    final TextEditingController causeController = TextEditingController();
+    final TextEditingController notesController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Mark ${animal.name} as Deceased'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Date picker
+                    ListTile(
+                      leading: const Icon(Icons.calendar_today),
+                      title: const Text('Date of Death'),
+                      subtitle: Text(
+                        '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                      ),
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null && picked != selectedDate) {
+                          setState(() {
+                            selectedDate = picked;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Cause field
+                    TextField(
+                      controller: causeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Cause of Death (Optional)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Notes field
+                    TextField(
+                      controller: notesController,
+                      decoration: const InputDecoration(
+                        labelText: 'Additional Notes (Optional)',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Mark as Deceased'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await animalViewModel.archiveAnimal(
+          animal,
+          archiveType: 'deceased',
+          archiveDate: selectedDate.toIso8601String().split('T')[0], // YYYY-MM-DD format
+          reason: causeController.text.isNotEmpty ? causeController.text : null,
+          notes: notesController.text.isNotEmpty ? notesController.text : null,
+        );
+
+        if (animalViewModel.message?.isNotEmpty ?? false) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(animalViewModel.message ?? 'No Message'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+
+        animalViewModel.setMessage(null);
+        animalViewModel.fetchAnimals();
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to mark animal as deceased: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   void _deleteAnimal(BuildContext context, AnimalViewModel animalViewModel, AnimalModel animal) async {
     // Show confirmation dialog
     final bool? confirmed = await showDialog<bool>(
@@ -69,8 +182,13 @@ class _AnimalViewState extends State<AnimalView> {
 
     if (confirmed == true) {
       try {
-        // Call the delete method from your view model
-        await animalViewModel.deleteAnimal(animal);
+        // Archive as deleted
+        await animalViewModel.archiveAnimal(
+          animal,
+          archiveType: 'deleted',
+          archiveDate: DateTime.now().toIso8601String().split('T')[0],
+          reason: 'Deleted by owner',
+        );
         
         // Show success message
         if (animalViewModel.message?.isNotEmpty ?? false) {
@@ -128,6 +246,7 @@ class _AnimalViewState extends State<AnimalView> {
         .map((animal) => AnimalCard(
             animalModel: animal,
             onDelete: () => _deleteAnimal(context, animalViewModel, animal),
+            onMarkAsDeceased: () => _markAsDeceased(context, animalViewModel, animal),
           ))
         .toList();
 
@@ -143,14 +262,17 @@ class _AnimalViewState extends State<AnimalView> {
           ),
         ),
         const SizedBox(height: 16),
-        // Search bar for animals
+        // Search bar and filters for animals
         Container(
           width: double.infinity,
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                flex: 3,
-                child: Container(
+              // Search and Type filter row
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Container(
                   height: 45,
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -237,6 +359,8 @@ class _AnimalViewState extends State<AnimalView> {
                     ),
                   ),
                 ),
+              ),
+                ],
               ),
             ],
           ),

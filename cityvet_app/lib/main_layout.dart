@@ -5,6 +5,7 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/animals_view.dart';
+import 'package:cityvet_app/views/archived_animals_view.dart';
 import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
@@ -15,7 +16,6 @@ import 'package:cityvet_app/views/report_incident_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
 import 'package:cityvet_app/views/register_owner_view.dart';
-import 'package:cityvet_app/views/report_incident_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -685,6 +685,16 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AnimalManagementView()),
+              );
+            },
+          ),
+        if (!canAccessVaccination) // For pet, livestock, poultry owners
+          _buildDrawerItem(
+            'Archived Animals',
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ArchivedAnimalsView()),
               );
             },
           ),
