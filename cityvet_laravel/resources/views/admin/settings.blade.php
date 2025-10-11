@@ -1,6 +1,58 @@
-@extends('layouts.layout')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="icon" href="{{ asset('images/cityvet-logo.png') }}" type="image/jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <title>Settings - CityVet</title>
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+@php
+  $currentTheme = \App\Models\Setting::get('app_theme', 'light');
+@endphp
+<body class="min-h-screen bg-[#eeeeee] dark:bg-gray-900 {{ $currentTheme === 'dark' ? 'dark' : '' }}">
+  
+  <!-- Header with Back Button -->
+  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <!-- Back Button -->
+          <a href="{{ route('admin.dashboard') }}" 
+             class="flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span class="text-sm font-medium">Back to Dashboard</span>
+          </a>
+          
+          <div class="h-6 border-l border-gray-300 dark:border-gray-600"></div>
+          
+          <!-- Page Title -->
+          <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Settings</h1>
+        </div>
+        
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+          <img src="{{ asset('images/cityvet-logo.png') }}" width="32" height="32" alt="CityVet logo" class="rounded">
+          <span class="text-lg font-medium text-gray-800 dark:text-gray-100">CityVet</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
-@section('content')
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8")
 <div class="max-w-4xl mx-auto mt-10 space-y-8">
     <!-- System Settings -->
     <div class="bg-white dark:bg-gray-800 p-8 rounded shadow">
@@ -171,5 +223,6 @@
             </div>
         </form>
     </div>
-</div>
-@endsection
+  </main>
+</body>
+</html>

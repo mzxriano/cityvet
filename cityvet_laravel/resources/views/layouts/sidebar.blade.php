@@ -37,7 +37,6 @@
             'bite-case' => ['label' => 'Bite Case'],
             'reports' => ['label' => 'Reports'],
             'archives' => ['label' => 'Archives'],
-            'settings' => ['label' => 'Settings'],
         ];
     @endphp
     
@@ -90,13 +89,6 @@
             </li>
         @endforeach
     </ul>
-
-    <form action="{{ route('admin.logout') }}" method="POST">
-        @csrf
-        <button type="button" @click="$store.app.showLogoutModal = true" class="w-full mt-auto text-left p-3 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-colors">
-            Logout
-        </button>
-    </form>
 </nav>
 
 <script>

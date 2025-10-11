@@ -1,5 +1,7 @@
 @extends('layouts.layout')
 
+@section('page-title', 'Vaccines Management')
+
 @section('content')
 <!-- Success/Error Messages -->
 @if(session('success'))
@@ -89,7 +91,7 @@
             <button @click="activeTab = 'usage'"
                     :class="activeTab === 'usage' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'"
                     class="px-3 py-2 text-sm font-medium">
-                Usage
+                Distribution
             </button>
         </nav>
     </div>
@@ -224,6 +226,7 @@
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Brand</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Name</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Overall Stock</th>
+                                <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap">Expiration Date</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Status</th>
                                 <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm whitespace-nowrap">Action</th>
                             </tr>
@@ -262,6 +265,26 @@
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                                     <span class="font-medium">{{ $vaccine->stock ?? 0 }}</span>
+                                </td>
+                                <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                                    @if($vaccine->expiration_date)
+                                        @php
+                                            $expirationDate = \Carbon\Carbon::parse($vaccine->expiration_date);
+                                            $daysUntilExpiration = now()->diffInDays($expirationDate, false);
+                                            $isExpired = $daysUntilExpiration < 0;
+                                            $isExpiringSoon = $daysUntilExpiration <= 30 && $daysUntilExpiration >= 0;
+                                        @endphp
+                                        <span class="{{ $isExpired ? 'text-red-600 font-medium' : ($isExpiringSoon ? 'text-yellow-600 font-medium' : '') }}">
+                                            {{ $expirationDate->format('M j, Y') }}
+                                        </span>
+                                        @if($isExpired)
+                                            <div class="text-xs text-red-500">Expired</div>
+                                        @elseif($isExpiringSoon)
+                                            <div class="text-xs text-yellow-500">Expires Soon</div>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
                                 </td>
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">
                                     @php $stock = $vaccine->stock ?? 0; @endphp
