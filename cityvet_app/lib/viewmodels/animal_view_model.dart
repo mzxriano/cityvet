@@ -43,7 +43,7 @@ class AnimalViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  setErrors(String errors) {
+  setErrors(String? errors) {
     if (_disposed) return;
     _errors = errors;
     notifyListeners();
@@ -65,35 +65,49 @@ Future<void> fetchAllAnimals() async {
   if (_disposed) return;
   try {
     setLoading(true);
+    _errors = null; // Clear previous errors properly
+    setMessage(null); // Clear previous messages
 
     final response = await _animalService.fetchAllAnimals();
     if (_disposed) return;
 
     if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
       final responseData = response.data as Map<String, dynamic>;
-      final List<dynamic> jsonList = responseData['data'];
+      
+      // Handle the case where 'data' might be null or not a list
+      final dynamic dataField = responseData['data'];
+      if (dataField is List) {
+        final animalsList = dataField
+            .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
+            .toList();
 
-      final animalsList = jsonList
-          .map((json) => AnimalModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      setAllAnimals(animalsList);
+        setAllAnimals(animalsList);
+        setMessage('Animals loaded successfully');
+      } else {
+        print('Data field is not a list: $dataField');
+        setAllAnimals([]); // Set empty list if no data
+        setMessage('No animals found');
+      }
     } else {
       print('Unexpected response format: ${response.data}');
+      setErrors('Failed to load animals: Unexpected response format');
     }
   } on DioException catch (e) {
     if (_disposed) return;
     final data = e.response?.data;
 
-    print(data);
+    print('DioException: $data');
     if (data is Map<String, dynamic> && data['errors'] != null) {
       print('Server-side errors: ${data['errors']}');
+      setErrors('Server error: ${data['errors']}');
     } else {
-      setMessage(DioExceptionHandler.handleException(e));
+      final errorMessage = DioExceptionHandler.handleException(e);
+      setErrors(errorMessage);
     }
   } catch (e) {
     if (_disposed) return;
     print('Unexpected error: $e');
+    setErrors('An unexpected error occurred: $e');
   } finally {
     if (_disposed) return;
     setLoading(false);
@@ -105,7 +119,7 @@ Future<void> fetchAnimals() async {
   if (_disposed) return;
   try {
     setLoading(true);
-    setErrors(''); // Clear previous errors
+    _errors = null; // Clear previous errors properly
     setMessage(null); // Clear previous messages
 
     final response = await _animalService.fetchAnimals();
@@ -164,7 +178,7 @@ Future<void> archiveAnimal(AnimalModel animalModel, {
   if (_disposed) return;
   try {
     setLoading(true);
-    setErrors(''); // Clear previous errors
+    _errors = null; // Clear previous errors properly
     setMessage(null); // Clear previous messages
 
     final token = await AuthStorage().getToken();
@@ -355,7 +369,7 @@ Future<void> archiveAnimal(AnimalModel animalModel, {
     if (_disposed) return;
     try {
       setLoading(true);
-      setErrors(''); // Clear previous errors
+      _errors = null; // Clear previous errors properly
       setMessage(null); // Clear previous messages
 
       final token = await AuthStorage().getToken();

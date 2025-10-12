@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('animals', function (Blueprint $table) {
-            // Modify the status enum to include 'deleted'
             $table->enum('status', ['alive', 'deceased', 'missing', 'transferred', 'deleted'])
                   ->default('alive')
                   ->change();
@@ -25,7 +24,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('animals', function (Blueprint $table) {
-            // Revert back to original enum values
             $table->enum('status', ['alive', 'deceased', 'missing', 'transferred'])
                   ->default('alive')
                   ->change();
