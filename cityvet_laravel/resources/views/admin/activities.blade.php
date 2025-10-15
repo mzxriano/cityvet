@@ -1,7 +1,7 @@
 @extends('layouts.layout')
 
 @section('content')
-<!-- Success/Error Messages -->
+
 @if(session('success'))
 <div class="mb-4 p-4 bg-green-100 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded">
   {{ session('success') }}
@@ -25,31 +25,26 @@
 @endif
 
 <script>
-// Alpine.js Data Object - Activities Manager
 function activitiesManager() {
+  console.log('activitiesManager initialized!');
   return {
-    // Modal states
     showAddModal: false,
     showEditModal: false,
-    showDeleteModal: false,
     showCalendarModal: false,
+    showCompletedConfirm: false,
+    showFailedModal: false,
+    failureReason: '',
     
-    // Calendar states
     calendarMode: '',
     selectedDate: '',
     
-    // Activity data
     currentActivity: null,
-    activityToDelete: null,
     
-    // Notification settings
     notifyAll: true,
     selectedBarangays: [],
     
-    // Calendar functionality
     currentDate: new Date(),
     
-    // Calendar computed properties
     get monthName() {
       return this.currentDate.toLocaleDateString('en-US', { month: 'long' });
     },
@@ -68,8 +63,8 @@ function activitiesManager() {
       return lastDay.getDate();
     },
     
-    // Methods
     openAddModal() {
+      console.log('openAddModal called!');
       this.resetModals();
       this.showCalendarModal = true;
       this.calendarMode = 'add';
@@ -90,12 +85,32 @@ function activitiesManager() {
     resetModals() {
       this.showAddModal = false;
       this.showEditModal = false;
-      this.showDeleteModal = false;
       this.showCalendarModal = false;
+      this.showCompletedConfirm = false;
+      this.showFailedModal = false;
       this.selectedDate = '';
       this.currentActivity = null;
-      this.activityToDelete = null;
       this.calendarMode = '';
+      this.failureReason = '';
+    },
+
+    confirmFailed() {
+      if (this.failureReason.trim() === '') {
+        alert('Please provide a reason for failure');
+        return;
+      }
+      this.currentActivity.status = 'failed';
+      const form = document.querySelector('form[action*=\'/admin/activities/\']');
+      let reasonInput = form.querySelector('input[name=\'failure_reason\']');
+      if (!reasonInput) {
+        reasonInput = document.createElement('input');
+        reasonInput.type = 'hidden';
+        reasonInput.name = 'failure_reason';
+        form.appendChild(reasonInput);
+      }
+      reasonInput.value = this.failureReason;
+      this.showFailedModal = false;
+      this.failureReason = '';
     },
     
     selectDate(day) {
@@ -113,7 +128,7 @@ function activitiesManager() {
     
     formatSelectedDate() {
       if (!this.selectedDate) return '';
-      const date = new Date(this.selectedDate);
+      const date = new Date(this.selectedDate + 'T00:00:00');
       return date.toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
@@ -123,44 +138,12 @@ function activitiesManager() {
     },
     
     editActivity(activity) {
+      console.log('editActivity called with:', activity);
       this.currentActivity = { ...activity };
       this.selectedDate = activity.date;
       this.showEditModal = true;
     },
     
-    confirmDelete(activity) {
-      this.activityToDelete = activity;
-      this.showDeleteModal = true;
-    },
-    
-    deleteActivity() {
-      if (!this.activityToDelete) return;
-      
-      // Create and submit delete form
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `/admin/activities/${this.activityToDelete.id}`;
-      
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = '_token';
-      csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-      form.appendChild(csrfInput);
-      
-      const methodInput = document.createElement('input');
-      methodInput.type = 'hidden';
-      methodInput.name = '_method';
-      methodInput.value = 'DELETE';
-      form.appendChild(methodInput);
-      
-      document.body.appendChild(form);
-      form.submit();
-      
-      this.showDeleteModal = false;
-      this.activityToDelete = null;
-    },
-    
-    // Calendar navigation
     previousMonth() {
       this.currentDate.setMonth(this.currentDate.getMonth() - 1);
       this.currentDate = new Date(this.currentDate);
@@ -171,7 +154,6 @@ function activitiesManager() {
       this.currentDate = new Date(this.currentDate);
     },
     
-    // Calendar utilities
     getDaysInMonth() {
       const year = this.currentDate.getFullYear();
       const month = this.currentDate.getMonth();
@@ -182,12 +164,10 @@ function activitiesManager() {
       
       const days = [];
       
-      // Add empty cells for days before the first day of the month
       for (let i = 0; i < startingDayOfWeek; i++) {
         days.push(null);
       }
       
-      // Add days of the month
       for (let day = 1; day <= daysInMonth; day++) {
         days.push(day);
       }
@@ -228,7 +208,6 @@ function activitiesManager() {
       });
     },
 
-    // Approval/Rejection methods
     approveRequest(requestId) {
       console.log('Approving request ID:', requestId);
       if (confirm('Are you sure you want to approve this activity request?')) {
@@ -242,7 +221,6 @@ function activitiesManager() {
         csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         form.appendChild(csrfInput);
         
-        // Add notification option
         const notifyInput = document.createElement('input');
         notifyInput.type = 'hidden';
         notifyInput.name = 'notify_users';
@@ -282,10 +260,9 @@ function activitiesManager() {
 }
 </script>
 
-<div x-data="activitiesManager()">
+<div x-data="activitiesManager()" x-init="console.log('Alpine initialized')">
   <h1 class="title-style mb-4 md:mb-[2rem] text-xl md:text-2xl lg:text-3xl">Activities</h1>
 
-  <!-- Tabs -->
   <div class="mb-6">
     <div class="border-b border-gray-200 dark:border-gray-600">
       <nav class="-mb-px flex space-x-8">
@@ -307,18 +284,15 @@ function activitiesManager() {
     </div>
   </div>
 
-  <!-- Add Button -->
   <div class="flex justify-end gap-3 md:gap-5 mb-4 md:mb-[2rem]">
-    <button @click="openAddModal()"
+    <button @click="openAddModal(); console.log('Button clicked', showAddModal)"
             class="bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 transition text-sm md:text-base">
       + New Activity
     </button>
   </div>
 
-  <!-- All Activities Tab Content -->
   @if(!request()->routeIs('admin.activities.pending'))
   <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
-    <!-- Filter -->
     <div class="mb-4">
       <form method="GET" action="{{ route('admin.activities') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
         <select name="status" class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
@@ -343,7 +317,6 @@ function activitiesManager() {
     </div>
 
     @if(isset($activities))
-    <!-- Desktop Table -->
     <div class="hidden lg:block overflow-x-auto">
       <table class="table-auto w-full border-collapse min-w-full">
         <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
@@ -425,7 +398,6 @@ function activitiesManager() {
       </table>
     </div>
 
-    <!-- Mobile Cards -->
     <div class="block lg:hidden space-y-4">
       @forelse($activities as $index => $activity)
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-sm">
@@ -454,11 +426,6 @@ function activitiesManager() {
                 })" 
                 class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 text-xs">
                 Edit
-              </button>
-              <button 
-                @click="confirmDelete({{ json_encode($activity) }})" 
-                class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-xs">
-                Delete
               </button>
             </div>
           </div>
@@ -551,7 +518,6 @@ function activitiesManager() {
       @endforelse
     </div>
     
-  <!-- Pagination for All Activities -->
   <div class="mt-4">
     {{ $activities->links() }}
   </div>
@@ -560,10 +526,8 @@ function activitiesManager() {
   </div>
   @endif
 
-  <!-- Pending Requests Tab Content -->
   @if(request()->routeIs('admin.activities.pending'))
   <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
-    <!-- Filter for Pending -->
     <div class="mb-4">
       <form method="GET" action="{{ route('admin.activities.pending') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
         <select name="status" class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
@@ -585,7 +549,6 @@ function activitiesManager() {
       </form>
     </div>
 
-    <!-- Desktop Table for Pending -->
     <div class="hidden lg:block overflow-x-auto">
       <table class="table-auto w-full border-collapse min-w-full">
         <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
@@ -680,7 +643,6 @@ function activitiesManager() {
       </table>
     </div>
 
-    <!-- Mobile Cards for Pending -->
     <div class="block lg:hidden space-y-4">
       @forelse($pendingRequests as $index => $request)
         <div class="bg-white dark:bg-gray-800 border-l-4 border-l-orange-400 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-sm">
@@ -777,64 +739,61 @@ function activitiesManager() {
     </div>
   </div>
 
-  <!-- Pagination for Pending -->
-  <div class="mt-4">
-    {{ $pendingRequests->links() }}
-  </div>
+    <div class="mt-4">
+      {{ $pendingRequests->links() }}
+    </div>
   @endif
 
-  <!-- Calendar Modal -->
-  <div x-show="showCalendarModal" x-transition x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- CALENDAR MODAL -->
+  <div x-show="showCalendarModal" 
+       x-cloak 
+       class="fixed inset-0 z-50 overflow-y-auto"
+       style="display: none;">
     <div class="fixed inset-0 bg-black opacity-50" @click="showCalendarModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
       <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-full shadow-lg mx-4">
         <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b dark:border-gray-600">
-          <h2 class="text-lg md:text-xl font-semibold text-primary">Select Date for Activity</h2>
+          <h2 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Select Date for Activity</h2>
           <button @click="showCalendarModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl">✕</button>
         </div>
 
         <div class="p-4 md:p-6">
-          <!-- Calendar Header -->
           <div class="flex justify-between items-center mb-4">
             <button @click="previousMonth()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-              <svg class="w-5 h-5 text-primary dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-900 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
             </button>
-            <h3 class="text-base md:text-lg font-semibold text-primary" x-text="monthName + ' ' + currentYear"></h3>
+            <h3 class="text-base md:text-lg font-semibold text-gray-900 dark:text-white" x-text="monthName + ' ' + currentYear"></h3>
             <button @click="nextMonth()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-              <svg class="w-5 h-5 text-primary dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-900 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
           </div>
 
-          <!-- Calendar Grid -->
           <div class="grid grid-cols-7 gap-1">
-            <!-- Day Headers -->
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Sun</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Mon</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Tue</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Wed</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Thu</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Fri</div>
-            <div class="text-center font-medium text-primary py-2 text-xs md:text-sm">Sat</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Sun</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Mon</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Tue</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Wed</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Thu</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Fri</div>
+            <div class="text-center font-medium text-gray-900 dark:text-white py-2 text-xs md:text-sm">Sat</div>
 
-            <!-- Empty cells for days before month starts -->
-            <template x-for="i in firstDayOfMonth" :key="i">
+            <template x-for="i in firstDayOfMonth" :key="'empty-' + i">
               <div class="h-8 md:h-10"></div>
             </template>
 
-            <!-- Days of the month -->
-            <template x-for="day in daysInMonth" :key="day">
+            <template x-for="day in daysInMonth" :key="'day-' + day">
               <button 
-                @click="selectDate(day);"
+                @click="selectDate(day)"
                 :disabled="isDateInPast(day)"
                 class="h-8 md:h-10 w-8 md:w-10 flex items-center justify-center rounded transition-colors text-sm"
                 :class="{ 
                   'bg-blue-500 text-white': isToday(day),
-                  'hover:bg-blue-100 hover:text-blue-600 cursor-pointer': !isDateInPast(day),
-                  'text-gray-300 cursor-not-allowed card-bg': isDateInPast(day),
+                  'hover:bg-blue-100 hover:text-blue-600 cursor-pointer text-gray-900 dark:text-white': !isDateInPast(day) && !isToday(day),
+                  'text-gray-300 cursor-not-allowed': isDateInPast(day),
                   'hover:bg-blue-500 hover:text-white': !isDateInPast(day) && !isToday(day)
                 }"
                 x-text="day">
@@ -846,8 +805,11 @@ function activitiesManager() {
     </div>
   </div>
 
-  <!-- Add Activity Modal -->
-  <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- ADD ACTIVITY MODAL -->
+  <div x-show="showAddModal" 
+       x-cloak 
+       class="fixed inset-0 z-50 overflow-y-auto"
+       style="display: none;">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
       <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -856,7 +818,6 @@ function activitiesManager() {
           <button @click="showAddModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl">✕</button>
         </div>
 
-        <!-- Selected Date Display -->
         <div class="px-4 md:px-6 py-3 bg-blue-50 dark:bg-blue-900/30 border-b dark:border-gray-600" x-show="selectedDate">
           <p class="text-sm text-blue-600 dark:text-blue-300">
             <strong>Selected Date:</strong> <span x-text="formatSelectedDate()"></span>
@@ -867,13 +828,13 @@ function activitiesManager() {
           @csrf
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Reason</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Reason</label>
             <input type="text" name="reason" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Barangay</label>
-            <select name="barangay_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Barangay</label>
+            <select name="barangay_id" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
               <option value="" disabled selected>Select Barangay</option>
               @foreach($barangays as $barangay)
                 <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
@@ -882,9 +843,9 @@ function activitiesManager() {
           </div>
 
           <div x-data="{ selectedCategory: '', customCategory: '' }">
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Category</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Category</label>
             <select x-model="selectedCategory" 
-                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
+                    class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
               <option value="" disabled selected>Select Category</option>
               <option value="vaccination">Vaccination</option>
               <option value="deworming">Deworming</option>
@@ -892,15 +853,13 @@ function activitiesManager() {
               <option value="other">Other (specify below)</option>
             </select>
             
-            <!-- Custom category input that appears when "Other" is selected -->
             <div x-show="selectedCategory === 'other'" x-transition>
               <input type="text" 
                      x-model="customCategory"
                      placeholder="Please specify the category"
-                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+                     class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
             </div>
             
-            <!-- Hidden input that will contain the final category value -->
             <input type="hidden" 
                    name="category" 
                    :value="selectedCategory === 'other' ? customCategory : selectedCategory">
@@ -908,87 +867,112 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Time</label>
-              <input type="time" name="time" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
+              <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Time</label>
+              <input type="time" 
+                     min="06:00" 
+                     max="17:00" 
+                     id="addTimeInput" 
+                     name="time" 
+                     class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+                     required>
             </div>
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Date</label>
-              <input type="date" name="date" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
-                     x-model="selectedDate" readonly required>
+              <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Date</label>
+              <input type="date" 
+                     name="date" 
+                     class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+                     x-model="selectedDate" 
+                     readonly 
+                     required>
             </div>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Status</label>
-            <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
-              <option value="up_coming" selected>Up Coming</option>
-            </select>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Status</label>
+            <div class="flex">
+              <div class="px-4 py-2 bg-yellow-100 text-yellow-800 border border-yellow-200 rounded-lg text-sm md:text-base font-medium">
+                Up Coming
+              </div>
+            </div>
+            <input type="hidden" name="status" value="up_coming">
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Details</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Details</label>
             <textarea name="details" 
                       rows="3" 
                       placeholder="Enter additional details or remarks about this activity..."
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
+                      class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
 
-          <!-- Notification Settings -->
           <div x-data="{ notifyAll: true, selectedBarangays: [] }">
-            <label class="block font-medium mb-3 text-sm md:text-base text-primary">Notify Users</label>
+            <label class="block font-medium mb-3 text-sm md:text-base text-gray-900 dark:text-white">Notify Users</label>
             
-            <!-- Notify All Option -->
             <div class="mb-3">
               <label class="flex items-center">
                 <input type="checkbox" 
                        x-model="notifyAll" 
                        @change="if(notifyAll) selectedBarangays = []"
                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                <span class="ml-2 text-sm md:text-base text-primary">Notify all users</span>
+                <span class="ml-2 text-sm md:text-base text-gray-900 dark:text-white">Notify all users</span>
               </label>
             </div>
 
-            <!-- Specific Barangays Selection -->
             <div x-show="!notifyAll" x-transition class="space-y-2">
-              <p class="text-sm text-primary mb-2">Select specific barangays to notify:</p>
-              <div class="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-1">
+              <p class="text-sm text-gray-900 dark:text-white mb-2">Select specific barangays to notify:</p>
+              <div class="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded p-2 space-y-1">
                 @foreach($barangays as $barangay)
                 <label class="flex items-center">
                   <input type="checkbox" 
                          value="{{ $barangay->id }}"
                          x-model="selectedBarangays"
                          class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                  <span class="ml-2 text-sm text-primary">{{ $barangay->name }}</span>
+                  <span class="ml-2 text-sm text-gray-900 dark:text-white">{{ $barangay->name }}</span>
                 </label>
                 @endforeach
               </div>
             </div>
 
-            <!-- Hidden inputs for form submission -->
             <input type="hidden" name="notify_all" :value="notifyAll ? '1' : '0'">
             <template x-for="barangayId in selectedBarangays" :key="barangayId">
               <input type="hidden" name="notify_barangays[]" :value="barangayId">
             </template>
           </div>
 
-          <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Memo (optional)</label>
-            <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
-                   x-on:change="$event.target.files.length > 0 ? 
-                     $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
-                     $el.parentElement.querySelector('.file-info').textContent = 'Attach a PDF, DOC, DOCX, or image file as a memo (optional).'"
-                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
-            <p class="text-xs text-gray-500 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo (optional).</p>
+          <div x-data="{ memoCount: 1 }">
+            <div class="flex justify-between items-center mb-2">
+              <label class="block font-medium text-sm md:text-base text-gray-900 dark:text-white">Memo(s) (optional)</label>
+              <button type="button" 
+                      @click="memoCount++"
+                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">
+                + Add Another Memo
+              </button>
+            </div>
+            
+            <div class="space-y-2">
+              <template x-for="i in memoCount" :key="i">
+                <div class="flex gap-2 items-start">
+                  <input type="file" 
+                         name="memos[]" 
+                         accept=".pdf,.doc,.docx,image/*"
+                         class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+                  <button type="button" 
+                          x-show="i > 1"
+                          @click="if(memoCount > 1) memoCount--"
+                          class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-xs whitespace-nowrap">
+                    Remove
+                  </button>
+                </div>
+              </template>
+            </div>
+            
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Attach PDF, DOC, DOCX, or image files as memos (optional).</p>
           </div>
 
-          <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">
+          <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t dark:border-gray-600">
             <button type="button" @click="resetModals()"
-                    class="w-full md:w-auto px-4 py-2 border rounded-md text-primary hover:bg-gray-100 text-sm md:text-base">
+                    class="w-full md:w-auto px-4 py-2 border dark:border-gray-600 rounded-md text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 text-sm md:text-base">
               Cancel
-            </button>
-            <button type="button" @click="openAddCalendar()"
-                    class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm md:text-base">
-              Change Date
             </button>
             <button type="submit"
                     class="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm md:text-base">
@@ -1000,17 +984,19 @@ function activitiesManager() {
     </div>
   </div>
 
-  <!-- Edit Activity Modal -->
-  <div x-show="showEditModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- EDIT ACTIVITY MODAL -->
+  <div x-show="showEditModal" 
+       x-cloak 
+       class="fixed inset-0 z-50 overflow-y-auto"
+       style="display: none;">
     <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full shadow-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b dark:border-gray-600">
-          <h2 class="text-lg md:text-xl font-semibold text-primary">Edit Activity</h2>
-          <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+          <h2 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Edit Activity</h2>
+          <button @click="showEditModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl">✕</button>
         </div>
 
-        <!-- Selected Date Display -->
         <div class="px-4 md:px-6 py-3 bg-blue-50 dark:bg-blue-900/30 border-b dark:border-gray-600" x-show="selectedDate">
           <p class="text-sm text-blue-600 dark:text-blue-300">
             <strong>Selected Date:</strong> <span x-text="formatSelectedDate()"></span>
@@ -1022,21 +1008,21 @@ function activitiesManager() {
           @method('PUT')
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Reason</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Reason</label>
             <input 
               type="text" 
               name="reason"
               x-model="currentActivity.reason" 
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+              class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
               required>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Barangay</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Barangay</label>
             <select 
               name="barangay_id" 
               x-model="currentActivity.barangay_id"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+              class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
               required>
               <option value="">Select Barangay</option>
               @foreach($barangays as $barangay)
@@ -1046,30 +1032,29 @@ function activitiesManager() {
           </div>
 
           <div x-data="{ 
-            editSelectedCategory: '', 
-            editCustomCategory: '',
-            init() {
-              // Initialize with current activity category
-              this.$watch('currentActivity', (activity) => {
-                if (activity && activity.category) {
-                  const predefinedCategories = ['vaccination', 'deworming', 'vitamin'];
-                  if (predefinedCategories.includes(activity.category)) {
-                    this.editSelectedCategory = activity.category;
-                    this.editCustomCategory = '';
+              editSelectedCategory: '', 
+              editCustomCategory: '',
+              init() {
+                this.$watch('currentActivity', (activity) => {
+                  if (activity && activity.category) {
+                    const predefinedCategories = ['vaccination', 'deworming', 'vitamin'];
+                    if (predefinedCategories.includes(activity.category)) {
+                      this.editSelectedCategory = activity.category;
+                      this.editCustomCategory = '';
+                    } else {
+                      this.editSelectedCategory = 'other';
+                      this.editCustomCategory = activity.category;
+                    }
                   } else {
-                    this.editSelectedCategory = 'other';
-                    this.editCustomCategory = activity.category;
+                    this.editSelectedCategory = '';
+                    this.editCustomCategory = '';
                   }
-                } else {
-                  this.editSelectedCategory = '';
-                  this.editCustomCategory = '';
-                }
-              });
-            }
-          }">
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Category</label>
+                });
+              }
+            }">
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Category</label>
             <select x-model="editSelectedCategory" 
-                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
+                    class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base mb-2">
               <option value="" disabled>Select Category</option>
               <option value="vaccination">Vaccination</option>
               <option value="deworming">Deworming</option>
@@ -1077,15 +1062,13 @@ function activitiesManager() {
               <option value="other">Other</option>
             </select>
             
-            <!-- Custom category input that appears when "Other" is selected -->
             <div x-show="editSelectedCategory === 'other'" x-transition>
               <input type="text" 
                      x-model="editCustomCategory"
                      placeholder="Please specify the category"
-                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+                     class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
             </div>
             
-            <!-- Hidden input that will contain the final category value -->
             <input type="hidden" 
                    name="category" 
                    :value="editSelectedCategory === 'other' ? editCustomCategory : editSelectedCategory">
@@ -1093,60 +1076,107 @@ function activitiesManager() {
 
           <div class="flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Time</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Time</label>
               <input 
                 type="time" 
                 name="time" 
+                id="editTimeInput"
+                min="06:00"
+                max="17:00"
                 x-model="currentActivity.time"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+                class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
                 required>
             </div>
             <div class="w-full md:w-1/2">
-              <label class="block font-medium mb-2 text-sm md:text-base text-primary">Date</label>
+              <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Date</label>
               <input 
                 type="date" 
                 name="date" 
                 x-model="currentActivity.date"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
+                class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
                 required>
             </div>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Status</label>
-            <select 
-              name="status" 
-              x-model="currentActivity.status"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
-              required>
-              <option value="on_going">On Going</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-            </select>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Status</label>
+            <div class="flex flex-wrap gap-3">
+              <button type="button"
+                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { currentActivity.status = 'up_coming' }"
+                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      :class="{
+                        'bg-yellow-500 text-white shadow-md ring-2 ring-yellow-400': currentActivity.status === 'up_coming',
+                        'bg-gray-200 text-gray-700 hover:bg-yellow-100 hover:text-yellow-700': currentActivity.status !== 'up_coming' && currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
+                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed' || currentActivity.status === 'failed'
+                      }"
+                      class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
+                Up Coming
+              </button>
+              
+              <button type="button"
+                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { currentActivity.status = 'on_going' }"
+                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      :class="{
+                        'bg-blue-500 text-white shadow-md ring-2 ring-blue-400': currentActivity.status === 'on_going',
+                        'bg-gray-200 text-gray-700 hover:bg-blue-100 hover:text-blue-700': currentActivity.status !== 'on_going' && currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
+                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed' || currentActivity.status === 'failed'
+                      }"
+                      class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
+                On Going
+              </button>
+              
+              <button type="button"
+                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { showCompletedConfirm = true }"
+                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      :class="{
+                        'bg-green-500 text-white shadow-md ring-2 ring-green-400': currentActivity.status === 'completed',
+                        'bg-gray-200 text-gray-700 hover:bg-green-100 hover:text-green-700': currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
+                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'failed'
+                      }"
+                      class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
+                Completed
+              </button>
+              
+              <button type="button"
+                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { showFailedModal = true }"
+                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      :class="{
+                        'bg-red-500 text-white shadow-md ring-2 ring-red-400': currentActivity.status === 'failed',
+                        'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700': currentActivity.status !== 'failed' && currentActivity.status !== 'completed',
+                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed'
+                      }"
+                      class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
+                Failed
+              </button>
+            </div>
+            
+            <input type="hidden" name="status" x-model="currentActivity.status">
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Details</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Details</label>
             <textarea name="details" 
                       rows="3" 
                       placeholder="Enter additional details or remarks about this activity..."
                       x-model="currentActivity.details"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
+                      class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-primary">Memo</label>
-            <input type="file" name="memo" accept=".pdf,.doc,.docx,image/*" 
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Memo</label>
+            <input type="file" 
+                   name="memo" 
+                   accept=".pdf,.doc,.docx,image/*" 
                    x-on:change="$event.target.files.length > 0 ? 
                      $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
                      $el.parentElement.querySelector('.file-info').textContent = 'Attach a PDF, DOC, DOCX, or image file as a memo (optional). Leave empty to keep existing memo.'"
-                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
-            <p class="text-xs text-gray-500 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo. Leave empty to keep existing memo.</p>
+                   class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo. Leave empty to keep existing memo.</p>
           </div>
 
-          <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t">
+          <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t dark:border-gray-600">
             <button type="button" @click="resetModals()"
-                    class="w-full md:w-auto px-4 py-2 border rounded-md text-primary hover:bg-gray-100 text-sm md:text-base">
+                    class="w-full md:w-auto px-4 py-2 border dark:border-gray-600 rounded-md text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 text-sm md:text-base">
               Cancel
             </button>
             <button type="button" @click="openEditCalendar()"
@@ -1159,49 +1189,116 @@ function activitiesManager() {
             </button>
           </div>
         </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delete Confirmation Modal -->
-  <div x-show="showDeleteModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="fixed inset-0 bg-black opacity-50" @click="showDeleteModal = false"></div>
-    <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="relative bg-white rounded-lg max-w-md w-full shadow-lg mx-4">
-        <div class="flex justify-between items-center px-4 md:px-6 py-4 border-b">
-          <h2 class="text-lg md:text-xl font-semibold text-red-600">Delete Activity</h2>
-          <button @click="showDeleteModal = false" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
-        </div>
-
-        <div class="px-4 md:px-6 py-4">
-          <div class="flex items-start mb-4">
-            <div class="flex-shrink-0">
-              <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-base md:text-lg font-medium text-gray-900">Are you sure?</h3>
-              <div class="mt-2 text-sm text-gray-500">
-                <p>This action cannot be undone. This will permanently delete the activity:</p>
-                <p class="font-semibold mt-1 break-words" x-text="activityToDelete ? activityToDelete.reason : ''"></p>
+        
+        <!-- COMPLETED CONFIRMATION MODAL -->
+        <div x-show="showCompletedConfirm" 
+             x-cloak
+             x-transition
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+             style="background-color: rgba(0, 0, 0, 0.5); display: none;">
+          <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl border-t-4 border-green-500" 
+               @click.away="showCompletedConfirm = false"
+               x-transition:enter="transition ease-out duration-300"
+               x-transition:enter-start="opacity-0 transform scale-90"
+               x-transition:enter-end="opacity-100 transform scale-100">
+            <div class="flex items-center mb-4">
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
               </div>
+              <h3 class="ml-4 text-xl font-bold text-gray-900 dark:text-white">Mark as Completed?</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 mb-6 ml-16">Are you sure you want to mark this activity as completed? This action cannot be undone.</p>
+            <div class="flex gap-3 justify-end">
+              <button type="button"
+                      @click="showCompletedConfirm = false"
+                      class="px-5 py-2.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-medium">
+                Cancel
+              </button>
+              <button type="button"
+                      @click="currentActivity.status = 'completed'; showCompletedConfirm = false"
+                      class="px-5 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium shadow-lg hover:shadow-xl">
+                Confirm Completed
+              </button>
             </div>
           </div>
         </div>
-
-        <div class="flex flex-col md:flex-row justify-end gap-3 px-4 md:px-6 py-4 border-t">
-          <button type="button" @click="showDeleteModal = false; activityToDelete = null"
-                  class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm md:text-base">
-            Cancel
-          </button>
-          <button type="button" @click="deleteActivity()"
-                  class="w-full md:w-auto px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm md:text-base">
-            Delete Activity
-          </button>
+        
+        <!-- FAILED CONFIRMATION MODAL -->
+        <div x-show="showFailedModal" 
+             x-cloak
+             x-transition
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+             style="background-color: rgba(0, 0, 0, 0.5); display: none;">
+          <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl border-t-4 border-red-500" 
+               @click.away="showFailedModal = false"
+               x-transition:enter="transition ease-out duration-300"
+               x-transition:enter-start="opacity-0 transform scale-90"
+               x-transition:enter-end="opacity-100 transform scale-100">
+            <div class="flex items-center mb-4">
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </div>
+              <h3 class="ml-4 text-xl font-bold text-gray-900 dark:text-white">Activity Failed</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">Please provide a reason why this activity failed. Users in this barangay will be notified via email.</p>
+            <textarea 
+              x-model="failureReason"
+              rows="4"
+              placeholder="Enter reason for failure..."
+              class="w-full border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-vertical text-sm"
+              required></textarea>
+            <div class="flex gap-3 justify-end mt-6">
+              <button type="button"
+                      @click="showFailedModal = false; failureReason = ''"
+                      class="px-5 py-2.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-medium">
+                Cancel
+              </button>
+              <button type="button"
+                      @click="confirmFailed()"
+                      class="px-5 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-lg hover:shadow-xl">
+                Confirm Failed
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const addTimeInput = document.getElementById('addTimeInput');
+      if (addTimeInput) {
+          addTimeInput.addEventListener('change', function() {
+              validateTime(this);
+          });
+      }
+      
+      const editTimeInput = document.getElementById('editTimeInput');
+      if (editTimeInput) {
+          editTimeInput.addEventListener('change', function() {
+              validateTime(this);
+          });
+      }
+      
+      function validateTime(input) {
+          const time = input.value;
+          if (time) {
+              const [hours, minutes] = time.split(':').map(Number);
+              
+              if (hours < 6 || hours >= 17) {
+                  alert('Please select a time between 6:00 AM and 5:00 PM');
+                  input.value = '';
+              }
+          }
+      }
+  });
+</script>
+
 @endsection

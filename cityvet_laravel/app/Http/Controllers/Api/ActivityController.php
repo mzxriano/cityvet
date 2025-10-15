@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use App\Models\User;
 use App\Notifications\PushNotification;
 use Cloudinary\Cloudinary;
+use App\Services\NotificationService;
 
 class ActivityController extends Controller
 {
@@ -536,20 +537,12 @@ class ActivityController extends Controller
                 'barangay_id' => $validated['barangay_id'],
                 'date' => $validated['date'],
                 'time' => $validated['time'],
-                'status' => 'pending', // AEW requests start as pending
+                'status' => 'pending', 
                 'created_by' => $user->id,
                 'category' => $validated['category'],
             ]);
 
-            // Notify admins about the new request
-            // $admins = User::where('role', 'admin')->get();
-            // foreach ($admins as $admin) {
-            //     $admin->notify(new PushNotification(
-            //         'New Activity Request',
-            //         "{$user->firstName} {$user->lastName} has submitted a new activity request: {$validated['reason']}",
-            //         ['activity_id' => $activity->id, 'type' => 'activity_request']
-            //     ));
-            // }
+            NotificationService::newRequestedActivitySchedule($activity);
 
             \Log::info('Activity request submitted successfully', [
                 'activity_id' => $activity->id,

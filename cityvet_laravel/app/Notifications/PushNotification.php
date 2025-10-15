@@ -152,12 +152,6 @@ class PushNotification extends Notification
                  ->line('• Contact us if your pet has special medical conditions');
         }
         
-        $mail->action($buttonText, url('/activities/' . ($this->data['activity_id'] ?? '')))
-             ->line('')
-             ->line('For questions or emergency concerns, please contact your local veterinary office immediately.')
-             ->line('Stay updated with CityVet for more community health programs!')
-             ->salutation('Best regards,<br>**The CityVet Team**<br>*Caring for your community, one pet at a time*');
-        
         // Attach memo file if it exists
         if ($this->memoPath && \Storage::disk('public')->exists($this->memoPath)) {
             try {

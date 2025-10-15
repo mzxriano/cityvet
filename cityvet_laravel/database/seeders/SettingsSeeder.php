@@ -24,14 +24,14 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'contact_email',
-                'value' => 'admin@cityvet.com',
+                'value' => 'cityvetofficial@gmail.com',
                 'type' => 'string',
                 'group' => 'general',
                 'description' => 'Main contact email address'
             ],
             [
                 'key' => 'contact_phone',
-                'value' => '09123456789',
+                'value' => '',
                 'type' => 'string',
                 'group' => 'general',
                 'description' => 'Main contact phone number'

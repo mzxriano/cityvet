@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
+use App\Services\NotificationService;
 
 class AnimalController extends Controller
 {
@@ -106,6 +107,8 @@ class AnimalController extends Controller
             ]);
             
             $animal = Animal::create($validated);
+
+            NotificationService::newAnimalRegistration($animal);
 
             // Automatically assign appropriate role based on animal type
             $owner = \App\Models\User::find($validated['user_id']);

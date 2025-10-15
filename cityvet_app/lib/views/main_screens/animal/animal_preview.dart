@@ -143,13 +143,22 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                 SizedBox(
                   height: imageHeight,
                   width: double.infinity,
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    child: myAnimal.imageUrl != null ?
-                      Image.network(myAnimal.imageUrl!) : 
-                      Image.asset('assets/images/logo.png'),
-                  ),
+                  child: myAnimal.imageUrl != null
+                      ? FittedBox(
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          child: Image.network(myAnimal.imageUrl!),
+                        )
+                      : Container(
+                          color: Config.primaryColor,
+                          child: Center(
+                            child: Icon(
+                              Icons.pets,
+                              size: 120,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                 ),
 
                 // Bottom main content

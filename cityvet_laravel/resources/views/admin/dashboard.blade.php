@@ -4,8 +4,9 @@
   <h1 class="title-style mb-8 lg:mb-[50px] text-2xl lg:text-3xl dark:text-white">Dashboard</h1>
 
   <section class="mb-6 lg:mb-[2rem]">
-    <!-- Stats Cards - Stack on mobile, flex on desktop -->
     <div class="flex flex-col lg:flex-row justify-between gap-4 lg:gap-[5rem] mb-6 lg:mb-[2rem]">
+      
+      <!-- Total Users -->
       <div 
         class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
         data-modal-target="userRoleModal" 
@@ -13,29 +14,44 @@
       >
         <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Users
+          <div class="text-xs text-secondary mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md w-fit">
+            Overall
+          </div>
         </div>
         <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalUsers }}
         </div>
       </div>
-      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
+
+      <!-- Total Registered Animals -->
+      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md hover:shadow-lg transition-shadow">
         <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Registered Animals
+          <div class="text-xs text-secondary mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md w-fit">
+            Overall
+          </div>
         </div>
         <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalAnimals }}
         </div>
       </div>
-      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md">
+
+      <!-- Total Vaccinated Animals -->
+      <div class="bg-white dark:bg-gray-800 flex flex-col flex-1 p-4 lg:p-[2rem] rounded-lg lg:rounded-[1rem] shadow-md hover:shadow-lg transition-shadow">
         <div class="mb-4 lg:mb-[2rem] text-gray-500 dark:text-gray-400 text-sm lg:text-base">
           Total Vaccinated Animals
+          <div class="text-xs text-secondary mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md w-fit">
+            Overall
+          </div>
         </div>
         <div class="text-xl lg:text-[2rem] font-semibold text-[#0E0E0E] dark:text-white">
           {{ $totalVaccinatedAnimals }}
         </div>
       </div>
+
     </div>
   </section>
+
 
   <!-- Modal -->
   <div id="userRoleModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50">
@@ -204,6 +220,7 @@
             <select id="date-range" class="w-full sm:w-auto px-3 py-2 border-2 bg-transparent rounded-full text-gray-600 text-sm lg:text-base">
               <option value="daily">Daily</option>
               <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
             </select>
           </div>
         </div>
@@ -224,8 +241,20 @@
     <div class="flex flex-col lg:flex-row gap-4 lg:gap-[2rem]">
     <!-- Vaccinated per barangay -->
     <div class="flex flex-col w-full lg:w-2/5 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 lg:p-[2rem]">
-      <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 mb-4 lg:mb-5 font-medium">
-        Vaccinated Animal Per Barangay
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 lg:mb-5">
+        <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 font-medium">
+          Vaccinated Animal Per Barangay
+        </div>
+        <!-- Year Filter -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Year:</label>
+          <select id="vaccination-year" class="px-3 py-2 border-2 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 rounded-full text-gray-600 text-sm">
+            <option value="all">All Years</option>
+            @foreach($availableYears as $year)
+              <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+            @endforeach
+          </select>
+        </div>
       </div>
       
       <!-- Horizontal Bar Chart -->
@@ -239,8 +268,20 @@
       
       <!-- Animal per category -->
       <div class="flex flex-col flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 lg:p-[2rem]">
-        <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 mb-4 font-medium">
-          Animal per Category
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <div class="text-lg lg:text-[20px] text-gray-700 dark:text-gray-300 font-medium">
+            Animal per Category
+          </div>
+          <!-- Barangay Filter -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600 dark:text-gray-400">Barangay:</label>
+            <select id="category-barangay" class="px-3 py-2 border-2 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 rounded-full text-gray-600 text-sm">
+              <option value="all">All Barangays</option>
+              @foreach($barangays as $barangay)
+                <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
+              @endforeach
+            </select>
+          </div>
         </div>
         <!-- Pie chart -->
         <div class="flex-1 min-h-[250px] sm:min-h-[300px]">
@@ -272,14 +313,16 @@
         return {
           labels: data.labels,
           dogBite: data.dogBitesByBarangay[barangay] || Array(data.labels.length).fill(0),
-          catBite: data.catBitesByBarangay[barangay] || Array(data.labels.length).fill(0)
+          catBite: data.catBitesByBarangay[barangay] || Array(data.labels.length).fill(0),
+          otherBite: data.otherBitesByBarangay ? (data.otherBitesByBarangay[barangay] || Array(data.labels.length).fill(0)) : Array(data.labels.length).fill(0)
         };
       } else {
         // Show all barangays combined
         return {
           labels: data.labels,
           dogBite: data.dogBite,
-          catBite: data.catBite
+          catBite: data.catBite,
+          otherBite: data.otherBite || Array(data.labels.length).fill(0)
         };
       }
     }
@@ -297,11 +340,73 @@
         data: {!! json_encode($animalsPerCategory->pluck('total')) !!}
       };
 
+    // Animal per Category by Barangay data
+    const animalCategoriesByBarangay = {!! json_encode($animalsPerCategoryByBarangay) !!};
+
     // Vaccinated Animals per Barangay chart data
     const vaccinatedBarangayData = {
         labels: {!! json_encode($barangays->pluck('name')) !!},
         data: {!! json_encode($barangays->pluck('vaccinated_animals_count')) !!}
       };
+    
+    // Vaccination data by year
+    const vaccinationDataByYear = {!! json_encode($vaccinationDataByYear) !!};
+    
+    // Helper function to get animal category data based on barangay filter
+    function getAnimalCategoryData(barangayId) {
+      if (barangayId && barangayId !== 'all') {
+        const barangayData = animalCategoriesByBarangay[barangayId];
+        if (barangayData) {
+          return {
+            labels: barangayData.labels,
+            data: barangayData.data
+          };
+        }
+        return { labels: [], data: [] };
+      } else {
+        return {
+          labels: animalCategories.labels,
+          data: animalCategories.data
+        };
+      }
+    }
+    
+    // Helper function to get vaccination data based on year filter
+    function getVaccinationData(year) {
+      if (year && year !== 'all') {
+        const yearData = vaccinationDataByYear[year];
+        if (yearData) {
+          return {
+            labels: yearData.labels,
+            data: yearData.data
+          };
+        }
+        return { labels: [], data: [] };
+      } else {
+        // Calculate total for all years
+        const allYears = Object.keys(vaccinationDataByYear);
+        if (allYears.length === 0) {
+          return {
+            labels: vaccinatedBarangayData.labels,
+            data: vaccinatedBarangayData.data
+          };
+        }
+        
+        const barangayNames = vaccinationDataByYear[allYears[0]].labels;
+        const totals = new Array(barangayNames.length).fill(0);
+        
+        allYears.forEach(y => {
+          vaccinationDataByYear[y].data.forEach((count, index) => {
+            totals[index] += parseInt(count) || 0;
+          });
+        });
+        
+        return {
+          labels: barangayNames,
+          data: totals
+        };
+      }
+    }
     
 
 
@@ -355,7 +460,7 @@
     // Create the bar chart
     let myChart = null;
     try {
-      if (selectedData && selectedData.labels && selectedData.dogBite && selectedData.catBite) {
+      if (selectedData && selectedData.labels && selectedData.dogBite && selectedData.catBite && selectedData.otherBite) {
         myChart = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -363,14 +468,20 @@
             datasets: [{
               label: 'Dog Bite',
               data: selectedData.dogBite,
-              backgroundColor: '#3B82F6',
-              borderColor: '#2563EB',
+              backgroundColor: '#F59E0B',
+              borderColor: '#D97706',
               borderWidth: 1
             }, {
               label: 'Cat Bite',
               data: selectedData.catBite,
-              backgroundColor: '#10B981',
-              borderColor: '#059669',
+              backgroundColor: '#8B5CF6',
+              borderColor: '#7C3AED',
+              borderWidth: 1
+            }, {
+              label: 'Others',
+              data: selectedData.otherBite,
+              backgroundColor: '#3B82F6',
+              borderColor: '#2563EB',
               borderWidth: 1
             }]
           },
@@ -415,22 +526,25 @@
 
     // Create the pie chart for Animal Categories
     let animalPieChart = null;
+    let selectedCategoryBarangay = 'all';
+    let currentCategoryData = getAnimalCategoryData(selectedCategoryBarangay);
+    
     try {
-      if (animalCategories && animalCategories.labels && animalCategories.data) {
+      if (currentCategoryData && currentCategoryData.labels && currentCategoryData.data) {
         animalPieChart = new Chart(pieCtx, {
           type: 'pie',
           data: {
-            labels: animalCategories.labels,
+            labels: currentCategoryData.labels,
             datasets: [{
               label: 'Animal Categories',
-              data: animalCategories.data,
+              data: currentCategoryData.data,
               backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'],
             }]
           },
           options: getPieChartOptions()
         });
       } else {
-        console.error('Invalid animal categories data:', animalCategories);
+        console.error('Invalid animal categories data:', currentCategoryData);
       }
     } catch (error) {
       console.error('Error creating animal pie chart:', error);
@@ -520,15 +634,18 @@
 
     // Create the horizontal bar chart for Vaccinated Animals per Barangay
     let vaccinatedBarangayChart = null;
+    let selectedVaccinationYear = document.getElementById('vaccination-year') ? document.getElementById('vaccination-year').value : 'all';
+    let currentVaccinationData = getVaccinationData(selectedVaccinationYear);
+    
     try {
-      if (vaccinatedBarangayData && vaccinatedBarangayData.labels && vaccinatedBarangayData.data) {
+      if (currentVaccinationData && currentVaccinationData.labels && currentVaccinationData.data) {
         vaccinatedBarangayChart = new Chart(barCtx, {
           type: 'bar',
           data: {
-            labels: vaccinatedBarangayData.labels,
+            labels: currentVaccinationData.labels,
             datasets: [{
               label: 'Vaccinated Animals',
-              data: vaccinatedBarangayData.data,
+              data: currentVaccinationData.data,
               backgroundColor: '#8B5CF6',
               borderColor: '#7C3AED',
               borderWidth: 1
@@ -537,7 +654,7 @@
           options: getHorizontalBarOptions()
         });
       } else {
-        console.error('Invalid vaccinated barangay data:', vaccinatedBarangayData);
+        console.error('Invalid vaccinated barangay data:', currentVaccinationData);
       }
     } catch (error) {
       console.error('Error creating vaccinated barangay chart:', error);
@@ -572,6 +689,7 @@
         myChart.data.labels = selectedData.labels;
         myChart.data.datasets[0].data = selectedData.dogBite;
         myChart.data.datasets[1].data = selectedData.catBite;
+        myChart.data.datasets[2].data = selectedData.otherBite;
         myChart.update();
       }
     });
@@ -584,7 +702,32 @@
         myChart.data.labels = selectedData.labels;
         myChart.data.datasets[0].data = selectedData.dogBite;
         myChart.data.datasets[1].data = selectedData.catBite;
+        myChart.data.datasets[2].data = selectedData.otherBite;
         myChart.update();
+      }
+    });
+
+    // Handle category barangay filter change
+    document.getElementById('category-barangay').addEventListener('change', function () {
+      selectedCategoryBarangay = this.value;
+      currentCategoryData = getAnimalCategoryData(selectedCategoryBarangay);
+      
+      if (animalPieChart && currentCategoryData) {
+        animalPieChart.data.labels = currentCategoryData.labels;
+        animalPieChart.data.datasets[0].data = currentCategoryData.data;
+        animalPieChart.update();
+      }
+    });
+
+    // Handle vaccination year filter change
+    document.getElementById('vaccination-year').addEventListener('change', function () {
+      selectedVaccinationYear = this.value;
+      currentVaccinationData = getVaccinationData(selectedVaccinationYear);
+      
+      if (vaccinatedBarangayChart && currentVaccinationData) {
+        vaccinatedBarangayChart.data.labels = currentVaccinationData.labels;
+        vaccinatedBarangayChart.data.datasets[0].data = currentVaccinationData.data;
+        vaccinatedBarangayChart.update();
       }
     });
   });

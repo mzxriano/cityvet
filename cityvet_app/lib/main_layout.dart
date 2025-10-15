@@ -79,22 +79,34 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
   }
 
-  List<Widget> _getPages(bool canUseQrScanner) {
+  List<Widget> _getPages(bool canUseQrScanner, String? userRole) {
+    // For vet, staff, and sub_admin: use AnimalManagementView instead of AnimalView
+    final isVetStaffOrAdmin = userRole == Role.veterinarian || 
+                               userRole == Role.staff || 
+                               userRole == Role.subAdmin;
+    final isAEW = userRole == Role.aew;
+    
     return [
       const HomeView(),
       const CommunityView(),
       if (canUseQrScanner) const QrScannerPage(),
-      const AnimalView(),
+      if (isAEW) const ScheduleActivityView(),
+      if (!isAEW) isVetStaffOrAdmin ? const AnimalManagementView() : const AnimalView(),
       const NotificationView(),
     ];
   }
 
-  List<NavigationItem> _getNavigationItems(bool canUseQrScanner) {
+  List<NavigationItem> _getNavigationItems(bool canUseQrScanner, String? userRole) {
+    final isAEW = userRole == Role.aew;
+    
     return [
       NavigationItem(icon: FontAwesomeIcons.house, pageIndex: 0),
       NavigationItem(icon: FontAwesomeIcons.users, pageIndex: 1),
       if (canUseQrScanner) NavigationItem(icon: FontAwesomeIcons.qrcode, pageIndex: 2),
-      NavigationItem(icon: FontAwesomeIcons.paw, pageIndex: canUseQrScanner ? 3 : 2),
+      if (isAEW) 
+        NavigationItem(icon: FontAwesomeIcons.calendarCheck, pageIndex: canUseQrScanner ? 3 : 2)
+      else
+        NavigationItem(icon: FontAwesomeIcons.paw, pageIndex: canUseQrScanner ? 3 : 2),
       NavigationItem(
         icon: FontAwesomeIcons.bell,
         pageIndex: canUseQrScanner ? 4 : 3,
@@ -107,8 +119,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     final isVet = userViewModel.user?.role == Role.veterinarian;
     final isStaff = userViewModel.user?.role == Role.staff;
-    final canUseQrScanner = isVet || isStaff;
-    final navItems = _getNavigationItems(canUseQrScanner);
+    final isSubAdmin = userViewModel.user?.role == Role.subAdmin;
+    final canUseQrScanner = isVet || isStaff || isSubAdmin;
+    final userRole = userViewModel.user?.role;
+    final navItems = _getNavigationItems(canUseQrScanner, userRole);
     
     if (index >= navItems.length || navItems[index].pageIndex == null) {
       return; 
@@ -617,8 +631,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         final isVet = userViewModel.user?.role == Role.veterinarian;
         final isStaff = userViewModel.user?.role == Role.staff;
         final canUseQrScanner = isVet || isStaff;
-        final pages = _getPages(canUseQrScanner);
-        final navItems = _getNavigationItems(canUseQrScanner);
+        final userRole = userViewModel.user?.role;
+        final pages = _getPages(canUseQrScanner, userRole);
+        final navItems = _getNavigationItems(canUseQrScanner, userRole);
         final selectedPageIndex = navItems[_currentIndex].pageIndex ?? 0;
 
         return Scaffold(
@@ -678,16 +693,6 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
             MaterialPageRoute(builder: (_) => const ProfileView()),
           ),
         ),
-        if (canAccessVaccination)
-          _buildDrawerItem(
-            'Animals',
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AnimalManagementView()),
-              );
-            },
-          ),
         if (!canAccessVaccination) // For pet, livestock, poultry owners
           _buildDrawerItem(
             'Archived Animals',
@@ -721,14 +726,6 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
             MaterialPageRoute(builder: (_) => const ReportIncidentView()),
           ),
         ),
-        if (userRole == 'aew')
-          _buildDrawerItem(
-            'Schedule Activity',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ScheduleActivityView()),
-            ),
-          ),
         const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
         _buildDrawerItem(
           'Logout',

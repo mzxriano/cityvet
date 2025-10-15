@@ -17,6 +17,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use App\Services\NotificationService;
 
 class AuthController extends Controller
 {
@@ -57,6 +58,8 @@ class AuthController extends Controller
         ]);
 
        $user->roles()->attach($role->id); 
+
+       NotificationService::newUserRegistration($user);
 
         try {
             Mail::to($user->email)->send(new VerifyEmail($user));

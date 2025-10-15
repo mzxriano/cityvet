@@ -33,6 +33,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'image_public_id',
         'force_password_change',
         'status',
+        'ban_reason',
+        'banned_at',
         'role_id',
         'is_active',
         'has_no_email',
@@ -113,6 +115,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'banned_at' => 'datetime',
             'password' => 'hashed',
             'force_password_change' => 'boolean',
         ];

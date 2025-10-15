@@ -2,11 +2,9 @@ import 'package:cityvet_app/models/animal_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_preview.dart';
-import 'package:cityvet_app/views/main_screens/animal/add_animal_for_owner.dart';
 
 class AnimalManagementView extends StatefulWidget {
   const AnimalManagementView({super.key});
@@ -44,9 +42,6 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
   Widget build(BuildContext context) {
     return Consumer2<UserViewModel, AnimalViewModel>(
       builder: (context, userViewModel, animalViewModel, _) {
-        final isOwner = userViewModel.user?.role == Role.petOwner 
-        || userViewModel.user?.role == Role.livestockOwner || 
-        userViewModel.user?.role == Role.poultryOwner;
         final animals = animalViewModel.allAnimals;
 
         // Enhanced filtering logic with vaccination status
@@ -72,57 +67,17 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
         // Sort filtered animals alphabetically by name
         filteredAnimals.sort((a, b) => a.name.compareTo(b.name));
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Animals'),
-            actions: [
-              // Results counter
-              if (searchQuery.isNotEmpty || selectedType != 'All' || selectedVaccinationStatus != 'All')
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Center(
-                    child: Text(
-                      '${filteredAnimals.length} result${filteredAnimals.length != 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          body: animalViewModel.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : animalViewModel.errors != null
-                  ? _buildError(animalViewModel.errors!)
-                  : Column(
-                      children: [
-                        _buildEnhancedSearchBar(animals),
-                        if (_showFilterOptions) _buildFilterChips(animals),
-                        Expanded(child: _buildAnimalList(filteredAnimals)),
-                      ],
-                    ),
-          floatingActionButton: !isOwner
-              ? FloatingActionButton.extended(
-                  backgroundColor: Config.primaryColor,
-                  icon: const Icon(Icons.add, color: Colors.white,),
-                  label: const Text('Add Animal', style: TextStyle(color: Colors.white),),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddAnimalForOwnerPage(),
-                      ),
-                    );
-                    if (result == true) {
-                      // Refresh the animals list
-                      context.read<AnimalViewModel>().fetchAllAnimals();
-                    }
-                  },
-                )
-              : null,
-        );
+        return animalViewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : animalViewModel.errors != null
+                ? _buildError(animalViewModel.errors!)
+                : Column(
+                    children: [
+                      _buildEnhancedSearchBar(animals),
+                      if (_showFilterOptions) _buildFilterChips(animals),
+                      Expanded(child: _buildAnimalList(filteredAnimals)),
+                    ],
+                  );
       },
     );
   }

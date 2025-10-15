@@ -8,8 +8,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Notifications\NewUserCredentials;
+use App\Notifications\UserBanned;
+use App\Services\NotificationService;
 
 class UserController
 {
@@ -112,6 +115,8 @@ class UserController
         $user = User::create($validated);
         $user->roles()->attach($validated['role_ids']);
 
+        NotificationService::newUserRegistration($user);
+
         $user->notify(new NewUserCredentials($password));
 
         return redirect()->route("admin.users")->with("success", "User Successfully Created.");
@@ -173,15 +178,37 @@ class UserController
             'role_ids' => 'sometimes|array',
             'role_ids.*' => 'exists:roles,id',
             'status' => 'sometimes|in:active,inactive,pending,rejected,banned',
+            'ban_reason' => 'nullable|string|max:1000',
         ]);
 
-        $user->update($validated);
+        // Handle ban status change
+        if ($request->filled('status') && $request->status === 'banned' && $user->status !== 'banned') {
+            $banReason = $request->ban_reason ?? 'No reason provided';
+            
+            // Update user status
+            $user->update([
+                'status' => 'banned',
+                'banned_at' => now(),
+                'ban_reason' => $banReason
+            ]);
+            
+            // Send ban notification email
+            $user->notify(new UserBanned($banReason));
+            
+            // Invalidate user sessions (force logout)
+            \DB::table('sessions')->where('user_id', $user->id)->delete();
+            
+            $message = 'User has been banned and notified via email.';
+        } else {
+            $user->update($validated);
+            $message = 'User successfully updated.';
+        }
 
         if ($request->filled('role_ids')) {
             $user->roles()->sync($validated['role_ids']);
         }
 
-        return redirect()->route('admin.users')->with('success', 'User successfully updated.');
+        return redirect()->route('admin.users')->with('success', $message);
     }
 
     /**

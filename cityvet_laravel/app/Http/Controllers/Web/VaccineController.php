@@ -8,6 +8,7 @@ use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
 
 class VaccineController extends Controller
 {
@@ -195,7 +196,9 @@ class VaccineController extends Controller
             // Set received_stock to the same value as stock when creating new vaccine
             $validatedData['received_stock'] = $validatedData['stock'];
 
-            Vaccine::create($validatedData);
+            $vaccine = Vaccine::create($validatedData);
+
+            NotificationService::lowVaccineStock($vaccine, $vaccine->stock, 100);
 
             return redirect()->route('admin.vaccines')->with('success', 'Vaccine added successfully!');
 

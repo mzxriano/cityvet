@@ -1,13 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'Animal B                        @endforeach
-                    @else
-                        <div class="p-6 text-center">
-                            <p class="text-gray-500">No incidents found</p>
-                        </div>
-                    @endif
-                </div>
-            </div> Management')
+@section('title', 'Animal Bite Case Management')
 
 @section('content')
 <div class="container mx-auto p-4">
@@ -35,7 +28,7 @@
         <div class="lg:col-span-2">
             <div class="bg-white border rounded-lg">
                 <div class="bg-blue-500 text-white px-4 py-2 rounded-t-lg">
-                    <h3 class="text-lg font-semibold">Incident Map</h3>
+                    <h3 class="text-lg font-semibold">Incident Map - Urdaneta City</h3>
                 </div>
                 <div style="height: 600px; width: 100%;">
                     <div id="incidentMap" style="height: 600px; width: 100%;"></div>
@@ -116,52 +109,122 @@
 <script>
 console.log('Script loaded');
 
-// Simple test to create map
+// Urdaneta City boundaries (approximate)
+const URDANETA_BOUNDS = L.latLngBounds(
+    L.latLng(15.9200, 120.5200),  // Southwest corner
+    L.latLng(16.0300, 120.6200)   // Northeast corner
+);
+
+// Urdaneta City center
+const URDANETA_CENTER = [15.9750, 120.5710];
+
 window.onload = function() {
     console.log('Window loaded, creating map...');
     
     try {
-        // Create map
-        var map = L.map('incidentMap').setView([15.9750, 120.5710], 13);
-        console.log('Map created');
+        // Create map with restrictions
+        var map = L.map('incidentMap', {
+            center: URDANETA_CENTER,
+            zoom: 13,
+            minZoom: 12,  // Prevent zooming out too far
+            maxZoom: 18,  // Allow detailed zoom
+            maxBounds: URDANETA_BOUNDS,  // Restrict panning
+            maxBoundsViscosity: 1.0  // Make bounds "hard" (prevent dragging outside)
+        });
+        
+        console.log('Map created with boundaries');
         
         // Add tiles
         L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-            attribution: '© CartoDB'
+            attribution: '© CartoDB',
+            bounds: URDANETA_BOUNDS  // Only load tiles within bounds
         }).addTo(map);
         console.log('Tiles added');
         
-        // Test marker
-        L.marker([15.9750, 120.5710]).addTo(map)
-            .bindPopup('Urdaneta City')
-            .openPopup();
-        console.log('Test marker added');
+        // Optional: Add a visible boundary rectangle to show the restricted area
+        L.rectangle(URDANETA_BOUNDS, {
+            color: '#3388ff',
+            weight: 2,
+            fillOpacity: 0,
+            dashArray: '5, 10'
+        }).addTo(map);
+        
+        // Add Urdaneta City label marker
+        L.marker(URDANETA_CENTER, {
+            icon: L.divIcon({
+                className: 'city-label',
+                html: '<div style="background: white; padding: 5px 10px; border-radius: 5px; border: 2px solid #3388ff; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Urdaneta City</div>',
+                iconSize: [120, 30],
+                iconAnchor: [60, 15]
+            })
+        }).addTo(map);
+        console.log('City label added');
         
         // Add incident data
         var incidents = @json($allIncidents);
         console.log('Incidents:', incidents);
         
+        // Create marker cluster group for better performance with many incidents
+        var markers = [];
+        
         incidents.forEach(function(incident) {
-            var color = incident.status === 'confirmed' ? 'red' : 'orange';
+            // Only add incidents within Urdaneta bounds
+            var incidentLatLng = L.latLng(incident.latitude, incident.longitude);
             
-            var circle = L.circle([incident.latitude, incident.longitude], {
-                color: color,
-                fillColor: color,
-                fillOpacity: 0.8,
-                radius: 30
-            }).addTo(map);
-            
-            // Add click event to show full details modal
-            circle.on('click', function(e) {
-                L.DomEvent.stopPropagation(e);
-                viewIncidentDetails(incident.id);
+            if (URDANETA_BOUNDS.contains(incidentLatLng)) {
+                var color = getIncidentColor(incident.status);
+                
+                var circle = L.circle([incident.latitude, incident.longitude], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.7,
+                    radius: 50,
+                    weight: 2
+                }).addTo(map);
+                
+                // Add click event to show full details modal
+                circle.on('click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    viewIncidentDetails(incident.id);
+                });
+                
+                // Add tooltip with incident info
+                var statusLabel = incident.status.replace('_', ' ').toUpperCase();
+                circle.bindTooltip(
+                    `<div style="text-align: center;">
+                        <strong>${incident.victim_name}</strong><br>
+                        <span style="font-size: 11px;">${incident.species}</span><br>
+                        <span style="font-size: 10px; color: ${color};">${statusLabel}</span>
+                    </div>`, 
+                    {
+                        permanent: false,
+                        direction: 'top',
+                        offset: [0, -10]
+                    }
+                );
+                
+                markers.push(circle);
+            } else {
+                console.warn('Incident outside Urdaneta bounds:', incident.id, incidentLatLng);
+            }
+        });
+        
+        // If there are incidents, fit the map to show them all (within bounds)
+        if (markers.length > 0) {
+            var group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1), {
+                maxZoom: 15
             });
-            
-            // Optional: Add simple tooltip on hover
-            circle.bindTooltip(`${incident.victim_name} - ${incident.species}`, {
-                permanent: false,
-                direction: 'top'
-            });
+        }
+        
+        console.log(`Added ${markers.length} incident markers`);
+        
+        // Add legend
+        addLegend(map);
+        
+        // Prevent map from being dragged outside bounds
+        map.on('drag', function() {
+            map.panInsideBounds(URDANETA_BOUNDS, { animate: false });
         });
         
     } catch (error) {
@@ -169,6 +232,57 @@ window.onload = function() {
         alert('Map failed to load: ' + error.message);
     }
 };
+
+// Function to get color based on incident status
+function getIncidentColor(status) {
+    switch(status) {
+        case 'confirmed':
+            return '#dc2626'; // Red
+        case 'under_review':
+            return '#3b82f6'; // Blue
+        case 'disputed':
+            return '#9333ea'; // Purple
+        case 'pending':
+        default:
+            return '#f59e0b'; // Orange/Yellow
+    }
+}
+
+// Function to add legend to map
+function addLegend(map) {
+    var legend = L.control({position: 'bottomright'});
+    
+    legend.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        div.style.background = 'white';
+        div.style.padding = '10px';
+        div.style.borderRadius = '5px';
+        div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        
+        var statuses = [
+            {status: 'pending', label: 'Pending', color: '#f59e0b'},
+            {status: 'under_review', label: 'Under Review', color: '#3b82f6'},
+            {status: 'confirmed', label: 'Confirmed', color: '#dc2626'},
+            {status: 'disputed', label: 'Disputed', color: '#9333ea'}
+        ];
+        
+        div.innerHTML = '<h4 style="margin: 0 0 5px 0; font-weight: bold;">Incident Status</h4>';
+        
+        statuses.forEach(function(item) {
+            div.innerHTML += 
+                `<div style="margin: 3px 0; display: flex; align-items: center;">
+                    <span style="display: inline-block; width: 15px; height: 15px; 
+                                 background-color: ${item.color}; border-radius: 50%; 
+                                 margin-right: 5px; border: 2px solid ${item.color};"></span>
+                    <span style="font-size: 12px;">${item.label}</span>
+                </div>`;
+        });
+        
+        return div;
+    };
+    
+    legend.addTo(map);
+}
 
 // Function to show modal
 function showModal() {
@@ -186,11 +300,9 @@ function closeModal() {
 
 // Function to view incident details in modal
 function viewIncidentDetails(incidentId) {
-    // Make AJAX request to get incident details
     fetch(`/admin/incidents/${incidentId}`)
         .then(response => response.json())
         .then(data => {
-            // Populate modal with incident data
             const modalBody = document.getElementById('modalBody');
             const modalActions = document.getElementById('modalActions');
             
@@ -238,11 +350,7 @@ function viewIncidentDetails(incidentId) {
                 ` : ''}
             `;
             
-            // Admin users can only view incidents, not manage status
-            // Status management is handled by barangay personnel in the mobile app
             modalActions.innerHTML = '';
-            
-            // Show modal
             showModal();
         })
         .catch(error => {
@@ -250,9 +358,6 @@ function viewIncidentDetails(incidentId) {
             alert('Error loading incident details');
         });
 }
-
-// Admin users can only view incidents
-// Status management (confirm/dispute) is handled by barangay personnel in the mobile app
 
 // Close modal when clicking outside
 document.getElementById('incidentModal').addEventListener('click', function(e) {

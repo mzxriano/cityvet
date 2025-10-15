@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Routing\Controller;
+use App\Services\NotificationService;
 
 class IncidentController extends Controller
 {
@@ -114,6 +115,8 @@ class IncidentController extends Controller
             $incidentData['status'] = 'pending';
 
             $incident = Incident::create($incidentData);
+
+            NotificationService::newBiteCaseReport($incident);
 
             return response()->json([
                 'success' => true,

@@ -32,8 +32,10 @@
     showAddModal: false,
     showEditModal: false,
     showRejectModal: false,
+    showBanModal: false,
     currentUser: null,
-    rejectionMessage: ''
+    rejectionMessage: '',
+    banReason: ''
 }">
     <h1 class="title-style mb-4 sm:mb-8">Users</h1>
 
@@ -329,7 +331,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form action="{{ route('admin.users.store') }}" method="POST" class="p-4">
+                <form action="{{ route('admin.users.store') }}" method="POST" class="p-4" onsubmit="return handleAddUserSubmit(event)">
                     @csrf
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -397,19 +399,49 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Roles</label>
-                            <div class="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
-                                @foreach($roles as $role)
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="checkbox" 
-                                            name="role_ids[]" 
-                                            value="{{ $role->id }}"
-                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
-                                    </label>
-                                @endforeach
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Roles <span class="text-red-500">*</span>
+                            </label>
+                            
+                            <!-- Owner Roles Section -->
+                            <div class="mb-4">
+                                <p class="text-xs text-gray-600 mb-2 font-medium bg-blue-100 px-3 py-2 rounded">Owner Roles (can select multiple):</p>
+                                <div class="space-y-2 border border-gray-300 rounded-md p-3 bg-blue-50">
+                                    @foreach($roles as $role)
+                                        @if(in_array($role->name, ['pet_owner', 'livestock_owner', 'poultry_owner']))
+                                            <label class="flex items-center space-x-2 cursor-pointer">
+                                                <input type="checkbox" 
+                                                    name="role_ids[]" 
+                                                    value="{{ $role->id }}"
+                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
+                                            </label>
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
+                            
+                            <!-- Staff/Admin Roles Section -->
+                            <div class="mb-4">
+                                <p class="text-xs text-gray-600 mb-2 font-medium bg-gray-100 px-3 py-2 rounded">Staff/Admin Roles (select one only):</p>
+                                <div class="space-y-2 border border-gray-300 rounded-md p-3 bg-gray-50">
+                                    @foreach($roles as $role)
+                                        @if(!in_array($role->name, ['pet_owner', 'livestock_owner', 'poultry_owner']))
+                                            <label class="flex items-center space-x-2 cursor-pointer">
+                                                <input type="radio" 
+                                                    name="role_ids[]" 
+                                                    value="{{ $role->id }}"
+                                                    class="border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
+                                            </label>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-2">
+                                <strong>Important:</strong> Select either owner role(s) OR one staff/admin role - not both.
+                            </p>
                         </div>
 
                         <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
@@ -563,17 +595,31 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <select name="status"
-                                    x-model="currentUser.status"
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="pending">Pending</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="banned">Banned</option>
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Status</label>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="button"
+                                        @click="currentUser.status = 'active'"
+                                        :class="{
+                                            'bg-green-500 text-white shadow-md ring-2 ring-green-400': currentUser.status === 'active',
+                                            'bg-gray-200 text-gray-700 hover:bg-green-100 hover:text-green-700': currentUser.status !== 'active'
+                                        }"
+                                        class="px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium">
+                                    Active
+                                </button>
+                                
+                                <button type="button"
+                                        @click="showBanModal = true"
+                                        :class="{
+                                            'bg-red-500 text-white shadow-md ring-2 ring-red-400': currentUser.status === 'banned',
+                                            'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700': currentUser.status !== 'banned'
+                                        }"
+                                        class="px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium">
+                                    Ban User
+                                </button>
+                            </div>
+                            
+                            <input type="hidden" name="status" x-model="currentUser.status">
+                            <input type="hidden" name="ban_reason" x-model="banReason">
                         </div>
 
                     </div>
@@ -660,5 +706,106 @@
         </div>
     </div>
 
+    <!-- Ban User Modal -->
+    <div x-show="showBanModal" 
+         x-cloak
+         x-transition
+         class="fixed inset-0 z-[70] overflow-y-auto"
+         @keydown.escape.window="showBanModal = false">
+        
+        <!-- Modal Backdrop -->
+        <div class="fixed inset-0 bg-black opacity-60"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl max-w-md w-full shadow-2xl border-t-4 border-red-500 z-10">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-6 border-b">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="ml-4 text-xl font-bold text-gray-900">Ban User</h3>
+                    </div>
+                    <button @click="showBanModal = false; banReason = ''" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <div class="mb-4">
+                        <p class="text-gray-600 mb-4">
+                            You are about to ban 
+                            <strong x-text="currentUser ? currentUser.first_name + ' ' + currentUser.last_name : ''"></strong>.
+                            This action will prevent them from accessing the system.
+                        </p>
+                        
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Reason for banning <span class="text-red-500">*</span>
+                        </label>
+                        <textarea 
+                            x-model="banReason"
+                            rows="4"
+                            placeholder="Please provide a clear reason for banning this user..."
+                            class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 resize-none"
+                            required></textarea>
+                        <p class="text-xs text-gray-500 mt-1">This message will be sent to the user via email notification.</p>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    <strong>Warning:</strong> The user will be immediately logged out and unable to access their account. They will receive an email notification about the ban.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button type="button" 
+                            @click="showBanModal = false; banReason = ''"
+                            class="w-full sm:w-auto px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button type="button"
+                            @click="if(banReason.trim() === '') { alert('Please provide a reason for banning this user.'); return; } currentUser.status = 'banned'; showBanModal = false;"
+                            class="w-full sm:w-auto px-5 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-lg hover:shadow-xl">
+                        Confirm Ban
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function handleAddUserSubmit(event) {
+    // Check if any roles are selected
+    const selectedRoles = document.querySelectorAll('input[name="role_ids[]"]:checked');
+    
+    if (selectedRoles.length === 0) {
+        alert('Please select at least one role.');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+@endpush

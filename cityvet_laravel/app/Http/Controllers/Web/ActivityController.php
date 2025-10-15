@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Barangay;
 use App\Models\User;
 use App\Notifications\PushNotification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -145,6 +146,9 @@ class ActivityController extends Controller
 
             // Notify users based on selection
             $notifyAll = $request->input('notify_all', true);
+
+            // Notify admin
+            NotificationService::newActivitySchedule($activity);
             
             if ($notifyAll) {
                 // Notify all users except rejected ones

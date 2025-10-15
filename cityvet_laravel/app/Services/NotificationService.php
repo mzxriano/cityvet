@@ -72,14 +72,45 @@ class NotificationService
      */
     public static function newActivitySchedule($activity)
     {
+        $category = ucfirst($activity->category ?? 'Veterinary');
+        $barangayName = $activity->barangay->name ?? 'Unknown Location';
+        $activityDate = \Carbon\Carbon::parse($activity->date)->format('F j, Y');
+        
         self::notifyAdmin(
             'New Activity Scheduled',
-            "A new {$activity->type} activity has been scheduled for {$activity->barangay} on " . date('M j, Y', strtotime($activity->date)),
+            "A new {$category} activity '{$activity->reason}' has been scheduled for {$barangayName} on {$activityDate}",
             'activity_schedule',
             [
                 'activity_id' => $activity->id,
-                'activity_type' => $activity->type,
-                'barangay' => $activity->barangay,
+                'activity_category' => $activity->category,
+                'activity_reason' => $activity->reason,
+                'barangay_name' => $barangayName,
+                'barangay_id' => $activity->barangay_id,
+                'date' => $activity->date,
+                'time' => $activity->time ?? null
+            ]
+        );
+    }
+
+    /**
+     * Notify admin about new requested activity schedule (AEW)
+     */
+    public static function newRequestedActivitySchedule($activity)
+    {
+        $category = ucfirst($activity->category ?? 'Veterinary');
+        $barangayName = $activity->barangay->name ?? 'Unknown Location';
+        $activityDate = \Carbon\Carbon::parse($activity->date)->format('F j, Y');
+        
+        self::notifyAdmin(
+            'New Activity was requested',
+            "A new {$category} activity '{$activity->reason}' has been requested for {$barangayName} on {$activityDate}",
+            'activity_schedule',
+            [
+                'activity_id' => $activity->id,
+                'activity_category' => $activity->category,
+                'activity_reason' => $activity->reason,
+                'barangay_name' => $barangayName,
+                'barangay_id' => $activity->barangay_id,
                 'date' => $activity->date,
                 'time' => $activity->time ?? null
             ]

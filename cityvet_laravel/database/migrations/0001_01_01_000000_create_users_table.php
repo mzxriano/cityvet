@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('suffix')->nullable();
             $table->date('birth_date');
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->string('phone_number')->unique();
+            $table->string('phone_number')->unique()->nullasble();
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id');
             $table->unsignedBigInteger('role_id')->nullable();
@@ -43,6 +43,8 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->string('image_public_id')->nullable();
             $table->enum('status', ['active', 'inactive', 'pending', 'rejected', 'banned'])->default('pending');
+            $table->text('ban_reason')->nullable();
+            $table->timestamp('banned_at')->nullable();
             $table->boolean('force_password_change')->default(false);
             $table->boolean('has_no_email')->default(false);
             $table->boolean('has_no_phone')->default(false);
@@ -74,7 +76,7 @@ return new class extends Migration
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->unique(['name', 'type']);
+            $table->unique(['user_id', 'name', 'type']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

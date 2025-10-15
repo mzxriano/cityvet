@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
 
 class AnimalController
 {
@@ -151,6 +152,8 @@ class AnimalController
             ...$validated,
             'user_id' => auth()->id(),
         ]);
+
+        NotificationService::newAnimalRegistration($animal);
 
         // Automatically assign appropriate role based on animal type
         $this->assignRoleBasedOnAnimalType(auth()->user(), $animal->type);
@@ -880,18 +883,23 @@ class AnimalController
                     $vaccineModel = \App\Models\Vaccine::find($vaccineId);
                     $vaccineModel->decrement('stock', $decrement);
                     
+                    $remainingStock = $vaccineModel->fresh()->stock;
+                    
                     \Log::info('Stock updated', [
                         'vaccine_id' => $vaccineId,
                         'vial_used' => $decrement,
-                        'remaining_stock' => $vaccineModel->fresh()->stock
+                        'remaining_stock' => $remainingStock
                     ]);
                     
-                    if ($vaccineModel->fresh()->stock < 100) {
+                    if ($remainingStock < 100) {
                         \Log::warning('Critical vaccine stock', [
                             'vaccine_id' => $vaccineId,
                             'vaccine_name' => $vaccineModel->name,
-                            'remaining_stock' => $vaccineModel->fresh()->stock
+                            'remaining_stock' => $remainingStock
                         ]);
+                        
+                        // Send notification to admins about low stock
+                        NotificationService::lowVaccineStock($vaccineModel, $remainingStock, 100);
                     }
                 }
                 
@@ -1011,20 +1019,25 @@ class AnimalController
                     $vaccineModel = \App\Models\Vaccine::find($vaccineId);
                     $vaccineModel->decrement('stock', $doseUsed);
                     
+                    $remainingStock = $vaccineModel->fresh()->stock;
+                    
                     \Log::info('Stock updated for activity', [
                         'activity_id' => $activityId,
                         'vaccine_id' => $vaccineId,
                         'dose_used' => $doseUsed,
-                        'remaining_stock' => $vaccineModel->fresh()->stock
+                        'remaining_stock' => $remainingStock
                     ]);
                     
-                    if ($vaccineModel->fresh()->stock <= 5) {
+                    if ($remainingStock <= 5) {
                         \Log::warning('Low vaccine stock after activity', [
                             'activity_id' => $activityId,
                             'vaccine_id' => $vaccineId,
                             'vaccine_name' => $vaccineModel->name,
-                            'remaining_stock' => $vaccineModel->fresh()->stock
+                            'remaining_stock' => $remainingStock
                         ]);
+                        
+                        // Send notification to admins about critically low stock
+                        \App\Services\NotificationService::lowVaccineStock($vaccineModel, $remainingStock, 5);
                     }
                 }
                 

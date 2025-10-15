@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Cloudinary\Cloudinary;
+use App\Services\NotificationService;
 
 class CommunityController extends Controller
 {
@@ -116,6 +117,8 @@ class CommunityController extends Controller
                 }
             }
         }
+
+        NotificationService::newCommunityPost($post);
 
         return response()->json([
             'message' => 'Post created successfully.',

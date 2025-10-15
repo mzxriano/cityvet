@@ -21,7 +21,7 @@ class AdminSeeder extends Seeder
         );
 
         Admin::updateOrCreate(
-            ['email' => 'madgebite@gmail.com'], 
+            ['email' => 'cityvetofficial@gmail.com'], 
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password123'),

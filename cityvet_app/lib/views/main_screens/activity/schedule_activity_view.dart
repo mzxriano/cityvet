@@ -1,6 +1,5 @@
 import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/label_text.dart';
-import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/schedule_activity_view_model.dart';
 import 'package:flutter/material.dart';
@@ -52,22 +51,6 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
     'Vitamin',
     'Other'
   ];
-
-
-
-  Future<bool> _onWillPop() async {
-    final isFormDirty = reasonController.text.isNotEmpty ||
-                        detailsController.text.isNotEmpty ||
-                        selectedBarangay != null ||
-                        selectedCategory != null ||
-                        selectedDate != null ||
-                        selectedTime != null;
-
-    if (!isFormDirty) return true;
-
-    final shouldLeave = await showConfirmationModal(context);
-    return shouldLeave ?? false;
-  }
 
   Future<void> _selectDate() async {
     final date = await showDatePicker(
@@ -143,61 +126,44 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
       builder: (context, viewModel, child) {
         return Stack(
           children: [
-            Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                  onPressed: viewModel.isLoading ? null : () async {
-                    final shouldPop = await _onWillPop();
-                    if(shouldPop) {
-                      Navigator.pop(context);
-                    }
-                  },
-                  icon: Config.backButtonIcon,
-                ),
-                title: const Text('Schedule Activity Request'),
-                backgroundColor: Config.primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              body: Padding(
-                padding: Config.paddingScreen,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Info
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Activity Request',
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Info
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Activity Request',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Submit a request for scheduling an activity in your assigned area. This request will be reviewed and approved by the admin.',
-                              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                            ),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Submit a request for scheduling an activity in your assigned area. This request will be reviewed and approved by the admin.',
+                            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: 20),
 
                       // Reason/Title
                       LabelText(label: 'Activity Title/Reason', isRequired: true),
@@ -408,8 +374,6 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
                     ],
                   ),
                 ),
-              ),
-            ),
             // Loading overlay
             if (viewModel.isLoading)
               Container(
