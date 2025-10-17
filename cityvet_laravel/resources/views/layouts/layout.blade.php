@@ -189,7 +189,7 @@
                    x-cloak>
                 <div class="p-3 border-b border-gray-200 dark:border-gray-700">
                   <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Admin User</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">admin@cityvet.com</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">cityvetofficial@gmail.com</p>
                 </div>
                 <div class="py-1">
                   <a href="{{ route('admin.settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">

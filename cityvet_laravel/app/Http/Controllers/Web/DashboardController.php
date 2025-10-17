@@ -108,6 +108,45 @@ class DashboardController
     }
 
     /**
+     * Get calendar activities for a specific month
+     */
+    public function getCalendarActivities(Request $request)
+    {
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
+        
+        // Get activities from the database
+        $activities = DB::table('activities')
+            ->leftJoin('barangays', 'activities.barangay_id', '=', 'barangays.id')
+            ->select(
+                'activities.id',
+                'activities.reason',
+                'activities.date',
+                'activities.time',
+                'activities.barangay_id',
+                'activities.status',
+                'barangays.name as barangay_name'
+            )
+            ->whereYear('activities.date', $year)
+            ->whereMonth('activities.date', $month)
+            ->whereNotIn('activities.status', ['failed'])
+            ->get()
+            ->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'title' => $activity->reason,
+                    'date' => $activity->date,
+                    'time' => $activity->time,
+                    'barangay_id' => $activity->barangay_id,
+                    'barangay_name' => $activity->barangay_name,
+                    'status' => $activity->status,
+                ];
+            });
+        
+        return response()->json($activities);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()

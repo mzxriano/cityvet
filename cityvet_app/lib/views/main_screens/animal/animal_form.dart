@@ -5,6 +5,7 @@ import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:cityvet_app/viewmodels/animal_form_view_model.dart';
+import 'package:cityvet_app/services/animal_type_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -43,19 +44,43 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   final FocusNode heightNode = FocusNode();
   final FocusNode uniqueSpotNode = FocusNode();
   final FocusNode knownConditionsNode = FocusNode();
+  final AnimalTypeService _animalTypeService = AnimalTypeService();
 
   String? selectedPetType;
   String? selectedBreed;
   String? selectedGender;
   DateTime? selectedDate;
   String? selectedColor;
+  bool _isLoadingBreeds = true;
 
-  Map<String, List<String>> petBreeds = {
-    'Dog': ['No Breed','Labrador', 'Poodle', 'Bulldog', 'Golden Retriever', 'Mixed-Breed'],
-    'Cat': ['No Breed', 'Persian', 'Siamese', 'Bengal', 'British Shorthair', 'Mixed-Breed'],
-  };
+  Map<String, List<String>> petBreeds = {};
 
   List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Orange'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnimalTypes();
+  }
+
+  Future<void> _loadAnimalTypes() async {
+    try {
+      final data = await _animalTypeService.getAnimalTypesAndBreeds();
+      setState(() {
+        petBreeds = data['petBreeds'] as Map<String, List<String>>;
+        _isLoadingBreeds = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingBreeds = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load animal types: $e')),
+        );
+      }
+    }
+  }
 
   void _clearForm() {
     setState(() {

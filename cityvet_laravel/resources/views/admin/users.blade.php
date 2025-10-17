@@ -39,16 +39,6 @@
 }">
     <h1 class="title-style mb-4 sm:mb-8">Users</h1>
 
-    <!-- Add User Button -->
-    <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
-        <button type="button"
-            x-on:click="showAddModal = true; selectedRoles = []"
-            class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
-            <span class="hidden sm:inline">+ New user</span>
-            <span class="sm:hidden">+ Add</span>
-        </button>
-    </div>
-
     <!-- Status Tabs -->
     <div class="mb-6">
         <div class="border-b border-gray-200">
@@ -83,6 +73,15 @@
 
     <!-- Users Table Card -->
     <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+        <!-- Add User Button -->
+        <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
+            <button type="button"
+                x-on:click="showAddModal = true; selectedRoles = []"
+                class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
+                <span class="hidden sm:inline">New user</span>
+                <span class="sm:hidden">Add</span>
+            </button>
+        </div>
         <!-- Filter Form -->
         <div class="mb-4">
             <form method="GET" action="{{ route('admin.users') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-between">
@@ -390,7 +389,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Street</label>
+                                <label class="block text-sm font-medium text-gray-700">Zone</label>
                                 <input type="text" 
                                        name="street" 
                                        required
@@ -399,49 +398,21 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Roles <span class="text-red-500">*</span>
                             </label>
-                            
-                            <!-- Owner Roles Section -->
-                            <div class="mb-4">
-                                <p class="text-xs text-gray-600 mb-2 font-medium bg-blue-100 px-3 py-2 rounded">Owner Roles (can select multiple):</p>
-                                <div class="space-y-2 border border-gray-300 rounded-md p-3 bg-blue-50">
-                                    @foreach($roles as $role)
-                                        @if(in_array($role->name, ['pet_owner', 'livestock_owner', 'poultry_owner']))
-                                            <label class="flex items-center space-x-2 cursor-pointer">
-                                                <input type="checkbox" 
-                                                    name="role_ids[]" 
-                                                    value="{{ $role->id }}"
-                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
-                                            </label>
-                                        @endif
-                                    @endforeach
-                                </div>
+                            <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+                                @foreach($roles as $role)
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" 
+                                               name="role_ids[]" 
+                                               value="{{ $role->id }}"
+                                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            
-                            <!-- Staff/Admin Roles Section -->
-                            <div class="mb-4">
-                                <p class="text-xs text-gray-600 mb-2 font-medium bg-gray-100 px-3 py-2 rounded">Staff/Admin Roles (select one only):</p>
-                                <div class="space-y-2 border border-gray-300 rounded-md p-3 bg-gray-50">
-                                    @foreach($roles as $role)
-                                        @if(!in_array($role->name, ['pet_owner', 'livestock_owner', 'poultry_owner']))
-                                            <label class="flex items-center space-x-2 cursor-pointer">
-                                                <input type="radio" 
-                                                    name="role_ids[]" 
-                                                    value="{{ $role->id }}"
-                                                    class="border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                <span class="text-sm text-gray-700">{{ ucwords(str_replace('_', ' ', $role->name)) }}</span>
-                                            </label>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                            
-                            <p class="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-2">
-                                <strong>Important:</strong> Select either owner role(s) OR one staff/admin role - not both.
-                            </p>
+                            <p class="text-xs text-gray-500 mt-1">Select one or more roles for this user</p>
                         </div>
 
                         <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">

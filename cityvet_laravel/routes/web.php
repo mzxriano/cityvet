@@ -63,6 +63,9 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth:admin', EnsureAdminSession::class, \App\Http\Middleware\EnsureAdminEmailIsVerified::class])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+        
+        // API endpoint for calendar activities
+        Route::get('/api/activities/calendar', [DashboardController::class, 'getCalendarActivities'])->name('admin.api.activities.calendar');
 
         Route::prefix('activities')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
@@ -154,6 +157,18 @@ Route::prefix('admin')->group(function () {
         Route::post('/settings/system', [App\Http\Controllers\Web\SettingsController::class, 'updateSettings'])
             ->name('settings.system.update');
 
+        // CMS Routes
+        Route::prefix('cms')->group(function () {
+            Route::get('/', [App\Http\Controllers\Web\CmsController::class, 'index'])->name('admin.cms');
+            Route::get('/animals', [App\Http\Controllers\Web\CmsController::class, 'animals'])->name('admin.cms.animals');
+            Route::post('/animals/types', [App\Http\Controllers\Web\CmsController::class, 'storeAnimalType'])->name('admin.cms.animals.types.store');
+            Route::delete('/animals/types/{id}', [App\Http\Controllers\Web\CmsController::class, 'deleteAnimalType'])->name('admin.cms.animals.types.delete');
+            Route::post('/animals/breeds', [App\Http\Controllers\Web\CmsController::class, 'storeBreed'])->name('admin.cms.animals.breeds.store');
+            Route::delete('/animals/breeds/{id}', [App\Http\Controllers\Web\CmsController::class, 'deleteBreed'])->name('admin.cms.animals.breeds.delete');
+            Route::get('/users', [App\Http\Controllers\Web\CmsController::class, 'users'])->name('admin.cms.users');
+            Route::post('/users/inactivity-threshold', [App\Http\Controllers\Web\CmsController::class, 'updateInactivityThreshold'])->name('admin.cms.users.threshold.update');
+        });
+
         Route::get('/notifications', [\App\Http\Controllers\Web\NotificationController::class, 'index'])->name('admin.notifications');
         Route::get('/api/notifications/recent', [\App\Http\Controllers\Web\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
         Route::post('/api/notifications/{id}/read', [\App\Http\Controllers\Web\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
@@ -162,6 +177,11 @@ Route::prefix('admin')->group(function () {
         Route::get('/bite-case', [IncidentController::class, 'index'])->name('admin.bite-case');
         Route::get('/incidents/{id}', [IncidentController::class, 'show'])->name('admin.incidents.show');
         // Admin can only view incidents, status management is handled by barangay personnel
+        
+        // Calendar routes
+        Route::get('/calendar', [App\Http\Controllers\Web\CalendarController::class, 'index'])->name('admin.calendar');
+        Route::get('/calendar/previous', [App\Http\Controllers\Web\CalendarController::class, 'previous'])->name('admin.calendar.previous');
+        Route::get('/calendar/next', [App\Http\Controllers\Web\CalendarController::class, 'next'])->name('admin.calendar.next');
         
     });
 });

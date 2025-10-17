@@ -1,17 +1,6 @@
 @extends('layouts.layout')
 
 @section('content')
-@php
-  $breedOptions = [
-    'dog' => ['Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle'],
-    'cat' => ['Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue'],
-    'cattle' => ['Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
-    'goat' => ['Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
-    'chicken' => ['Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
-    'duck' => ['Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
-    'carabao' => ['Native', 'Murrah', 'River Type', 'Swamp Type']
-  ];
-@endphp
 
 <!-- Success/Error Messages -->
 @if(session('success'))
@@ -108,11 +97,16 @@
             <label class="block font-medium text-sm mb-1 text-primary">Animal Type *</label>
             <select x-model="commonFields.type" @change="updateBreedOptions" name="common_type" class="w-full border-gray-300 rounded-md p-3 text-sm" required>
               <option value="">Select Type</option>
-              <option value="cattle">Cattle</option>
-              <option value="goat">Goat</option>
-              <option value="chicken">Chicken</option>
-              <option value="duck">Duck</option>
-              <option value="carabao">Carabao</option>
+              @php
+                $groupedTypes = $animalTypes->groupBy('category');
+              @endphp
+              @foreach($groupedTypes as $category => $types)
+                <optgroup label="{{ ucfirst($category) }}">
+                  @foreach($types as $type)
+                    <option value="{{ $type->name }}">{{ $type->display_name }}</option>
+                  @endforeach
+                </optgroup>
+              @endforeach
             </select>
           </div>
 

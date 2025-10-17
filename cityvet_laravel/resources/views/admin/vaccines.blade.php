@@ -96,19 +96,18 @@
         </nav>
     </div>
 
-    <!-- Add Vaccine Button (only show on delivery tab) -->
-    <div x-show="activeTab === 'delivery'" class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
-        <form action="{{ route('admin.vaccines.add') }}" method="GET">
-            <button type="submit"
-                    class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
-                <span class="hidden sm:inline">+ Add Vaccine</span>
-                <span class="sm:hidden">+ Add</span>
-            </button>
-        </form>
-    </div>
-
     <!-- Shared Filter Component -->
     <div x-show="activeTab !== 'usage'" class="w-full bg-white  rounded-xl p-2 sm:p-4 lg:p-8 shadow-md mb-6">
+        <!-- Add Vaccine Button (only show on delivery tab) -->
+        <div x-show="activeTab === 'delivery'" class="flex justify-end gap-2 sm:gap-5 mb-1 sm:mb-8">
+            <form action="{{ route('admin.vaccines.add') }}" method="GET">
+                <button type="submit"
+                        class="bg-green-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-green-600 transition">
+                    <span class="hidden sm:inline">Add Vaccine</span>
+                    <span class="sm:hidden">Add</span>
+                </button>
+            </form>
+        </div>
         <!-- Filter Form -->
         <div class="mb-4 sm:mb-6 card-bg p-2 sm:p-4 rounded-lg">
             <form method="GET" class="space-y-3 sm:space-y-4">

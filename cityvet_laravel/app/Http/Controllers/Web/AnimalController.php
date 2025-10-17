@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Models\Animal;
+use App\Models\AnimalType;
 use App\Models\User;
 use DB;
 use Illuminate\Http\Request;
@@ -69,7 +70,16 @@ class AnimalController extends Controller
             $animals = $query->paginate((int)$perPage)->appends(request()->query());
         }
 
-        return view("admin.animals", compact("animals"));
+        // Get animal types with breeds for dropdowns
+        $animalTypes = AnimalType::with('activeBreeds')->active()->ordered()->get();
+        
+        // Transform to old format for JavaScript compatibility
+        $breedOptions = [];
+        foreach ($animalTypes as $type) {
+            $breedOptions[$type->name] = $type->activeBreeds->pluck('name')->toArray();
+        }
+
+        return view("admin.animals", compact("animals", "animalTypes", "breedOptions"));
     }
 
     /**
@@ -234,7 +244,15 @@ class AnimalController extends Controller
      */
     public function showBatchRegistration()
     {
-        return view('admin.animals-batch-register');
+        $animalTypes = AnimalType::with('activeBreeds')->active()->ordered()->get();
+        
+        // Create breed options array for JavaScript compatibility
+        $breedOptions = [];
+        foreach ($animalTypes as $type) {
+            $breedOptions[$type->name] = $type->activeBreeds->pluck('name')->toArray();
+        }
+        
+        return view('admin.animals-batch-register', compact('animalTypes', 'breedOptions'));
     }
 
     /**

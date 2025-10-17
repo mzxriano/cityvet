@@ -4,6 +4,7 @@ import 'package:cityvet_app/modals/confirmation_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/image_picker.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/services/animal_type_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ class _AddAnimalForOwnerPageState extends State<AddAnimalForOwnerPage> {
   final TextEditingController uniqueSpotController = TextEditingController();
   final TextEditingController knownConditionsController = TextEditingController();
   final TextEditingController ownerSearchController = TextEditingController();
+  final AnimalTypeService _animalTypeService = AnimalTypeService();
 
   String? selectedPetType;
   String? selectedBreed;
@@ -33,17 +35,10 @@ class _AddAnimalForOwnerPageState extends State<AddAnimalForOwnerPage> {
   Map<String, dynamic>? selectedOwner;
   bool isSearching = false;
   bool isLoading = false;
+  bool _isLoadingBreeds = true;
   String errorMsg = '';
 
-  Map<String, List<String>> petBreeds = {
-    'Dog': ['No Breed', 'Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Mixed-Breed'],
-    'Cat': ['No Breed', 'Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue', 'Mixed-Breed'],
-    'Cattle': ['No Breed', 'Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
-    'Goat': ['No Breed', 'Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
-    'Chicken': ['No Breed', 'Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
-    'Duck': ['No Breed', 'Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
-    'Carabao': ['No Breed', 'Native', 'Murrah', 'River Type', 'Swamp Type'],
-  };
+  Map<String, List<String>> petBreeds = {};
 
   List<String> colors = [
     'Black', 
@@ -63,10 +58,30 @@ class _AddAnimalForOwnerPageState extends State<AddAnimalForOwnerPage> {
   @override
   void initState() {
     super.initState();
+    _loadAnimalTypes();
     // Clear any previous success messages when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnimalViewModel>().setMessage(null);
     });
+  }
+
+  Future<void> _loadAnimalTypes() async {
+    try {
+      final data = await _animalTypeService.getAnimalTypesAndBreeds();
+      setState(() {
+        petBreeds = data['petBreeds'] as Map<String, List<String>>;
+        _isLoadingBreeds = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingBreeds = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load animal types: $e')),
+        );
+      }
+    }
   }
 
   void _clearForm() {

@@ -37,6 +37,7 @@
             'bite-case' => ['label' => 'Bite Case'],
             'reports' => ['label' => 'Reports'],
             'archives' => ['label' => 'Archives'],
+            'cms' => ['label' => 'CMS'],
         ];
     @endphp
     

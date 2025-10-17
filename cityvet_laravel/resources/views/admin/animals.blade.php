@@ -25,21 +25,14 @@
   </div>
 @endif
 
-@php
-  $breedOptions = [
-    'dog' => ['Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle'],
-    'cat' => ['Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue'],
-    'cattle' => ['Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
-    'goat' => ['Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
-    'chicken' => ['Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
-    'duck' => ['Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
-    'carabao' => ['Native', 'Murrah', 'River Type', 'Swamp Type']
-  ];
-@endphp
-
 <div x-data="animalModals" x-init="init()">
   <h1 class="title-style mb-4 sm:mb-8">Animals</h1>
 
+  <!-- Breed Data -->
+  <input type="hidden" id="breed-data" value='@json($breedOptions)' />
+
+<!-- Animals Table Card -->
+<div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
   <!-- Add Animal Buttons -->
   <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
     <a href="{{ route('admin.animals.batch-register') }}" class="bg-purple-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-purple-600 transition">
@@ -51,12 +44,6 @@
       <span class="sm:hidden">+ Add</span>
     </button>
   </div>
-
-  <!-- Breed Data -->
-  <input type="hidden" id="breed-data" value='@json($breedOptions)' />
-
-<!-- Animals Table Card -->
-<div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
   <!-- Filter Form -->
   <div class="mb-4">
     <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-between">
@@ -69,14 +56,11 @@
             <option value="poultry" {{ request('type') == 'poultry' ? 'selected' : '' }}>Poultry</option>
           </optgroup>
           <optgroup label="Specific Types">
-            @foreach(array_keys($breedOptions) as $type)
-              <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+            @foreach($animalTypes as $animalType)
+              <option value="{{ $animalType->name }}" {{ request('type') == $animalType->name ? 'selected' : '' }}>
+                {{ $animalType->display_name }}
+              </option>
             @endforeach
-            <option value="cattle" {{ request('type') == 'cattle' ? 'selected' : '' }}>Cattle</option>
-            <option value="goat" {{ request('type') == 'goat' ? 'selected' : '' }}>Goat</option>
-            <option value="carabao" {{ request('type') == 'carabao' ? 'selected' : '' }}>Carabao</option>
-            <option value="chicken" {{ request('type') == 'chicken' ? 'selected' : '' }}>Chicken</option>
-            <option value="duck" {{ request('type') == 'duck' ? 'selected' : '' }}>Duck</option>
           </optgroup>
         </select>
 
@@ -266,19 +250,16 @@
                       required
                     >
                       <option value="" disabled>Select Species</option>
-                      <optgroup label="Pets">
-                        <option value="dog">Dog</option>
-                        <option value="cat">Cat</option>
-                      </optgroup>
-                      <optgroup label="Livestock">
-                        <option value="cattle">Cattle</option>
-                        <option value="goat">Goat</option>
-                        <option value="carabao">Carabao</option>
-                      </optgroup>
-                      <optgroup label="Poultry">
-                        <option value="chicken">Chicken</option>
-                        <option value="duck">Duck</option>
-                      </optgroup>
+                      @php
+                        $groupedTypes = $animalTypes->groupBy('category');
+                      @endphp
+                      @foreach($groupedTypes as $category => $types)
+                        <optgroup label="{{ ucfirst($category) }}">
+                          @foreach($types as $type)
+                            <option value="{{ $type->name }}">{{ $type->display_name }}</option>
+                          @endforeach
+                        </optgroup>
+                      @endforeach
                     </select>
                   </div>
 
@@ -478,19 +459,13 @@
               <label class="block font-medium text-sm text-primary">Species</label>
               <select name="type" x-model="currentAnimal?.type" id="modal-type-edit" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm" required>
                 <option value="" disabled>Select Species</option>
-                <optgroup label="Pets">
-                  <option value="dog">Dog</option>
-                  <option value="cat">Cat</option>
-                </optgroup>
-                <optgroup label="Livestock">
-                  <option value="cattle">Cattle</option>
-                  <option value="goat">Goat</option>
-                  <option value="carabao">Carabao</option>
-                </optgroup>
-                <optgroup label="Poultry">
-                  <option value="chicken">Chicken</option>
-                  <option value="duck">Duck</option>
-                </optgroup>
+                @foreach($groupedTypes as $category => $types)
+                  <optgroup label="{{ ucfirst($category) }}">
+                    @foreach($types as $type)
+                      <option value="{{ $type->name }}">{{ $type->display_name }}</option>
+                    @endforeach
+                  </optgroup>
+                @endforeach
               </select>
             </div>
 

@@ -12,6 +12,8 @@ class Animal extends Model
 
     protected $fillable = [
         'user_id',
+        'animal_type_id',
+        'animal_breed_id',
         'type',
         'name',
         'breed',
@@ -48,6 +50,22 @@ class Animal extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the animal type
+     */
+    public function animalType()
+    {
+        return $this->belongsTo(AnimalType::class);
+    }
+
+    /**
+     * Get the animal breed
+     */
+    public function animalBreed()
+    {
+        return $this->belongsTo(AnimalBreed::class);
     }
 
     public function vaccines() {

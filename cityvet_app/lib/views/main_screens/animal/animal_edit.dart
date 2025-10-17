@@ -6,6 +6,7 @@ import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_edit_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/services/animal_type_service.dart';
 
 class AnimalEdit extends StatefulWidget {
   final AnimalModel animalModel;
@@ -28,6 +29,7 @@ class _AnimalEditState extends State<AnimalEdit> {
   final FocusNode heightNode = FocusNode();
   final FocusNode uniqueSpotNode = FocusNode();
   final FocusNode knownConditionsNode = FocusNode();
+  final AnimalTypeService _animalTypeService = AnimalTypeService();
 
   String? selectedPetType;
   String? selectedBreed;
@@ -37,18 +39,48 @@ class _AnimalEditState extends State<AnimalEdit> {
 
   String? breedError;
   String? genderError;
+  bool _isLoadingBreeds = true;
 
-  Map<String, List<String>> petBreeds = {
-    'Dog': ['No Breed', 'Aspin', 'Shih Tzu', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Poodle', 'Bulldog', 'Beagle', 'Mixed-Breed'],
-    'Cat': ['No Breed', 'Puspin', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Russian Blue', 'Mixed-Breed'],
-    'Cattle': ['No Breed', 'Holstein', 'Brahman', 'Simmental', 'Native', 'Jersey', 'Angus'],
-    'Goat': ['No Breed', 'Boer', 'Anglo-Nubian', 'Native', 'Saanen', 'Toggenburg'],
-    'Chicken': ['No Breed', 'Native', 'Rhode Island Red', 'Leghorn', 'Broiler', 'Layer', 'Bantam'],
-    'Duck': ['No Breed', 'Mallard', 'Pekin', 'Native', 'Muscovy', 'Khaki Campbell'],
-    'Carabao': ['No Breed', 'Native', 'Murrah', 'River Type', 'Swamp Type'],
-  };
+  Map<String, List<String>> petBreeds = {};
 
+  @override
+  void initState() {
+    super.initState();
+    _loadAnimalTypes();
 
+    final animal = widget.animalModel;
+
+    petNameController.text = animal.name;
+    weightController.text = animal.weight?.toString() ?? '';
+    heightController.text = animal.height?.toString() ?? '';
+    uniqueSpotController.text = animal.uniqueSpot ?? '';
+    knownConditionsController.text = animal.knownConditions ?? '';
+
+    selectedPetType = animal.type;
+    selectedBreed = animal.breed;
+    selectedDate = animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
+    selectedGender = animal.gender;
+    selectedColor = animal.color;
+  }
+
+  Future<void> _loadAnimalTypes() async {
+    try {
+      final data = await _animalTypeService.getAnimalTypesAndBreeds();
+      setState(() {
+        petBreeds = data['petBreeds'] as Map<String, List<String>>;
+        _isLoadingBreeds = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingBreeds = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load animal types: $e')),
+        );
+      }
+    }
+  }
 
   Future<bool> _onWillPop() async {
     final isFormDirty = petNameController.text.isNotEmpty ||
@@ -66,25 +98,6 @@ class _AnimalEditState extends State<AnimalEdit> {
     final shouldLeave = await showConfirmationModal(context);
 
     return shouldLeave ?? false;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    final animal = widget.animalModel;
-
-    petNameController.text = animal.name;
-    weightController.text = animal.weight?.toString() ?? '';
-    heightController.text = animal.height?.toString() ?? '';
-    uniqueSpotController.text = animal.uniqueSpot ?? '';
-    knownConditionsController.text = animal.knownConditions ?? '';
-
-    selectedPetType = animal.type;
-    selectedBreed = animal.breed;
-    selectedDate = animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
-    selectedGender = animal.gender;
-    selectedColor = animal.color;
   }
 
   // Helper method for consistent InputDecoration

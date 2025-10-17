@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\AnimalTypeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BarangayController;
 use App\Http\Controllers\Api\UserController;
@@ -127,6 +128,25 @@ Route::prefix('auth')->group(function () {
             Route::put('/{id}', [IncidentController::class, 'update']);
             Route::put('/{id}/status', [IncidentController::class, 'updateStatus']);
             Route::delete('/{id}', [IncidentController::class, 'destroy']);
+        });
+
+        // Animal Types and Breeds Management
+        Route::prefix('animal-types')->group(function () {
+            Route::get('/', [AnimalTypeController::class, 'index']);
+            Route::get('/{id}/breeds', [AnimalTypeController::class, 'getBreeds']);
+            Route::get('/by-name/{typeName}/breeds', [AnimalTypeController::class, 'getBreedsByTypeName']);
+            
+            // Admin-only routes for managing animal types and breeds
+            Route::middleware(['role:admin'])->group(function () {
+                Route::post('/', [AnimalTypeController::class, 'store']);
+                Route::put('/{id}', [AnimalTypeController::class, 'update']);
+                Route::delete('/{id}', [AnimalTypeController::class, 'destroy']);
+                
+                // Breed management
+                Route::post('/{typeId}/breeds', [AnimalTypeController::class, 'storeBreed']);
+                Route::put('/{typeId}/breeds/{breedId}', [AnimalTypeController::class, 'updateBreed']);
+                Route::delete('/{typeId}/breeds/{breedId}', [AnimalTypeController::class, 'destroyBreed']);
+            });
         });
     }); 
 

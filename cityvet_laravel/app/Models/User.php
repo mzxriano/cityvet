@@ -39,7 +39,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'is_active',
         'has_no_email',
         'has_no_phone',
-        'created_by'
+        'created_by',
+        'last_login_at'
     ];
 
     /**
@@ -116,9 +117,19 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'banned_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'password' => 'hashed',
             'force_password_change' => 'boolean',
         ];
+    }
+
+    /**
+     * Update the user's last login timestamp
+     */
+    public function updateLastLogin()
+    {
+        $this->last_login_at = now();
+        $this->save();
     }
 
         /**

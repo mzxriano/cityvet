@@ -284,15 +284,14 @@ function activitiesManager() {
     </div>
   </div>
 
-  <div class="flex justify-end gap-3 md:gap-5 mb-4 md:mb-[2rem]">
-    <button @click="openAddModal(); console.log('Button clicked', showAddModal)"
-            class="bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 transition text-sm md:text-base">
-      + New Activity
-    </button>
-  </div>
-
   @if(!request()->routeIs('admin.activities.pending'))
   <div class="w-full bg-white dark:bg-gray-800 rounded-xl p-4 md:p-[2rem] shadow-md overflow-hidden">
+    <div class="flex justify-end gap-3 md:gap-5 mb-4 md:mb-[2rem]">
+      <button @click="openAddModal(); console.log('Button clicked', showAddModal)"
+              class="bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 transition text-sm md:text-base">
+        New Activity
+      </button>
+    </div>
     <div class="mb-4">
       <form method="GET" action="{{ route('admin.activities') }}" class="flex flex-col md:flex-row gap-2 md:gap-4 items-start md:items-center md:justify-end">
         <select name="status" class="w-full md:w-auto border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-md text-sm md:text-base">
@@ -1101,49 +1100,45 @@ function activitiesManager() {
           <div>
             <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Status</label>
             <div class="flex flex-wrap gap-3">
+              <!-- Show "Up Coming" only if current status is up_coming -->
               <button type="button"
-                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { currentActivity.status = 'up_coming' }"
-                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
-                      :class="{
-                        'bg-yellow-500 text-white shadow-md ring-2 ring-yellow-400': currentActivity.status === 'up_coming',
-                        'bg-gray-200 text-gray-700 hover:bg-yellow-100 hover:text-yellow-700': currentActivity.status !== 'up_coming' && currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
-                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed' || currentActivity.status === 'failed'
-                      }"
-                      class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
+                      x-show="currentActivity.status === 'up_coming'"
+                      @click="currentActivity.status = 'up_coming'"
+                      class="bg-yellow-500 text-white shadow-md ring-2 ring-yellow-400 px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
                 Up Coming
               </button>
               
+              <!-- Show "On Going" if status is on_going, up_coming -->
               <button type="button"
-                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { currentActivity.status = 'on_going' }"
-                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      x-show="currentActivity.status === 'up_coming' || currentActivity.status === 'on_going'"
+                      @click="currentActivity.status = 'on_going'"
                       :class="{
                         'bg-blue-500 text-white shadow-md ring-2 ring-blue-400': currentActivity.status === 'on_going',
-                        'bg-gray-200 text-gray-700 hover:bg-blue-100 hover:text-blue-700': currentActivity.status !== 'on_going' && currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
-                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed' || currentActivity.status === 'failed'
+                        'bg-gray-200 text-gray-700 hover:bg-blue-100 hover:text-blue-700': currentActivity.status === 'up_coming'
                       }"
                       class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
                 On Going
               </button>
               
+              <!-- Show "Completed" if status is on_going or completed -->
               <button type="button"
-                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { showCompletedConfirm = true }"
-                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      x-show="currentActivity.status === 'on_going' || currentActivity.status === 'completed'"
+                      @click="currentActivity.status === 'on_going' ? showCompletedConfirm = true : null"
                       :class="{
                         'bg-green-500 text-white shadow-md ring-2 ring-green-400': currentActivity.status === 'completed',
-                        'bg-gray-200 text-gray-700 hover:bg-green-100 hover:text-green-700': currentActivity.status !== 'completed' && currentActivity.status !== 'failed',
-                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'failed'
+                        'bg-gray-200 text-gray-700 hover:bg-green-100 hover:text-green-700': currentActivity.status === 'on_going'
                       }"
                       class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
                 Completed
               </button>
               
+              <!-- Show "Failed" if status is on_going or failed -->
               <button type="button"
-                      @click="if(currentActivity.status !== 'completed' && currentActivity.status !== 'failed') { showFailedModal = true }"
-                      :disabled="currentActivity.status === 'completed' || currentActivity.status === 'failed'"
+                      x-show="currentActivity.status === 'on_going' || currentActivity.status === 'failed'"
+                      @click="currentActivity.status === 'on_going' ? showFailedModal = true : null"
                       :class="{
                         'bg-red-500 text-white shadow-md ring-2 ring-red-400': currentActivity.status === 'failed',
-                        'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700': currentActivity.status !== 'failed' && currentActivity.status !== 'completed',
-                        'bg-gray-100 text-gray-400 cursor-not-allowed': currentActivity.status === 'completed'
+                        'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700': currentActivity.status === 'on_going'
                       }"
                       class="px-4 py-2 rounded-lg transition-all duration-200 text-sm md:text-base font-medium">
                 Failed
@@ -1162,16 +1157,34 @@ function activitiesManager() {
                       class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
 
-          <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Memo</label>
-            <input type="file" 
-                   name="memo" 
-                   accept=".pdf,.doc,.docx,image/*" 
-                   x-on:change="$event.target.files.length > 0 ? 
-                     $el.parentElement.querySelector('.file-info').textContent = 'File selected: ' + $event.target.files[0].name :
-                     $el.parentElement.querySelector('.file-info').textContent = 'Attach a PDF, DOC, DOCX, or image file as a memo (optional). Leave empty to keep existing memo.'"
-                   class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 file-info">Attach a PDF, DOC, DOCX, or image file as a memo. Leave empty to keep existing memo.</p>
+          <div x-data="{ editMemoCount: 1 }">
+            <div class="flex justify-between items-center mb-2">
+              <label class="block font-medium text-sm md:text-base text-gray-900 dark:text-white">Memo(s) (optional)</label>
+              <button type="button" 
+                      @click="editMemoCount++"
+                      class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">
+                + Add Another Memo
+              </button>
+            </div>
+            
+            <div class="space-y-2">
+              <template x-for="i in editMemoCount" :key="i">
+                <div class="flex gap-2 items-start">
+                  <input type="file" 
+                         name="memos[]" 
+                         accept=".pdf,.doc,.docx,image/*"
+                         class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base">
+                  <button type="button" 
+                          x-show="i > 1"
+                          @click="if(editMemoCount > 1) editMemoCount--"
+                          class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-xs whitespace-nowrap">
+                    Remove
+                  </button>
+                </div>
+              </template>
+            </div>
+            
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Attach PDF, DOC, DOCX, or image files as memos (optional). New memos will be added to existing ones.</p>
           </div>
 
           <div class="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t dark:border-gray-600">
@@ -1179,7 +1192,9 @@ function activitiesManager() {
                     class="w-full md:w-auto px-4 py-2 border dark:border-gray-600 rounded-md text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 text-sm md:text-base">
               Cancel
             </button>
-            <button type="button" @click="openEditCalendar()"
+            <button type="button" 
+                    @click="openEditCalendar()"
+                    x-show="currentActivity.status === 'up_coming'"
                     class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm md:text-base">
               Change Date
             </button>

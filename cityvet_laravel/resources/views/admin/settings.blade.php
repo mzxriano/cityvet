@@ -52,12 +52,12 @@
   </header>
 
   <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8")
-<div class="max-w-4xl mx-auto mt-10 space-y-8">
-    <!-- System Settings -->
-    <div class="bg-white dark:bg-gray-800 p-8 rounded shadow">
-        <h2 class="text-2xl font-bold mb-6 dark:text-white">System Settings</h2>
-        @if (session('settings_status'))
+  <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 dark:bg-gray-900">
+    <div class="max-w-4xl mx-auto mt-10 space-y-8">
+        <!-- System Settings -->
+        <div class="bg-white dark:bg-gray-800 p-8 rounded shadow">
+            <h2 class="text-2xl font-bold mb-6 dark:text-white">System Settings</h2>
+            @if (session('settings_status'))
             <div class="mb-4 text-green-600 dark:text-green-400">{{ session('settings_status') }}</div>
         @endif
         @if ($errors->updateSettings->any())
