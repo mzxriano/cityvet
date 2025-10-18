@@ -155,9 +155,6 @@ class AnimalController
 
         NotificationService::newAnimalRegistration($animal);
 
-        // Automatically assign appropriate role based on animal type
-        $this->assignRoleBasedOnAnimalType(auth()->user(), $animal->type);
-
         return response()->json([
             'message' => 'Animal successfully created.',
             'data' => [

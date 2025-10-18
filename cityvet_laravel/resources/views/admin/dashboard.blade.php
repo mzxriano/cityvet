@@ -114,7 +114,7 @@
           <!-- Barangay Filter -->
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600 dark:text-gray-400">Barangay:</label>
-            <select id="category-barangay" class="px-3 py-2 border-2 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 rounded-full text-gray-600 text-sm">
+            <select id="category-barangay" class="px-3 py-2 border-2 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 rounded-full text-gray-600 text-sm>
               <option value="all">All Barangays</option>
               @foreach($barangays as $barangay)
                 <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>

@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('suffix')->nullable();
             $table->date('birth_date');
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->string('phone_number')->unique()->nullasble();
+            $table->string('phone_number')->unique()->nullable();
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id');
             $table->unsignedBigInteger('role_id')->nullable();

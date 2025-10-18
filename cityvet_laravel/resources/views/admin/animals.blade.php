@@ -156,7 +156,7 @@
               </td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                 <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
-                  {{ $animal->type }}
+                  {{ ucwords($animal->type) }}
                 </span>
               </td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">

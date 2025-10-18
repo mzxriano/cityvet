@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\VaccineController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\IncidentController;
 use App\Http\Controllers\Web\ArchiveController;
+use App\Http\Controllers\Web\RoleRequestController;
 
 
 Route::get('/successful-verification', function () {
@@ -71,7 +72,9 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');
             Route::get('/pending', [ActivityController::class, 'pendingRequests'])->name('admin.activities.pending');
             Route::get('/{id}/show', [ActivityController::class, 'show'])->name('admin.activities.show');
-            Route::get('/{id}/memo', [ActivityController::class, 'downloadMemo'])->name('admin.activities.memo');
+            Route::get('/{id}/memos', [ActivityController::class, 'getMemos'])->name('admin.activities.memos');
+            Route::get('/{id}/memo/{index?}', [ActivityController::class, 'downloadMemo'])->name('admin.activities.memo');
+            Route::delete('/{id}/memo/{index}', [ActivityController::class, 'deleteMemo'])->name('admin.activities.memo.delete');
             Route::post('/', [ActivityController::class, 'create'])->name('admin.activities.store');
             Route::put('/{id}', [ActivityController::class, 'update'])->name('admin.activities.update');
             Route::post('/{id}/approve', [ActivityController::class, 'approveRequest'])->name('admin.activities.approve');
@@ -183,6 +186,9 @@ Route::prefix('admin')->group(function () {
         Route::get('/calendar/previous', [App\Http\Controllers\Web\CalendarController::class, 'previous'])->name('admin.calendar.previous');
         Route::get('/calendar/next', [App\Http\Controllers\Web\CalendarController::class, 'next'])->name('admin.calendar.next');
         
+        Route::get('/role-requests', [RoleRequestController::class, 'adminListRequests'])->name('admin.role.requests');
+        Route::patch('/role-requests/{id}/approve', [RoleRequestController::class, 'adminApprove'])->name('admin.role.requests.approve');
+        Route::post('/role-requests/{id}/reject', [RoleRequestController::class, 'adminReject'])->name('admin.role.requests.reject');
     });
 });
 

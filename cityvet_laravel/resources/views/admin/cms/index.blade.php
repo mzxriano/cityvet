@@ -75,7 +75,7 @@
         <div>
           <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">About CMS</h3>
           <p class="text-sm text-blue-800 dark:text-blue-400">
-            The Content Management System allows you to configure and customize various aspects of your application. 
+            The Content Management System allows you to configure and customize various aspects of the application. 
             Click on any card above to manage specific settings.
           </p>
         </div>

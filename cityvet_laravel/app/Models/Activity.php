@@ -75,4 +75,20 @@ class Activity extends Model
               });
         });
     }
+
+    // Accessor to handle memo as array for consistency
+    public function getMemoPathsAttribute()
+    {
+        if (!$this->memo) {
+            return [];
+        }
+        
+        // Check if it's a JSON array
+        if (is_string($this->memo) && str_starts_with($this->memo, '[')) {
+            return json_decode($this->memo, true) ?? [];
+        }
+        
+        // Single memo file
+        return [$this->memo];
+    }
 }

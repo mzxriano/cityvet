@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\VaccineController;
 use App\Http\Controllers\Api\IncidentController;
+use App\Http\Controllers\Api\RoleRequestController;
 
 Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
 
@@ -38,6 +39,12 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:api'])->group(function () {
 
     Route::post('/force-change-password', [UserController::class, 'changePassword']);
+    
+    // Role Request
+    Route::post('/role-request', [RoleRequestController::class, 'requestRole'])->name('role.request');
+    Route::get('/role-request/available', [RoleRequestController::class, 'availableRoles'])->name('role.request.available');
+    Route::post('/role-request/switch', [RoleRequestController::class, 'switchRole'])->name('role.request.switch');
+    Route::get('/role-request/approved', [RoleRequestController::class, 'approvedRoles'])->name('role.request.approved');
 
         // User
         Route::prefix('user')->group(function () {

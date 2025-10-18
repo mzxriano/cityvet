@@ -13,6 +13,7 @@ import 'package:cityvet_app/views/main_screens/home/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/report_incident_view.dart';
+import 'package:cityvet_app/views/settings_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
 import 'package:cityvet_app/views/register_owner_view.dart';
@@ -724,6 +725,13 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
           () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const ReportIncidentView()),
+          ),
+        ),
+        _buildDrawerItem(
+          'Settings',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SettingsView()),
           ),
         ),
         const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),

@@ -84,18 +84,44 @@ class ActivityController extends Controller
         return view('admin.activities_view', compact('activity', 'vaccinatedAnimals'));
     }
 
-    public function downloadMemo($id)
+    public function downloadMemo($id, $index = 0)
     {
         $activity = Activity::findOrFail($id);
         
-        if (!$activity->memo || !\Storage::disk('public')->exists($activity->memo)) {
+        if (!$activity->memo) {
             abort(404, 'Memo not found');
         }
         
-        $filePath = storage_path('app/public/' . $activity->memo);
-        $fileName = basename($activity->memo);
+        // Get all memo paths
+        $memoPaths = $activity->memo_paths;
         
-        return response()->download($filePath, $fileName);
+        if (empty($memoPaths) || !isset($memoPaths[$index])) {
+            abort(404, 'Memo not found');
+        }
+        
+        $memoPath = $memoPaths[$index];
+        
+        if (!\Storage::disk('public')->exists($memoPath)) {
+            abort(404, 'Memo file not found');
+        }
+        
+        $filePath = storage_path('app/public/' . $memoPath);
+        $fileName = basename($memoPath);
+        
+        // Check if download parameter is set
+        $download = request()->query('download', false);
+        
+        if ($download) {
+            // Force download
+            return response()->download($filePath, $fileName);
+        } else {
+            // Display inline (view in browser)
+            $mimeType = mime_content_type($filePath);
+            return response()->file($filePath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"'
+            ]);
+        }
     }
 
     public function create(Request $request)
@@ -112,21 +138,28 @@ class ActivityController extends Controller
             'notify_all' => 'sometimes|boolean',
             'notify_barangays' => 'sometimes|array',
             'notify_barangays.*' => 'exists:barangays,id',
-            'memo' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240', // 10MB max
+            'memos' => 'nullable|array',
+            'memos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240', // 10MB max per file
         ]);
 
         try {
             $memoPath = null;
             
-            // Handle memo file upload
-            if ($request->hasFile('memo')) {
-                try {
-                    $memoFile = $request->file('memo');
-                    $memoPath = $memoFile->store('activity_memos', 'public');
-                } catch (\Exception $e) {
-                    \Log::error('Failed to upload memo file: ' . $e->getMessage());
-                    return redirect()->back()->with('error', 'Failed to upload memo file. Please try again.');
+            // Handle multiple memo files upload
+            if ($request->hasFile('memos')) {
+                $memoPaths = [];
+                
+                foreach ($request->file('memos') as $memoFile) {
+                    try {
+                        $uploadedPath = $memoFile->store('activity_memos', 'public');
+                        $memoPaths[] = $uploadedPath;
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to upload memo file: ' . $e->getMessage());
+                    }
                 }
+                
+                // Store as JSON array if multiple, single string if one
+                $memoPath = count($memoPaths) > 1 ? json_encode($memoPaths) : ($memoPaths[0] ?? null);
             }
 
             // Create the activity
@@ -248,6 +281,27 @@ class ActivityController extends Controller
         ]);
     }
 
+    public function getMemos($id)
+    {
+        $activity = Activity::findOrFail($id);
+        
+        $memoPaths = $activity->memo_paths;
+        
+        $memos = [];
+        foreach ($memoPaths as $index => $path) {
+            $memos[] = [
+                'index' => $index,
+                'filename' => basename($path),
+                'path' => $path
+            ];
+        }
+        
+        return response()->json([
+            'memos' => $memos,
+            'count' => count($memos)
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
@@ -261,7 +315,8 @@ class ActivityController extends Controller
             'notify_all' => 'sometimes|boolean',
             'notify_barangays' => 'sometimes|array',
             'notify_barangays.*' => 'exists:barangays,id',
-            'memo' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
+            'memos' => 'nullable|array',
+            'memos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
         ]);
 
         try {
@@ -277,15 +332,31 @@ class ActivityController extends Controller
                 'status' => $validatedData['status']
             ];
             
-            // Handle memo file upload
-            if ($request->hasFile('memo')) {
-                // Delete old memo file if exists
-                if ($activity->memo && \Storage::disk('public')->exists($activity->memo)) {
-                    \Storage::disk('public')->delete($activity->memo);
+            // Handle multiple memo files upload
+            if ($request->hasFile('memos')) {
+                $memoPaths = [];
+                
+                // Keep existing memos if any
+                if ($activity->memo) {
+                    // Check if memo is JSON array or single string
+                    $existingMemos = is_string($activity->memo) && str_starts_with($activity->memo, '[') 
+                        ? json_decode($activity->memo, true) 
+                        : [$activity->memo];
+                    $memoPaths = array_filter($existingMemos); // Remove nulls
                 }
                 
-                $memoFile = $request->file('memo');
-                $updateData['memo'] = $memoFile->store('activity_memos', 'public');
+                // Upload new memo files
+                foreach ($request->file('memos') as $memoFile) {
+                    try {
+                        $memoPath = $memoFile->store('activity_memos', 'public');
+                        $memoPaths[] = $memoPath;
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to upload memo file: ' . $e->getMessage());
+                    }
+                }
+                
+                // Store as JSON array if multiple, single string if one
+                $updateData['memo'] = count($memoPaths) > 1 ? json_encode($memoPaths) : ($memoPaths[0] ?? null);
             }
             
             $activity->update($updateData);
@@ -302,9 +373,14 @@ class ActivityController extends Controller
         try {
             $activity = Activity::findOrFail($id);
             
-            // Delete memo file if exists
-            if ($activity->memo && \Storage::disk('public')->exists($activity->memo)) {
-                \Storage::disk('public')->delete($activity->memo);
+            // Delete memo files if exist
+            if ($activity->memo) {
+                $memoPaths = $activity->memo_paths;
+                foreach ($memoPaths as $memoPath) {
+                    if (\Storage::disk('public')->exists($memoPath)) {
+                        \Storage::disk('public')->delete($memoPath);
+                    }
+                }
             }
             
             $activity->delete();
@@ -453,6 +529,64 @@ class ActivityController extends Controller
                 'error' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to reject activity request. Error: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteMemo($id, $index)
+    {
+        try {
+            $activity = Activity::findOrFail($id);
+            
+            // Get all memo paths
+            $memoPaths = $activity->memo_paths;
+            
+            if (empty($memoPaths) || !isset($memoPaths[$index])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Memo not found'
+                ], 404);
+            }
+            
+            // Get the memo path to delete
+            $memoToDelete = $memoPaths[$index];
+            
+            // Delete the file from storage
+            if (\Storage::disk('public')->exists($memoToDelete)) {
+                \Storage::disk('public')->delete($memoToDelete);
+            }
+            
+            // Remove the memo from the array
+            unset($memoPaths[$index]);
+            
+            // Re-index the array to maintain sequential indices
+            $memoPaths = array_values($memoPaths);
+            
+            // Update the activity record
+            if (empty($memoPaths)) {
+                // If no memos left, set to null
+                $activity->memo = null;
+            } elseif (count($memoPaths) === 1) {
+                // If only one memo left, store as string
+                $activity->memo = $memoPaths[0];
+            } else {
+                // If multiple memos, store as JSON array
+                $activity->memo = json_encode($memoPaths);
+            }
+            
+            $activity->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Memo deleted successfully',
+                'remaining_count' => count($memoPaths)
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error deleting memo: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete memo: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

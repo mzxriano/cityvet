@@ -40,7 +40,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'has_no_email',
         'has_no_phone',
         'created_by',
-        'last_login_at'
+        'last_login_at',
+        'current_role_id'
     ];
 
     /**
@@ -75,6 +76,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
     public function roles(){
         return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    public function currentRole()
+    {
+        return $this->belongsTo(Role::class, 'current_role_id');
     }
 
     public function deviceTokens()

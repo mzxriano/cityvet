@@ -120,12 +120,6 @@ class AnimalController extends Controller
 
             NotificationService::newAnimalRegistration($animal);
 
-            // Automatically assign appropriate role based on animal type
-            $owner = \App\Models\User::find($validated['user_id']);
-            if ($owner) {
-                $this->assignRoleBasedOnAnimalType($owner, $animal->type);
-            }
-
             // Check if request is AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

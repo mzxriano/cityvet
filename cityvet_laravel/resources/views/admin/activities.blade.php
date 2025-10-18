@@ -460,16 +460,27 @@ function activitiesManager() {
             <div>
               <span class="font-medium text-gray-700 dark:text-gray-300">Memo:</span>
               @if($activity->memo)
-                <a href="{{ route('admin.activities.memo', $activity->id) }}" 
-                   class="text-blue-600 hover:text-blue-800 text-sm flex items-center" 
-                   onclick="event.stopPropagation()">
-                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                  </svg>
-                  Download
-                </a>
+                @php
+                  $memoPaths = $activity->memo_paths;
+                @endphp
+                @if(count($memoPaths) > 0)
+                  <div class="flex flex-col gap-1 mt-1">
+                    @foreach($memoPaths as $index => $memoPath)
+                      <a href="{{ route('admin.activities.memo', ['id' => $activity->id, 'index' => $index]) }}" 
+                         class="text-blue-600 hover:text-blue-800 text-xs flex items-center" 
+                         onclick="event.stopPropagation()">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        {{ count($memoPaths) > 1 ? 'Memo ' . ($index + 1) : 'Download' }}
+                      </a>
+                    @endforeach
+                  </div>
+                @else
+                  <p class="text-gray-400 dark:text-gray-500 italic text-sm">No memo</p>
+                @endif
               @else
-                <p class="text-gray-400 italic text-sm">No memo</p>
+                <p class="text-gray-400 dark:text-gray-500 italic text-sm">No memo</p>
               @endif
             </div>
             <div>
@@ -1157,9 +1168,106 @@ function activitiesManager() {
                       class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
 
-          <div x-data="{ editMemoCount: 1 }">
+          <div x-data="{ 
+              editMemoCount: 1,
+              existingMemos: [],
+              deletingMemoIndex: null,
+              async fetchMemos() {
+                if (this.currentActivity && this.currentActivity.id) {
+                  try {
+                    const response = await fetch(`/admin/activities/${this.currentActivity.id}/memos`);
+                    if (response.ok) {
+                      const data = await response.json();
+                      this.existingMemos = data.memos || [];
+                    }
+                  } catch (error) {
+                    console.error('Error fetching memos:', error);
+                  }
+                }
+              },
+              async deleteMemo(index) {
+                if (!confirm('Are you sure you want to delete this memo? This action cannot be undone.')) {
+                  return;
+                }
+                
+                this.deletingMemoIndex = index;
+                try {
+                  const response = await fetch(`/admin/activities/${this.currentActivity.id}/memo/${index}`, {
+                    method: 'DELETE',
+                    headers: {
+                      'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').content,
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  
+                  if (response.ok) {
+                    // Refresh the memos list
+                    await this.fetchMemos();
+                    // Show success message (optional)
+                    console.log('Memo deleted successfully');
+                  } else {
+                    const data = await response.json();
+                    alert('Failed to delete memo: ' + (data.message || 'Unknown error'));
+                  }
+                } catch (error) {
+                  console.error('Error deleting memo:', error);
+                  alert('Failed to delete memo. Please try again.');
+                } finally {
+                  this.deletingMemoIndex = null;
+                }
+              },
+              init() {
+                this.$watch('currentActivity', (activity) => {
+                  if (activity && activity.id) {
+                    this.fetchMemos();
+                  }
+                });
+              }
+            }"
+            x-init="init()">
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Memo(s)</label>
+            
+            <!-- Existing Memos Display -->
+            <template x-if="existingMemos.length > 0">
+              <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Existing Memos:</p>
+                <div class="space-y-2">
+                  <template x-for="(memo, index) in existingMemos" :key="'memo-' + index">
+                    <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+                      <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="text-sm text-gray-700 dark:text-gray-300 truncate" x-text="existingMemos.length > 1 ? `Memo ${index + 1}` : 'Memo'"></span>
+                      </div>
+                      <div class="flex gap-2 flex-shrink-0">
+                        <a :href="`/admin/activities/${currentActivity.id}/memo/${index}`"
+                           target="_blank"
+                           class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-200 rounded hover:bg-green-200 dark:hover:bg-green-700 text-xs">
+                          View
+                        </a>
+                        <a :href="`/admin/activities/${currentActivity.id}/memo/${index}?download=true`"
+                           class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-700 text-xs">
+                          Download
+                        </a>
+                        <button type="button"
+                                @click="deleteMemo(index)"
+                                :disabled="deletingMemoIndex === index"
+                                class="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-200 rounded hover:bg-red-200 dark:hover:bg-red-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                          <span x-show="deletingMemoIndex !== index">Delete</span>
+                          <span x-show="deletingMemoIndex === index">...</span>
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+            
+            <!-- Add New Memos Section -->
             <div class="flex justify-between items-center mb-2">
-              <label class="block font-medium text-sm md:text-base text-gray-900 dark:text-white">Memo(s) (optional)</label>
+              <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">Add New Memo(s) (optional)</label>
               <button type="button" 
                       @click="editMemoCount++"
                       class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">

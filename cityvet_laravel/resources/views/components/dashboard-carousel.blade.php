@@ -261,13 +261,13 @@
             <div class="lg:col-span-1">
               <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                 <div class="flex items-center justify-between mb-3">
-                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Barangay Status</h4>
+                  <div class="flex flex-col">
+                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Barangay Status</h4>
+                    <span class="text-[0.65rem] text-gray-500 dark:text-gray-400" id="barangayStatusYear"></span>
+                  </div>
                   <a href="{{ route('admin.activities') }}" 
                      class="px-2 py-1 text-[0.65rem] font-medium text-white bg-blue-500 hover:bg-blue-600 rounded transition-colors whitespace-nowrap"
                      title="Set Activity">
-                    <svg class="w-3 h-3 inline-block mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
                     Set Activity
                   </a>
                 </div>
@@ -301,6 +301,7 @@ let currentSlide = 0;
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let activitiesData = [];
+let yearlyActivitiesData = []; // Store yearly activities for barangay status
 
 // Fetch activities from server
 async function fetchActivities() {
@@ -308,11 +309,29 @@ async function fetchActivities() {
     const response = await fetch(`/admin/api/activities/calendar?month=${currentMonth + 1}&year=${currentYear}`);
     if (response.ok) {
       activitiesData = await response.json();
-      updateBarangayStatus();
     }
   } catch (error) {
     console.error('Error fetching activities:', error);
     activitiesData = [];
+  }
+}
+
+// Fetch yearly activities for barangay status (doesn't change when month changes)
+async function fetchYearlyActivities() {
+  try {
+    const response = await fetch(`/admin/api/activities/calendar?year=${currentYear}`);
+    if (response.ok) {
+      yearlyActivitiesData = await response.json();
+      updateBarangayStatus();
+      // Update the year indicator
+      const yearLabel = document.getElementById('barangayStatusYear');
+      if (yearLabel) {
+        yearLabel.textContent = `Year ${currentYear}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching yearly activities:', error);
+    yearlyActivitiesData = [];
   }
 }
 
@@ -341,6 +360,10 @@ function updateCarousel() {
   // Generate calendar when on calendar slide
   if (currentSlide === 1) {
     fetchActivities().then(() => generateCalendar());
+    // Fetch yearly activities only once when first viewing calendar
+    if (yearlyActivitiesData.length === 0) {
+      fetchYearlyActivities();
+    }
   }
 }
 
@@ -421,10 +444,11 @@ function generateCalendar() {
     const dayActivities = activitiesData.filter(activity => activity.date === dateStr);
     const activityStatus = getActivityStatus(day);
     
-    // Get unique barangay names and times for this day
+    // Get unique barangay names, times, and vaccination categories for this day
     const barangayInfo = dayActivities.map(a => ({
       name: a.barangay_name,
-      time: a.time || ''
+      time: a.time || '',
+      vaccination_category: a.vaccination_category || ''
     }));
     
     // Create display text with barangay and time
@@ -446,7 +470,17 @@ function generateCalendar() {
       }
     }
     
-    const tooltipText = barangayInfo.map(b => `${b.name}${b.time ? ' - ' + b.time : ''}`).join('\\n');
+    // Create tooltip with barangay, time, and vaccination category
+    const tooltipText = barangayInfo.map(b => {
+      let text = b.name;
+      if (b.vaccination_category) {
+        text += ` (${b.vaccination_category})`;
+      }
+      if (b.time) {
+        text += ` - ${b.time}`;
+      }
+      return text;
+    }).join('\\n');
     
     html += `<div class="p-1.5 min-h-[5rem] text-center border border-gray-200 dark:border-gray-600 rounded-lg
                         ${isToday ? 'ring-2 ring-blue-500' : ''}
@@ -472,11 +506,17 @@ function updateBarangayStatus() {
     el.className = 'w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600 ml-2';
   });
   
-  // Update barangay status based on activities
+  // Update barangay status based on YEARLY activities (not monthly)
   const barangayStatus = {};
+  const barangayFirstActivity = {}; // Track first activity date for each barangay
   
-  activitiesData.forEach(activity => {
+  yearlyActivitiesData.forEach(activity => {
     let status = activity.status; // Use status directly from database
+    
+    // Track the first activity date for each barangay
+    if (!barangayFirstActivity[activity.barangay_id] || activity.date < barangayFirstActivity[activity.barangay_id]) {
+      barangayFirstActivity[activity.barangay_id] = activity.date;
+    }
     
     // Priority: on_going > up_coming > completed
     if (!barangayStatus[activity.barangay_id] || 
@@ -487,9 +527,11 @@ function updateBarangayStatus() {
     }
   });
   
-  // Apply status colors
+  // Apply status colors and click handlers
   Object.keys(barangayStatus).forEach(barangayId => {
     const statusEl = document.getElementById(`status-${barangayId}`);
+    const barangayEl = document.querySelector(`[data-barangay-id="${barangayId}"]`);
+    
     if (statusEl) {
       const status = barangayStatus[barangayId];
       let colorClass = 'bg-gray-300 dark:bg-gray-600';
@@ -504,10 +546,34 @@ function updateBarangayStatus() {
       
       statusEl.className = `w-3 h-3 rounded-full ${colorClass} ml-2`;
     }
+    
+    // Add click handler to barangay element
+    if (barangayEl && barangayFirstActivity[barangayId]) {
+      barangayEl.style.cursor = 'pointer';
+      barangayEl.onclick = () => navigateToBarangayActivity(barangayId, barangayFirstActivity[barangayId]);
+    }
   });
 }
 
+function navigateToBarangayActivity(barangayId, activityDate) {
+  // Parse the activity date (format: YYYY-MM-DD)
+  const [year, month, day] = activityDate.split('-').map(Number);
+  
+  // Only navigate if the activity is in the current year being viewed
+  if (year !== currentYear) {
+    return; // Don't navigate to a different year
+  }
+  
+  // Update current month (only month changes, year stays the same)
+  currentMonth = month - 1; // JavaScript months are 0-indexed
+  
+  // Fetch and regenerate calendar for the new month
+  fetchActivities().then(() => generateCalendar());
+}
+
 function changeMonth(delta) {
+  const previousYear = currentYear;
+  
   currentMonth += delta;
   if (currentMonth < 0) {
     currentMonth = 11;
@@ -516,7 +582,14 @@ function changeMonth(delta) {
     currentMonth = 0;
     currentYear++;
   }
+  
+  // Fetch activities for the new month
   fetchActivities().then(() => generateCalendar());
+  
+  // Re-fetch yearly activities if year changed
+  if (currentYear !== previousYear) {
+    fetchYearlyActivities();
+  }
 }
 
 // Initialize carousel

@@ -62,10 +62,12 @@ class UserController extends Controller
     {
         $user = auth()->user()->load(['barangay', 'roles']);
 
+        \Log::info("User role: {$user->roles->pluck('name')->first()}");
+
         return response()->json([
             "user" => [
                 "id" => $user->id,
-                "role" => $user->roles->pluck('name')->first(),
+                "role" => $user->currentRole->name ?? $user->roles->pluck('name')->first(),
                 "first_name" => $user->first_name,
                 "last_name" => $user->last_name,
                 "suffix" => $user->suffix,
@@ -166,7 +168,7 @@ class UserController extends Controller
                 'first_name'=> $user->first_name,
                 'last_name'=> $user->last_name,
                 'suffix' => $user->suffix,
-                'role' => $user->roles->pluck('name')->first(),
+                'role' => $user->currentRole->name ?? $user->roles->pluck('name')->first(),
                 'email'=> $user->email,
                 'phone_number'=> $user->phone_number,
                 'birth_date' => $user->birth_date,

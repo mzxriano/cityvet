@@ -63,13 +63,20 @@ class UserController
         $roles = Role::all();
         $barangays = Barangay::all();
 
+        // Fetch pending role requests for admin UI
+        $roleRequests = \App\Models\RoleRequest::with(['user', 'requestedRole'])
+            ->where('status', 'pending')
+            ->orderByDesc('created_at')
+            ->get();
+
         return view("admin.users", compact([
             "users",
             "roles",
             "barangays",
             "allCount",
             "pendingCount",
-            "rejectedCount"
+            "rejectedCount",
+            "roleRequests"
         ]));
     }
 

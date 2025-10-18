@@ -33,46 +33,55 @@
     showEditModal: false,
     showRejectModal: false,
     showBanModal: false,
+    showRejectRoleModal: false,
     currentUser: null,
+    currentRoleRequest: null,
     rejectionMessage: '',
-    banReason: ''
+    banReason: '',
+    rejectionRoleMessage: '',
+    activeTab: 'users'
 }">
     <h1 class="title-style mb-4 sm:mb-8">Users</h1>
 
     <!-- Status Tabs -->
     <div class="mb-6">
         <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <a href="{{ route('admin.users', array_merge(request()->query(), ['status' => ''])) }}"
-                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 
-                          {{ !request('status') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+            <nav class="-mb-px flex space-x-8 flex-wrap" aria-label="Tabs">
+                <a href="{{ route('admin.users', array_merge(request()->except('status'))) }}"
+                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {{ !request('status') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     All
                     <span class="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs font-medium">
                         {{ $allCount ?? 0 }}
                     </span>
                 </a>
                 <a href="{{ route('admin.users', array_merge(request()->query(), ['status' => 'pending'])) }}"
-                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200
-                          {{ request('status') === 'pending' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {{ request('status') === 'pending' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     Pending
                     <span class="ml-2 bg-yellow-100 text-yellow-900 py-0.5 px-2.5 rounded-full text-xs font-medium">
                         {{ $pendingCount ?? 0 }}
                     </span>
                 </a>
                 <a href="{{ route('admin.users', array_merge(request()->query(), ['status' => 'rejected'])) }}"
-                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200
-                          {{ request('status') === 'rejected' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {{ request('status') === 'rejected' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     Rejected
                     <span class="ml-2 bg-red-100 text-red-900 py-0.5 px-2.5 rounded-full text-xs font-medium">
                         {{ $rejectedCount ?? 0 }}
                     </span>
                 </a>
+                <button type="button" @click="activeTab = 'roleRequests'"
+                   class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200"
+                   :class="activeTab === 'roleRequests' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'">
+                    Role Requests
+                    <span class="ml-2 bg-purple-100 text-purple-900 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                        {{ $roleRequests->count() ?? 0 }}
+                    </span>
+                </button>
             </nav>
         </div>
     </div>
 
     <!-- Users Table Card -->
-    <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+    <div x-show="activeTab !== 'roleRequests'" class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
         <!-- Add User Button -->
         <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
             <button type="button"
@@ -305,6 +314,83 @@
         @endif
     </div>
 
+    <!-- Role Requests Tab Content -->
+    <div x-show="activeTab === 'roleRequests'" class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
+        <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <table class="min-w-full border-collapse">
+                <thead class="bg-[#d9d9d9] text-left text-[#3D3B3B]">
+                    <tr>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tl-xl font-medium text-xs sm:text-sm">User</th>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm">Current Role</th>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm">Requested Role</th>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm">Reason</th>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 font-medium text-xs sm:text-sm">Date</th>
+                        <th class="px-2 py-2 sm:px-4 sm:py-3 rounded-tr-xl font-medium text-xs sm:text-sm">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($roleRequests as $roleRequest)
+                    <tr class="hover:bg-gray-50 border-t text-[#524F4F] transition-colors duration-150">
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                            <div class="font-medium">{{ $roleRequest->user->first_name }} {{ $roleRequest->user->last_name }}</div>
+                            <div class="text-gray-500 text-xs">{{ $roleRequest->user->email }}</div>
+                        </td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                            @php $currentRole = $roleRequest->user->roles()->first(); @endphp
+                            @if($currentRole)
+                                <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                                    {{ ucwords(str_replace('_', ' ', $currentRole->name)) }}
+                                </span>
+                            @else
+                                <span class="text-gray-400">No Role</span>
+                            @endif
+                        </td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                            <span class="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                {{ ucwords(str_replace('_', ' ', $roleRequest->requestedRole->name)) }}
+                            </span>
+                        </td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                            <div class="max-w-xs truncate" title="{{ $roleRequest->reason }}">
+                                {{ $roleRequest->reason ?? 'No reason provided' }}
+                            </div>
+                        </td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
+                            {{ $roleRequest->created_at->format('M d, Y') }}
+                        </td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-center">
+                            <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                <form action="{{ route('admin.role.requests.approve', $roleRequest->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" 
+                                            onclick="return confirm('Approve this role request?')"
+                                            class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
+                                        Approve
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.role.requests.reject', $roleRequest->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" 
+                                            onclick="return confirm('Reject this role request?')"
+                                            class="bg-red-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-red-600 transition">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-500 text-sm">No pending role requests.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Add User Modal -->
     <div x-show="showAddModal" 
          x-cloak
@@ -361,7 +447,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" 
+                                                            <input type="email" 
                                    name="email" 
                                    required
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 sm:p-3 text-sm">
@@ -695,7 +781,7 @@
                     <div class="flex items-center">
                         <div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                             </svg>
                         </div>
                         <h3 class="ml-4 text-xl font-bold text-gray-900">Ban User</h3>

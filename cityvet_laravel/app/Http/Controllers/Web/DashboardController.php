@@ -125,6 +125,7 @@ class DashboardController
                 'activities.time',
                 'activities.barangay_id',
                 'activities.status',
+                'activities.category as vaccination_category',
                 'barangays.name as barangay_name'
             )
             ->whereYear('activities.date', $year)
@@ -140,6 +141,7 @@ class DashboardController
                     'barangay_id' => $activity->barangay_id,
                     'barangay_name' => $activity->barangay_name,
                     'status' => $activity->status,
+                    'vaccination_category' => $activity->vaccination_category,
                 ];
             });
         
