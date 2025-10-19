@@ -82,4 +82,16 @@ class UserService {
     return response;
   }
 
+  Future<UserModel?> getCurrentUser({required String token}) async {
+    try {
+      final data = await fetchUser(token);
+      if (data['user'] != null) {
+        return UserModel.fromJson(data['user']);
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+    return null;
+  }
+
 }

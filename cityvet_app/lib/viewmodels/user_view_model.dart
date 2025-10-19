@@ -66,4 +66,16 @@ class UserViewModel extends ChangeNotifier {
     }
   }
   
+  Future<void> fetchUser() async {
+    try {
+      final token = await AuthStorage().getToken();
+      if (token == null) return;
+      final user = await UserService().getCurrentUser(token: token);
+      if (user != null) {
+        setUser(user);
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+  }
 }

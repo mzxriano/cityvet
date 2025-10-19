@@ -24,7 +24,7 @@ class CmsController extends Controller
      */
     public function animals()
     {
-        $animalTypes = AnimalType::with('breeds')->ordered()->get();
+        $animalTypes = AnimalType::with('breeds')->ordered()->get(); // Remove ->where('is_active', true) if present
         return view('admin.cms.animals', compact('animalTypes'));
     }
 
@@ -70,24 +70,52 @@ class CmsController extends Controller
     }
 
     /**
-     * Delete an animal type
+     * Archive (deactivate) an animal type instead of deleting
+     */
+    public function archiveAnimalType($id)
+    {
+        $animalType = AnimalType::findOrFail($id);
+        $animalType->is_active = false;
+        $animalType->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Animal type archived successfully'
+        ]);
+    }
+
+    /**
+     * Restore (activate) an archived animal type
+     */
+    public function restoreAnimalType($id)
+    {
+        $animalType = AnimalType::findOrFail($id);
+        $animalType->is_active = true;
+        $animalType->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Animal type restored successfully'
+        ]);
+    }
+
+    /**
+     * Delete an animal type (legacy, now archives if in use)
      */
     public function deleteAnimalType($id)
     {
         $animalType = AnimalType::findOrFail($id);
-        
-        // Check if there are animals using this type
         $animalsCount = $animalType->animals()->count();
-        
         if ($animalsCount > 0) {
+            // Archive instead of delete
+            $animalType->is_active = false;
+            $animalType->save();
             return response()->json([
-                'success' => false,
-                'message' => "Cannot delete this animal type. It is currently used by {$animalsCount} animal(s)."
-            ], 422);
+                'success' => true,
+                'message' => "Animal type archived instead of deleted because it is used by {$animalsCount} animal(s)."
+            ]);
         }
-
         $animalType->delete();
-
         return response()->json([
             'success' => true,
             'message' => 'Animal type deleted successfully'

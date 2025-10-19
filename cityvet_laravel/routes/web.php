@@ -170,6 +170,8 @@ Route::prefix('admin')->group(function () {
             Route::delete('/animals/breeds/{id}', [App\Http\Controllers\Web\CmsController::class, 'deleteBreed'])->name('admin.cms.animals.breeds.delete');
             Route::get('/users', [App\Http\Controllers\Web\CmsController::class, 'users'])->name('admin.cms.users');
             Route::post('/users/inactivity-threshold', [App\Http\Controllers\Web\CmsController::class, 'updateInactivityThreshold'])->name('admin.cms.users.threshold.update');
+            Route::post('/animals/types/{id}/archive', [App\Http\Controllers\Web\CmsController::class, 'archiveAnimalType'])->name('admin.cms.animals.types.archive');
+            Route::post('/animals/types/{id}/restore', [App\Http\Controllers\Web\CmsController::class, 'restoreAnimalType'])->name('admin.cms.animals.types.restore');
         });
 
         Route::get('/notifications', [\App\Http\Controllers\Web\NotificationController::class, 'index'])->name('admin.notifications');
@@ -188,7 +190,7 @@ Route::prefix('admin')->group(function () {
         
         Route::get('/role-requests', [RoleRequestController::class, 'adminListRequests'])->name('admin.role.requests');
         Route::patch('/role-requests/{id}/approve', [RoleRequestController::class, 'adminApprove'])->name('admin.role.requests.approve');
-        Route::post('/role-requests/{id}/reject', [RoleRequestController::class, 'adminReject'])->name('admin.role.requests.reject');
+        Route::patch('/role-requests/{id}/reject', [RoleRequestController::class, 'adminReject'])->name('admin.role.requests.reject');
     });
 });
 

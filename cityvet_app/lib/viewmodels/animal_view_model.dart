@@ -128,7 +128,6 @@ Future<void> fetchAnimals() async {
     if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
       final responseData = response.data as Map<String, dynamic>;
       
-      // Handle the case where 'data' might be null or not a list
       final dynamic dataField = responseData['data'];
       if (dataField is List) {
         final animalsList = dataField

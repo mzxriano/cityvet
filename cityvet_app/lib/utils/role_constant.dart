@@ -14,5 +14,5 @@ class Role {
 
   static const subAdmin = 'sub_admin';
 
-  static const barangayPersonel = 'barangay_personel';
+  static const barangayPersonnel = 'barangay_personel';
 }

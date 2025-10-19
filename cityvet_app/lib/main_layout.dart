@@ -1,23 +1,20 @@
 import 'package:cityvet_app/components/qr_scanner.dart';
-import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/animals_view.dart';
 import 'package:cityvet_app/views/archived_animals_view.dart';
-import 'package:cityvet_app/views/login_view.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_view.dart';
 import 'package:cityvet_app/views/main_screens/community/community_view.dart';
 import 'package:cityvet_app/views/main_screens/home/home_view.dart';
 import 'package:cityvet_app/views/main_screens/notification/notification_view.dart';
 import 'package:cityvet_app/views/profile/profile_view.dart';
 import 'package:cityvet_app/views/report_incident_view.dart';
-import 'package:cityvet_app/views/settings_view.dart';
+import 'package:cityvet_app/views/settings/settings_view.dart';
 import 'package:cityvet_app/views/vaccination_history_view.dart';
 import 'package:cityvet_app/views/main_screens/activity/schedule_activity_view.dart';
 import 'package:cityvet_app/views/register_owner_view.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -37,7 +34,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   int _currentIndex = 0;
   int _previousIndex = 0;
   int _unreadNotifications = 0;
-  bool _isLoading = false;
   ApiService? _apiService;
 
   @override
@@ -137,144 +133,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
   }
 
-  // Added confirmation dialog before logout
-  Future<void> _showLogoutConfirmation() async {
-    final bool? shouldLogout = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.logout,
-                color: Config.primaryColor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Confirm Logout',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Config.primaryColor,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to logout? You will need to sign in again to access your account.',
-            style: TextStyle(
-              fontFamily: Config.primaryFont,
-              fontSize: 16,
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Logout',
-                style: TextStyle(
-                  fontFamily: Config.primaryFont,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    // If user confirmed logout, proceed with logout
-    if (shouldLogout == true) {
-      await _handleLogout();
-    }
-  }
-
-  Future<void> _handleLogout() async {
-    if (_isLoading) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final storage = AuthStorage();
-      final token = await storage.getToken();
-
-      if (token == null) {
-        _showMessage('No token found. Please log in again.');
-        return;
-      }
-
-      final response = await Dio().post(
-        '${ApiConstant.baseUrl}/user/logout',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        await storage.deleteToken();
-        
-        if (mounted) {
-          _showMessage(response.data['message'] ?? 'Logged out successfully');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginView()),
-          );
-        }
-      } else {
-        _showMessage(response.data['error'] ?? 'Unknown error occurred.');
-      }
-    } catch (e) {
-      _showMessage('Failed to log out: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _showMessage(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    }
-  }
+  
 
   void _showCommandPalette() async {
   final animalViewModel = Provider.of<AnimalViewModel>(context, listen: false);
@@ -733,12 +592,6 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
             context,
             MaterialPageRoute(builder: (_) => const SettingsView()),
           ),
-        ),
-        const Divider(thickness: 0.5, color: Color(0xFFDDDDDD)),
-        _buildDrawerItem(
-          'Logout',
-          _showLogoutConfirmation,
-          isLoading: _isLoading,
         ),
       ],
     ),

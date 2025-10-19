@@ -34,6 +34,8 @@
     showRejectModal: false,
     showBanModal: false,
     showRejectRoleModal: false,
+    showApproveUserConfirmModal: false,
+    showApproveRoleConfirmModal: false,
     currentUser: null,
     currentRoleRequest: null,
     rejectionMessage: '',
@@ -247,15 +249,11 @@
                                         
                                         @if($user->status === 'pending')
                                             <!-- Approve button for pending users -->
-                                            <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" 
-                                                    onclick="return confirm('Are you sure you want to approve this user?')"
-                                                    class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
-                                                    Approve
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                @click.stop="showApproveUserConfirmModal = true; currentUser = @js($user)"
+                                                class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
+                                                Approve
+                                            </button>
                                             
                                             <!-- Reject button for pending users -->
                                             <button type="button" 
@@ -363,21 +361,17 @@
                                 <form action="{{ route('admin.role.requests.approve', $roleRequest->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" 
-                                            onclick="return confirm('Approve this role request?')"
-                                            class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
+                                    <button type="button"
+                                        @click.stop="showApproveRoleConfirmModal = true; currentRoleRequest = @js($roleRequest)"
+                                        class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
                                         Approve
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.role.requests.reject', $roleRequest->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" 
-                                            onclick="return confirm('Reject this role request?')"
-                                            class="bg-red-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-red-600 transition">
-                                        Reject
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    @click.stop="showRejectRoleModal = true; currentRoleRequest = @js($roleRequest); rejectionRoleMessage = ''"
+                                    class="bg-red-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-red-600 transition">
+                                    Reject
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -843,6 +837,131 @@
                             class="w-full sm:w-auto px-5 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-lg hover:shadow-xl">
                         Confirm Ban
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Role Request Modal -->
+    <div x-show="showRejectRoleModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showRejectRoleModal = false">
+        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Reject Role Request</h3>
+                    <button x-on:click="showRejectRoleModal = false" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form x-bind:action="`{{ url('admin/role-requests') }}/${currentRoleRequest.id}/reject`" method="POST" class="p-4">
+                    @csrf
+                    @method('PATCH')
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-4">
+                            You are about to reject the role request for <strong x-text="currentRoleRequest ? currentRoleRequest.user.first_name + ' ' + currentRoleRequest.user.last_name : ''"></strong>.
+                        </p>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Reason for rejection <span class="text-red-500">*</span>
+                        </label>
+                        <textarea 
+                            name="rejection_message"
+                            x-model="rejectionRoleMessage"
+                            required
+                            rows="4"
+                            placeholder="Please provide a clear reason for rejecting this role request..."
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 resize-none"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">This message will be sent to the user via email.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button type="button" 
+                                @click="showRejectRoleModal = false; rejectionRoleMessage = ''"
+                                class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="w-full sm:w-auto px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700">
+                            Reject Role Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve User Confirmation Modal -->
+    <div x-show="showApproveUserConfirmModal" x-cloak x-transition class="fixed inset-0 z-[60] overflow-y-auto" @keydown.escape.window="showApproveUserConfirmModal = false">
+        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto shadow-lg">
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg sm:text-xl font-semibold text-green-700">Confirm Approval</h3>
+                    <button x-on:click="showApproveUserConfirmModal = false" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <p class="text-sm text-gray-700 mb-4">
+                        Are you sure you want to approve <strong x-text="currentUser ? currentUser.first_name + ' ' + currentUser.last_name : ''"></strong>?
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button type="button"
+                                @click="showApproveUserConfirmModal = false"
+                                class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <form :action="`{{ url('admin/users') }}/${currentUser.id}/approve`" method="POST" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="w-full sm:w-auto px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700">
+                                Yes, Approve
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Role Request Confirmation Modal -->
+    <div x-show="showApproveRoleConfirmModal" x-cloak x-transition class="fixed inset-0 z-[60] overflow-y-auto" @keydown.escape.window="showApproveRoleConfirmModal = false">
+        <div class="fixed inset-0 bg-black opacity-50"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto shadow-lg">
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg sm:text-xl font-semibold text-green-700">Confirm Approval</h3>
+                    <button x-on:click="showApproveRoleConfirmModal = false" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <p class="text-sm text-gray-700 mb-4">
+                        Are you sure you want to approve the role request for <strong x-text="currentRoleRequest ? currentRoleRequest.user.first_name + ' ' + currentRoleRequest.user.last_name : ''"></strong>?
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button type="button"
+                                @click="showApproveRoleConfirmModal = false"
+                                class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <form :action="`{{ url('admin/role-requests') }}/${currentRoleRequest.id}/approve`" method="POST" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="w-full sm:w-auto px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700">
+                                Yes, Approve
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

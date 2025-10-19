@@ -34,10 +34,40 @@ class AnimalController
      */
     public function index()
     {
+        $user = auth()->user();
+        $userRoles = $user->roles->pluck('name')->toArray();
 
-        $animals = Animal::where("user_id", auth()->id())
+        // Map roles to categories
+        $roleToCategory = [
+            'pet_owner' => 'pet',
+            'livestock_owner' => 'livestock',
+            'poultry_owner' => 'poultry',
+        ];
+        $currentRole = $user->currentRole->name ?? ($userRoles[0] ?? null);
+        $allowedTypes = [];
+        if ($currentRole && isset($roleToCategory[$currentRole])) {
+            $category = $roleToCategory[$currentRole];
+            $allowedTypes = \App\Models\AnimalType::where('category', $category)
+                ->where('is_active', true)
+                ->pluck('name')
+                ->toArray();
+        }
+
+        $animals = Animal::where('user_id', $user->id)
                          ->where('status', 'alive')
+                         ->when(!empty($allowedTypes), function ($query) use ($allowedTypes) {
+                             $query->whereIn('type', $allowedTypes);
+                         })
                          ->get();
+
+        \Log::info('Animals returned for user', [
+            'user_id' => $user->id,
+            'roles' => $userRoles,
+            'current_role' => $currentRole,
+            'allowed_types' => $allowedTypes,
+            'animal_ids' => $animals->pluck('id')->toArray(),
+            'animal_types' => $animals->pluck('type')->toArray(),
+        ]);
 
         $data = $animals->map(function ($animal) {
             return [

@@ -15,7 +15,7 @@ use App\Services\NotificationService;
 class AnimalController extends Controller
 {
     /**
-     * Display a list of animals through json response.
+     * Display a list of animals.
      */
     public function index(Request $request)
     {
@@ -24,14 +24,11 @@ class AnimalController extends Controller
 
         if($request->filled('type')){
             $type = $request->input('type');
-            
-            // Handle category filtering
-            if ($type === 'pet') {
-                $query->whereIn('type', ['dog', 'cat']);
-            } elseif ($type === 'livestock') {
-                $query->whereIn('type', ['cattle', 'goat', 'carabao']);
-            } elseif ($type === 'poultry') {
-                $query->whereIn('type', ['chicken', 'duck']);
+            // Fetch allowed types dynamically from DB
+            $animalTypesByCategory = AnimalType::select('name', 'category')->get()->groupBy('category');
+            if ($type === 'pet' || $type === 'livestock' || $type === 'poultry') {
+                $allowedTypes = $animalTypesByCategory[$type]?->pluck('name')->toArray() ?? [];
+                $query->whereIn('type', $allowedTypes);
             } else {
                 // Specific animal type
                 $query->where('type', $type);

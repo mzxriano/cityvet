@@ -53,15 +53,19 @@ class RoleRequestController extends Controller
         }
         
         $ownerRoles = ['pet_owner', 'livestock_owner', 'poultry_owner'];
-        
-        if (in_array($currentRole->name, $ownerRoles)) {
-            $roles = \App\Models\Role::whereIn('name', $ownerRoles)
-                ->where('id', '!=', $currentRole->id)
-                ->get();
-        } else {
+
+        $userRoleNames = $user->roles()->pluck('name')->toArray();
+        $hasNonOwnerRole = count(array_diff($userRoleNames, $ownerRoles)) > 0;
+
+        if ($hasNonOwnerRole) {
+            // User has at least one non-owner role, show all except current and admin
             $roles = \App\Models\Role::where('id', '!=', $currentRole->id)
                 ->where('name', '!=', 'admin')
-                ->whereNotIn('name', $ownerRoles)
+                ->get();
+        } else {
+            // Only owner roles, show other owner roles
+            $roles = \App\Models\Role::whereIn('name', $ownerRoles)
+                ->where('id', '!=', $currentRole->id)
                 ->get();
         }
         
@@ -78,23 +82,24 @@ class RoleRequestController extends Controller
             'role_id' => 'required|exists:roles,id'
         ]);
 
+        // Get user's current role
+        $currentRole = $user->roles()->first();
+        if ($currentRole && $currentRole->id == $roleId) {
+            // Allow switching to original/current role without approval
+            $user->update(['current_role_id' => $roleId]);
+            \Log::info("User ID {$user->id} switched to original role ID {$roleId}");
+            return response()->json([
+                'success' => true,
+                'role_id' => $roleId,
+                'message' => 'Switched to original role.'
+            ]);
+        }
+
         if (! $user->roles()->where('roles.id', $roleId)->exists()) {
             return response()->json(['error' => 'You do not have this role.'], 403);
         }
 
-        $approved = \App\Models\RoleRequest::where('user_id', $user->id)
-            ->where('requested_role_id', $roleId)
-            ->where('status', 'approved')
-            ->first();
-
-        if (! $approved) {
-            return response()->json(['error' => 'Role not approved for switching.'], 403);
-        }
-
         $user->update(['current_role_id' => $roleId]);
-
-        \Log::info("User ID {$user->id} switched to role ID {$roleId}");
-        \Log::info("Current role id {$roleId}");
 
         return response()->json([
             'success' => true,

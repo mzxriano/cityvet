@@ -213,6 +213,34 @@ class UserController
 
         if ($request->filled('role_ids')) {
             $user->roles()->sync($validated['role_ids']);
+
+            // Also reject any approved RoleRequest for roles that were removed
+            $currentRoleIds = $user->roles()->pluck('roles.id')->toArray();
+            $approvedRequests = \App\Models\RoleRequest::where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->get();
+            foreach ($approvedRequests as $roleRequest) {
+                if (!in_array($roleRequest->requested_role_id, $currentRoleIds)) {
+                    $roleRequest->status = 'rejected';
+                    $roleRequest->rejection_reason = 'Role removed by admin.';
+                    $roleRequest->rejected_at = now();
+                    $roleRequest->save();
+                }
+            }
+
+            // Also approve any pending or rejected RoleRequest for roles that were newly added
+            $roleRequestsToApprove = \App\Models\RoleRequest::where('user_id', $user->id)
+                ->whereIn('requested_role_id', $currentRoleIds)
+                ->whereIn('status', ['pending', 'rejected'])
+                ->get();
+            foreach ($roleRequestsToApprove as $roleRequest) {
+                $roleRequest->status = 'approved';
+                $roleRequest->approved_at = now();
+                $roleRequest->rejection_reason = null;
+                $roleRequest->rejected_at = null;
+                $roleRequest->reviewed_by = auth()->id();
+                $roleRequest->save();
+            }
         }
 
         return redirect()->route('admin.users')->with('success', $message);

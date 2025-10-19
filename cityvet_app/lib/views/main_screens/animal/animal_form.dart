@@ -39,6 +39,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   final TextEditingController heightController = TextEditingController();
   final TextEditingController uniqueSpotController = TextEditingController();
   final TextEditingController knownConditionsController = TextEditingController();
+  final TextEditingController colorController = TextEditingController();
   final FocusNode petNameNode = FocusNode();
   final FocusNode weightNode = FocusNode();
   final FocusNode heightNode = FocusNode();
@@ -54,8 +55,6 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   bool _isLoadingBreeds = true;
 
   Map<String, List<String>> petBreeds = {};
-
-  List<String> colors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Orange'];
 
   @override
   void initState() {
@@ -89,6 +88,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
       heightController.clear();
       uniqueSpotController.clear();
       knownConditionsController.clear();
+      colorController.clear();
       selectedPetType = null;
       selectedBreed = null;
       selectedGender = null;
@@ -329,19 +329,14 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: _buildDropdownField<String>(
-                            value: selectedColor,
+                          child: _buildTextField(
+                            controller: colorController,
                             label: 'Color',
                             icon: Icons.color_lens_outlined,
-                            items: colors
-                                .map((color) => DropdownMenuItem(value: color, child: Text(color)))
-                                .toList(),
                             onChanged: (value) {
-                              if (!formRef.isLoading) {
-                                setState(() {
-                                  selectedColor = value;
-                                });
-                              }
+                              setState(() {
+                                selectedColor = value;
+                              });
                             },
                             isRequired: true,
                           ),
@@ -521,7 +516,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                             gender: selectedGender!.toLowerCase(), 
                             weight: double.tryParse(weightController.text), 
                             height: double.tryParse(heightController.text), 
-                            color: selectedColor!,
+                            color: colorController.text,
                             uniqueSpot: uniqueSpotController.text,
                             knownConditions: knownConditionsController.text,
                           );
@@ -605,19 +600,25 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
     bool obscureText = false,
     String? Function(String?)? validator,
     int? maxLines,
+    void Function(String)? onChanged,
+    bool isRequired = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLines: maxLines ?? 1,
-      validator: validator,
+      validator: isRequired ? (value) {
+        if (value == null || value.isEmpty) return '$label is required';
+        return null;
+      } : validator,
+      onChanged: onChanged,
       style: TextStyle(
         fontFamily: Config.primaryFont,
         fontSize: 16,
       ),
       decoration: InputDecoration(
-        labelText: label,
+        labelText: isRequired ? '$label *' : label,
         prefixIcon: Icon(icon, color: Config.primaryColor),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

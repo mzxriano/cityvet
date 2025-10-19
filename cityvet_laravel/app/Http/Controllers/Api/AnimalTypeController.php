@@ -15,28 +15,48 @@ class AnimalTypeController extends Controller
      */
     public function index()
     {
-        $types = AnimalType::with('activeBreeds')
-            ->active()
-            ->ordered()
-            ->get()
-            ->map(function ($type) {
-                return [
-                    'id' => $type->id,
-                    'name' => $type->name,
-                    'display_name' => $type->display_name,
-                    'category' => $type->category,
-                    'icon' => $type->icon,
-                    'description' => $type->description,
-                    'is_active' => $type->is_active,
-                    'breeds' => $type->activeBreeds->map(function ($breed) {
-                        return [
-                            'id' => $breed->id,
-                            'name' => $breed->name,
-                            'description' => $breed->description,
-                        ];
-                    }),
-                ];
-            });
+        $user = auth()->user();
+        $userRoles = $user->roles->pluck('name')->toArray();
+        $roleToCategory = [
+            'pet_owner' => 'pet',
+            'livestock_owner' => 'livestock',
+            'poultry_owner' => 'poultry',
+        ];
+        $currentRole = $user->currentRole->name ?? ($userRoles[0] ?? null);
+        $category = $currentRole && isset($roleToCategory[$currentRole]) ? $roleToCategory[$currentRole] : null;
+
+        $allowedTypes = [];
+        if ($currentRole && isset($roleToCategory[$currentRole])) {
+            $category = $roleToCategory[$currentRole];
+            $allowedTypes = \App\Models\AnimalType::where('category', $category)
+                ->where('is_active', true)
+                ->pluck('name')
+                ->toArray();
+        }
+
+        // When registering, only show active types
+        $typesQuery = AnimalType::with('activeBreeds')->active()->ordered();
+        if ($category) {
+            $typesQuery->where('category', $category);
+        }
+        $types = $typesQuery->get()->map(function ($type) {
+            return [
+                'id' => $type->id,
+                'name' => $type->name,
+                'display_name' => $type->display_name,
+                'category' => $type->category,
+                'icon' => $type->icon,
+                'description' => $type->description,
+                'is_active' => $type->is_active,
+                'breeds' => $type->activeBreeds->map(function ($breed) {
+                    return [
+                        'id' => $breed->id,
+                        'name' => $breed->name,
+                        'description' => $breed->description,
+                    ];
+                }),
+            ];
+        });
 
         return response()->json([
             'message' => 'Animal types retrieved successfully',

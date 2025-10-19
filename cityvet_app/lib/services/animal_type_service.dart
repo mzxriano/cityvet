@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AnimalTypeService {
-  final String baseUrl = 'https://cityvet.systems/api';
   final storage = const FlutterSecureStorage();
 
   Future<Map<String, dynamic>> getAnimalTypesAndBreeds() async {
@@ -11,7 +11,7 @@ class AnimalTypeService {
       final token = await storage.read(key: 'auth_token');
       
       final response = await http.get(
-        Uri.parse('$baseUrl/animal-types'),
+        Uri.parse('${ApiConstant.baseUrl}/animal-types'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -38,8 +38,8 @@ class AnimalTypeService {
             
             // Extract breeds for this type
             List<String> breeds = [];
-            if (type['active_breeds'] != null && type['active_breeds'] is List) {
-              breeds = (type['active_breeds'] as List)
+            if (type['breeds'] != null && type['breeds'] is List) {
+              breeds = (type['breeds'] as List)
                   .map((breed) => breed['name'] as String)
                   .toList();
             }
@@ -56,7 +56,6 @@ class AnimalTypeService {
       }
     } catch (e) {
       print('Error fetching animal types: $e');
-      // Return default values if API fails
       return {
         'petBreeds': _getDefaultBreeds(),
         'animalTypes': [],

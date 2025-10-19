@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Mail\RoleRequestRejected;
+use Illuminate\Support\Facades\Mail;
 
 class RoleRequestController extends Controller
 {
@@ -16,11 +18,18 @@ class RoleRequestController extends Controller
             return response()->json(['error' => 'Request already processed.'], 409);
         }
         $roleRequest->status = 'rejected';
-        $roleRequest->rejection_reason = $request->input('rejection_reason');
+        $roleRequest->rejection_reason = $request->input('rejection_message');
         $roleRequest->rejected_at = now();
         $roleRequest->reviewed_by = $admin->id;
         $roleRequest->save();
-        return redirect()->route('admin.role_requests.index')->with('success', 'Role request rejected successfully.');
+
+        // Send rejection email
+        $user = $roleRequest->user;
+        $role = $roleRequest->requestedRole;
+        $messageText = $roleRequest->rejection_reason;
+        Mail::to($user->email)->send(new RoleRequestRejected($user, $role, $messageText));
+
+        return redirect()->route('admin.users')->with('success', 'Role request rejected and user notified.');
     }
 
     // Admin: Approve a request
@@ -35,7 +44,7 @@ class RoleRequestController extends Controller
         $request->approved_at = now();
         $request->reviewed_by = $admin->id;
         $request->save();
-        return redirect()->route('admin.role_requests.index')->with('success', 'Role request approved successfully.');
+        return redirect()->route('admin.users')->with('success', 'Role request approved successfully.');
     }
 
     // Admin: List all pending requests
