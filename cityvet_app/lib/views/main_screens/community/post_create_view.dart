@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cityvet_app/services/community_service.dart';
 
 class CreatePostView extends StatefulWidget {
-  final String token; // Pass the user's auth token
+  final String token; 
   const CreatePostView({Key? key, required this.token}) : super(key: key);
 
   @override
@@ -20,7 +20,7 @@ class _CreatePostViewState extends State<CreatePostView> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final picked = await picker.pickMultiImage();
-    if (picked != null && mounted) {
+    if (mounted) {
       setState(() {
         _images.addAll(picked.map((x) => File(x.path)));
       });

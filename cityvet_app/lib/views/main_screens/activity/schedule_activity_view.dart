@@ -2,6 +2,7 @@ import 'package:cityvet_app/components/button.dart';
 import 'package:cityvet_app/components/label_text.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/schedule_activity_view_model.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -52,6 +53,28 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
     'Other'
   ];
 
+  // File memo fields
+  List<PlatformFile> attachedFiles = [];
+
+  Future<void> _pickFiles() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      allowMultiple: true,
+    );
+    if (result != null) {
+      setState(() {
+        attachedFiles.addAll(result.files);
+      });
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      attachedFiles.removeAt(index);
+    });
+  }
+
   Future<void> _selectDate() async {
     final date = await showDatePicker(
       context: context,
@@ -100,7 +123,8 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
       'date': '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}',
       'time': '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}',
       'details': detailsController.text.trim(),
-      'status': 'pending', // AEW requests start as pending
+      'status': 'pending',
+      'memos': attachedFiles, // Pass actual PlatformFile objects
     };
 
     await viewModel.submitActivityRequest(activityData);
@@ -112,9 +136,6 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
           backgroundColor: viewModel.message!.contains('success') ? Colors.green : Colors.red,
         ),
       );
-      if (viewModel.message!.contains('success')) {
-        Navigator.pop(context);
-      }
     }
   }
 
@@ -357,6 +378,35 @@ class _ScheduleActivityContentState extends State<_ScheduleActivityContent> {
                             borderRadius: const BorderRadius.all(Radius.circular(10)),
                           ),
                           hintText: 'Provide detailed description of the activity, expected participants, resources needed, etc.',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Multiple Memos (Files)
+                      LabelText(label: 'Attach Memos (PDF files, optional)', isRequired: false),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: attachedFiles.length,
+                        itemBuilder: (context, index) {
+                          final file = attachedFiles[index];
+                          return ListTile(
+                            leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                            title: Text(file.name),
+                            subtitle: Text('${(file.size / 1024).toStringAsFixed(1)} KB'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.remove_circle, color: Colors.red),
+                              onPressed: () => _removeFile(index),
+                            ),
+                          );
+                        },
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.attach_file, color: Colors.green),
+                          label: const Text('Attach PDF'),
+                          onPressed: _pickFiles,
                         ),
                       ),
                       const SizedBox(height: 32),

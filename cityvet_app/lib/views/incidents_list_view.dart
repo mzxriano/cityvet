@@ -15,22 +15,11 @@ class _IncidentsListViewState extends State<IncidentsListView> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String? _selectedSpecies;
-  String? _selectedProvocation;
   DateTime? _fromDate;
   DateTime? _toDate;
 
   final List<String> _commonSpecies = [
     'Dog', 'Cat', 'Rat', 'Snake', 'Monkey', 'Other'
-  ];
-
-  final List<String> _biteProvocations = [
-    'Unprovoked',
-    'Provoked - Teasing',
-    'Provoked - Disturbing while eating',
-    'Provoked - Protecting territory',
-    'Provoked - Protecting offspring',
-    'Self-defense',
-    'Other'
   ];
 
   @override
@@ -66,7 +55,6 @@ class _IncidentsListViewState extends State<IncidentsListView> {
     setState(() {
       _searchController.clear();
       _selectedSpecies = null;
-      _selectedProvocation = null;
       _fromDate = null;
       _toDate = null;
     });

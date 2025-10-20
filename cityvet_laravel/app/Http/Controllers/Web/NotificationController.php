@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Services\NotificationService;
+use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,18 +12,123 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::guard('admin')->user();
-        
+
         if (!$user) {
             return redirect()->route('showLogin');
         }
 
-        $notifications = \App\Models\AdminNotification::where('admin_id', $user->id)
+        $notifications = AdminNotification::where('admin_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return view('admin.notifications', compact('notifications'));
     }
 
+    public function getRecentNotifications()
+    {
+        try {
+            $user = Auth::guard('admin')->user();
+            
+            if (!$user) {
+                \Log::warning('No authenticated admin user found');
+                return response()->json(['notifications' => [], 'count' => 0]);
+            }
+
+            // Get recent notifications (10 most recent)
+            $notifications = AdminNotification::where('admin_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($notification) {
+                    $data = is_string($notification->data) 
+                        ? json_decode($notification->data, true) 
+                        : ($notification->data ?? []);
+                    
+                    return [
+                        'id' => $notification->id,
+                        'title' => $notification->title,
+                        'message' => $notification->body,
+                        'type' => $notification->type,
+                        'read' => (bool) $notification->read,
+                        'link' => $this->getNotificationLink($notification->type, $data),
+                        'created_at' => $notification->created_at->toISOString(),
+                    ];
+                });
+
+            // Count unread notifications
+            $unreadCount = AdminNotification::where('admin_id', $user->id)
+                ->where('read', false)
+                ->count();
+
+            return response()->json([
+                'notifications' => $notifications,
+                'count' => $unreadCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching notifications: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'error' => 'Failed to fetch notifications',
+                'message' => $e->getMessage(),
+                'notifications' => [],
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    public function markAsRead($id)
+    {
+        $user = Auth::guard('admin')->user();
+        
+        if (!$user) {
+            return response()->json(['success' => false], 401);
+        }
+
+        $notification = AdminNotification::where('id', $id)
+            ->where('admin_id', $user->id)
+            ->first();
+
+        if ($notification) {
+            $notification->read = true;
+            $notification->save();
+            
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 404);
+    }
+
+    public function markAllAsRead()
+    {
+        $user = Auth::guard('admin')->user();
+        
+        if (!$user) {
+            return response()->json(['success' => false], 401);
+        }
+
+        AdminNotification::where('admin_id', $user->id)
+            ->where('read', false)
+            ->update(['read' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    private function getNotificationLink($type, $data = [])
+    {
+        // Generate appropriate links based on notification type
+        return match($type) {
+            'user_registration' => route('admin.notifications'),
+            'animal_registration' => route('admin.notifications'),
+            'activity_schedule' => route('admin.notifications'),
+            'stock_alert' => route('admin.notifications'),
+            'community_post' => route('admin.notifications'),
+            'bite_case' => route('admin.notifications'),
+            default => $data['link'] ?? route('admin.dashboard')
+        };
+    }
+
+    // Helper methods for views
     public static function getNotificationColor($type)
     {
         return match($type) {
@@ -70,39 +175,5 @@ class NotificationController extends Controller
             'bite_case' => '<svg class="w-5 h-5 ' . $iconClass . '" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>',
             default => '<svg class="w-5 h-5 ' . $iconClass . '" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>'
         };
-    }
-
-    public function getRecentNotifications()
-    {
-        $user = Auth::guard('admin')->user();
-        
-        if (!$user) {
-            return response()->json(['notifications' => [], 'count' => 0]);
-        }
-
-        $notifications = NotificationService::getRecentNotifications($user->id, 5);
-        $unreadCount = NotificationService::getUnreadCount($user->id);
-
-        return response()->json([
-            'notifications' => $notifications,
-            'count' => $unreadCount
-        ]);
-    }
-
-    public function markAsRead($id)
-    {
-        NotificationService::markAsRead($id);
-        return response()->json(['success' => true]);
-    }
-
-    public function markAllAsRead()
-    {
-        $user = Auth::guard('admin')->user();
-        
-        if ($user) {
-            NotificationService::markAllAsRead($user->id);
-        }
-
-        return response()->json(['success' => true]);
     }
 }

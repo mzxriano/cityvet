@@ -175,9 +175,9 @@ Route::prefix('admin')->group(function () {
         });
 
         Route::get('/notifications', [\App\Http\Controllers\Web\NotificationController::class, 'index'])->name('admin.notifications');
-        Route::get('/api/notifications/recent', [\App\Http\Controllers\Web\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
-        Route::post('/api/notifications/{id}/read', [\App\Http\Controllers\Web\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
-        Route::post('/api/notifications/mark-all-read', [\App\Http\Controllers\Web\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
+        Route::get('/notifications/recent', [\App\Http\Controllers\Web\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Web\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Web\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
 
         Route::get('/bite-case', [IncidentController::class, 'index'])->name('admin.bite-case');
         Route::get('/incidents/{id}', [IncidentController::class, 'show'])->name('admin.incidents.show');

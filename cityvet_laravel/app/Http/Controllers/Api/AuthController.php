@@ -395,8 +395,8 @@ class AuthController extends Controller
                 'email' => $email,
                 'phone_number' => $phoneNumber,
                 'password' => Hash::make($password),
-                'email_verified_at' => now(), // Auto-verify admin-created accounts
-                'status' => 'active', // Auto-approve admin-created accounts
+                'email_verified_at' => now(),
+                'status' => 'active',
                 'force_password_change' => true,
                 'has_no_email' => $hasNoEmail,
                 'has_no_phone' => $hasNoPhone

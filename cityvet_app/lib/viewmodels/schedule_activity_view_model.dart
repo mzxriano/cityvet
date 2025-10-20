@@ -1,6 +1,7 @@
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class ScheduleActivityViewModel extends ChangeNotifier {
@@ -49,7 +50,7 @@ class ScheduleActivityViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> submitActivityRequest(Map<String, dynamic> activityData) async {
+Future<void> submitActivityRequest(Map<String, dynamic> activityData) async {
     _setLoading(true);
     _message = null;
 
@@ -62,10 +63,37 @@ class ScheduleActivityViewModel extends ChangeNotifier {
         return;
       }
 
+      // Prepare multipart form data
+      final formData = FormData();
+
+      activityData.forEach((key, value) {
+        if (key == 'memos' && value is List) {
+          for (var file in value) {
+            if (file is PlatformFile && file.path != null) {
+              formData.files.add(MapEntry(
+                'memos[]', 
+                MultipartFile.fromFileSync(
+                  file.path!, 
+                  filename: file.name,
+                ),
+              ));
+            }
+          }
+        } else {
+          // Add other regular form fields
+          formData.fields.add(MapEntry(key, value.toString()));
+        }
+      });
+
       final response = await _dio.post(
         '/activities/request',
-        data: activityData,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
       );
       
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -80,7 +108,7 @@ class ScheduleActivityViewModel extends ChangeNotifier {
         } else if (e.response?.statusCode == 401) {
           _message = 'Authentication failed. Please log in again.';
         } else {
-          _message = e.response?.data['message'] ?? 'Failed to submit activity request. Please try again.';
+          _message = e.response?.data['message'] ?? 'Failed to submit activity request. Please try again. Status: ${e.response?.statusCode}';
         }
       } else {
         _message = 'Error: ${e.toString()}';

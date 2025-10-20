@@ -145,13 +145,6 @@
         {{ $notifications->links() }}
       </div>
     @endif
-
-    <!-- Pagination or Load More -->
-    <div class="mt-8 flex justify-center">
-      <button class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-        Load More Notifications
-      </button>
-    </div>
   </div>
 </body>
 </html>

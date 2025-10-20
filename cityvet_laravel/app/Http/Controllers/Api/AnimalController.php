@@ -61,7 +61,6 @@ class AnimalController
                          ->get();
 
         \Log::info('Animals returned for user', [
-            'user_id' => $user->id,
             'roles' => $userRoles,
             'current_role' => $currentRole,
             'allowed_types' => $allowedTypes,
@@ -70,6 +69,7 @@ class AnimalController
         ]);
 
         $data = $animals->map(function ($animal) {
+            \Log::info("Processing animal ID: {$animal->id} for user ID: {$animal->user_id}");
             return [
                 'id' => $animal->id,
                 'type' => $animal->type,
@@ -89,6 +89,7 @@ class AnimalController
                 'deceased_cause' => $animal->deceased_cause,
                 'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}",
+                'owner_id' => $animal->user_id ? $animal->user_id : null,
                 'qr_code_base64' => $this->generateQrCodeBase64($animal), 
                 'qr_code_url' => $animal->getQrCodeUrl(), 
                 'vaccinations' => $animal->vaccines->map(function($v) {
@@ -185,6 +186,24 @@ class AnimalController
 
         NotificationService::newAnimalRegistration($animal);
 
+        if (!empty($animal->known_conditions)) {
+            // Notify admin and veterinarian
+            NotificationService::notifyKnownCondition($animal);
+
+            // Get all veterinarians
+            $vets = \App\Models\User::whereHas('roles', function($q) {
+                $q->where('name', 'veterinarian');
+            })->get();
+
+            foreach ($vets as $vet) {
+                // You can use email, push notification, or your notification system
+                $vet->notify(new \App\Notifications\PushNotification(
+                    "New animal registered with known condition",
+                    "Animal {$animal->name} ({$animal->type}) was registered by {$animal->user->first_name} {$animal->user->last_name} with condition: {$animal->known_conditions}\nAddress: {$animal->user->barangay->name}, {$animal->user->street}"
+                ));
+            }
+        }
+
         return response()->json([
             'message' => 'Animal successfully created.',
             'data' => [
@@ -251,6 +270,7 @@ class AnimalController
                 'deceased_cause' => $animal->deceased_cause,
                 'deceased_notes' => $animal->deceased_notes,
                 'owner' => $animal->user ? "{$animal->user->first_name} {$animal->user->last_name}" : null,
+                'owner_id' => $animal->user_id ? $animal->user_id : null,
                 'qr_code_base64' => $qrCodeBase64,
                 'qr_code_url' => $animal->getQrCodeUrl(),
                 'vaccinations' => $animal->vaccines->map(function($v) {
@@ -305,6 +325,7 @@ class AnimalController
                 'owner' => $animal->user
                     ? "{$animal->user->first_name} {$animal->user->last_name}"
                     : null,
+                'owner_id' => $animal->user_id ? $animal->user_id : null,
                 'qr_code_base64' => $this->generateQrCodeBase64($animal),
                 'qr_code_url' => $animal->getQrCodeUrl(),
                 'vaccinations' => $animal->vaccines->map(function ($v) {
@@ -607,6 +628,24 @@ class AnimalController
         // Refresh the model to get updated data
         $animal->refresh();
 
+        if (!empty($animal->known_conditions)) {
+            // Notify admin and veterinarian
+            NotificationService::notifyKnownCondition($animal);
+
+            // Get all veterinarians
+            $vets = \App\Models\User::whereHas('roles', function($q) {
+                $q->where('name', 'veterinarian');
+            })->get();
+
+            foreach ($vets as $vet) {
+                // You can use email, push notification, or your notification system
+                $vet->notify(new \App\Notifications\PushNotification(
+                    "New animal registered with known condition",
+                    "Animal {$animal->name} ({$animal->type}) was registered by {$animal->user->first_name} {$animal->user->last_name} with condition: {$animal->known_conditions}\nAddress: {$animal->user->barangay->name}, {$animal->user->street}"
+                ));
+            }
+        }
+
         return response()->json([
             'message' => 'Animal updated successfully.',
             'data' => [
@@ -629,6 +668,7 @@ class AnimalController
                 'deceased_cause' => $animal->deceased_cause,
                 'deceased_notes' => $animal->deceased_notes,
                 'owner' => "{$animal->user->first_name} {$animal->user->last_name}" ?? null,
+                'owner_id' => $animal->user_id ?? null,
                 'qr_code_url' => $animal->getQrCodeUrl(),
                 'qr_code_base64' => $this->generateQrCodeBase64($animal),
                 'vaccinations' => $animal->vaccines->map(function($v) {

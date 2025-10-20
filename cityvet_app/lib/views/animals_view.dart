@@ -5,6 +5,7 @@ import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_preview.dart';
+import 'package:cityvet_app/views/main_screens/animal/add_animal_for_owner.dart';
 
 class AnimalManagementView extends StatefulWidget {
   const AnimalManagementView({super.key});
@@ -36,49 +37,74 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return Consumer2<UserViewModel, AnimalViewModel>(
-      builder: (context, userViewModel, animalViewModel, _) {
-        final animals = animalViewModel.allAnimals;
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Config.primaryColor,
+        title: const Text('Animals'),
+      ),
+      body: SafeArea(
+        child: Consumer2<UserViewModel, AnimalViewModel>(
+          builder: (context, userViewModel, animalViewModel, _) {
+            final animals = animalViewModel.allAnimals;
 
-        // Enhanced filtering logic with vaccination status
-        final filteredAnimals = animals.where((animal) {
-          // Search in multiple fields
-          final query = searchQuery.toLowerCase();
-          final matchesName = animal.name.toLowerCase().contains(query);
-          final matchesType = animal.type.toLowerCase().contains(query);
-          final matchesBreed = (animal.breed ?? '').toLowerCase().contains(query);
-          
-          final matchesSearch = searchQuery.isEmpty || matchesName || matchesType || matchesBreed;
-          final matchesTypeFilter = selectedType == 'All' || animal.type.toLowerCase() == selectedType.toLowerCase();
-          
-          // Vaccination status filtering
-          final isVaccinated = animal.vaccinations != null && animal.vaccinations!.isNotEmpty;
-          final matchesVaccinationFilter = selectedVaccinationStatus == 'All' ||
-              (selectedVaccinationStatus == 'Vaccinated' && isVaccinated) ||
-              (selectedVaccinationStatus == 'Not Vaccinated' && !isVaccinated);
-          
-          return matchesSearch && matchesTypeFilter && matchesVaccinationFilter;
-        }).toList();
+            // Enhanced filtering logic with vaccination status
+            final filteredAnimals = animals.where((animal) {
+              // Search in multiple fields
+              final query = searchQuery.toLowerCase();
+              final matchesName = animal.name.toLowerCase().contains(query);
+              final matchesType = animal.type.toLowerCase().contains(query);
+              final matchesBreed = (animal.breed ?? '').toLowerCase().contains(query);
+              
+              final matchesSearch = searchQuery.isEmpty || matchesName || matchesType || matchesBreed;
+              final matchesTypeFilter = selectedType == 'All' || animal.type.toLowerCase() == selectedType.toLowerCase();
+              
+              // Vaccination status filtering
+              final isVaccinated = animal.vaccinations != null && animal.vaccinations!.isNotEmpty;
+              final matchesVaccinationFilter = selectedVaccinationStatus == 'All' ||
+                  (selectedVaccinationStatus == 'Vaccinated' && isVaccinated) ||
+                  (selectedVaccinationStatus == 'Not Vaccinated' && !isVaccinated);
+              
+              return matchesSearch && matchesTypeFilter && matchesVaccinationFilter;
+            }).toList();
 
-        // Sort filtered animals alphabetically by name
-        filteredAnimals.sort((a, b) => a.name.compareTo(b.name));
+            // Sort filtered animals alphabetically by name
+            filteredAnimals.sort((a, b) => a.name.compareTo(b.name));
 
-        return animalViewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : animalViewModel.errors != null
-                ? _buildError(animalViewModel.errors!)
-                : Column(
-                    children: [
-                      _buildEnhancedSearchBar(animals),
-                      if (_showFilterOptions) _buildFilterChips(animals),
-                      Expanded(child: _buildAnimalList(filteredAnimals)),
-                    ],
-                  );
-      },
+            return animalViewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : animalViewModel.errors != null
+                    ? _buildError(animalViewModel.errors!)
+                    : Column(
+                        children: [
+                          _buildEnhancedSearchBar(animals),
+                          if (_showFilterOptions) _buildFilterChips(animals),
+                          Expanded(child: _buildAnimalList(filteredAnimals)),
+                        ],
+                      );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          try {
+            await Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(builder: (_) => const AddAnimalForOwnerPage()),
+            );
+          } catch (e) {
+            debugPrint('Navigation error: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Navigation failed: $e')),
+              );
+            }
+          }
+        },
+        backgroundColor: Config.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -139,119 +165,128 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
     );
   }
 
-  /// Enhanced filter chips for animal types and vaccination status
   Widget _buildFilterChips(List animals) {
-    final animalList = animals.cast<AnimalModel>();
-    final uniqueTypes = ['All', ...{for (var a in animalList) a.type}];
-    final vaccinationOptions = ['All', 'Vaccinated', 'Not Vaccinated'];
+    try {
+      final animalList = animals.whereType<AnimalModel>().toList();
+      
+      if (animalList.isEmpty) {
+        return const SizedBox.shrink();
+      }
+      
+      final uniqueTypes = ['All', ...{for (var a in animalList) a.type}];
+      final vaccinationOptions = ['All', 'Vaccinated', 'Not Vaccinated'];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Animal Type Filter
-          Text(
-            'Filter by type:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Animal Type Filter
+            Text(
+              'Filter by type:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: uniqueTypes.map((type) {
-              final isSelected = selectedType == type;
-              return FilterChip(
-                label: Text(
-                  type,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[700],
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    selectedType = selected ? type : 'All';
-                  });
-                },
-                selectedColor: Config.primaryColor,
-                checkmarkColor: Colors.white,
-                backgroundColor: Colors.grey[200],
-              );
-            }).toList(),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Vaccination Status Filter
-          Text(
-            'Filter by vaccination status:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: vaccinationOptions.map((status) {
-              final isSelected = selectedVaccinationStatus == status;
-              final Color chipColor = status == 'Vaccinated' 
-                  ? Colors.green 
-                  : status == 'Not Vaccinated' 
-                      ? Colors.orange 
-                      : Config.primaryColor;
-              
-              return FilterChip(
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (status == 'Vaccinated')
-                      Icon(
-                        Icons.verified,
-                        size: 16,
-                        color: isSelected ? Colors.white : Colors.green,
-                      ),
-                    if (status == 'Not Vaccinated')
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        size: 16,
-                        color: isSelected ? Colors.white : Colors.orange,
-                      ),
-                    if (status != 'All') const SizedBox(width: 4),
-                    Text(
-                      status,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: uniqueTypes.map((type) {
+                final isSelected = selectedType == type;
+                return FilterChip(
+                  label: Text(
+                    type,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey[700],
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
-                  ],
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    selectedVaccinationStatus = selected ? status : 'All';
-                  });
-                },
-                selectedColor: chipColor,
-                checkmarkColor: Colors.white,
-                backgroundColor: Colors.grey[200],
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
+                  ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      selectedType = selected ? type : 'All';
+                    });
+                  },
+                  selectedColor: Config.primaryColor,
+                  checkmarkColor: Colors.white,
+                  backgroundColor: Colors.grey[200],
+                );
+              }).toList(),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Vaccination Status Filter
+            Text(
+              'Filter by vaccination status:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: vaccinationOptions.map((status) {
+                final isSelected = selectedVaccinationStatus == status;
+                final Color chipColor = status == 'Vaccinated' 
+                    ? Colors.green 
+                    : status == 'Not Vaccinated' 
+                        ? Colors.orange 
+                        : Config.primaryColor;
+                
+                return FilterChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (status == 'Vaccinated')
+                        Icon(
+                          Icons.verified,
+                          size: 16,
+                          color: isSelected ? Colors.white : Colors.green,
+                        ),
+                      if (status == 'Not Vaccinated')
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: isSelected ? Colors.white : Colors.orange,
+                        ),
+                      if (status != 'All') const SizedBox(width: 4),
+                      Text(
+                        status,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.grey[700],
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      selectedVaccinationStatus = selected ? status : 'All';
+                    });
+                  },
+                  selectedColor: chipColor,
+                  checkmarkColor: Colors.white,
+                  backgroundColor: Colors.grey[200],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error building filter chips: $e');
+      return const SizedBox.shrink();
+    }
   }
 
   /// Enhanced animal list with vaccination status indicators
@@ -446,9 +481,9 @@ class _AnimalManagementViewState extends State<AnimalManagementView> {
                   ),
                 ],
               ),
+              ),
             ),
-          ),
-        );
+          );
       },
     );
   }

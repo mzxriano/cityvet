@@ -1,4 +1,3 @@
-import 'package:cityvet_app/components/role.dart';
 import 'package:cityvet_app/components/report_modal.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';

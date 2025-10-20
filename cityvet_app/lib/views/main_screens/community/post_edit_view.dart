@@ -31,7 +31,7 @@ class _EditPostViewState extends State<EditPostView> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final picked = await picker.pickMultiImage();
-    if (picked != null && mounted) {
+    if (mounted) {
       setState(() {
         _images.addAll(picked.map((x) => File(x.path)));
       });

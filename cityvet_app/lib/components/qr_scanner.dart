@@ -1,8 +1,6 @@
 import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
-import 'package:cityvet_app/utils/config.dart';
-import 'package:cityvet_app/utils/dio_exception_handler.dart';
 import 'package:cityvet_app/views/vaccination_page_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -215,25 +213,25 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
     );
   }
 
-  void _showSuccessSnackBar(String message) {
-    if (!mounted) return;
+  // void _showSuccessSnackBar(String message) {
+  //   if (!mounted) return;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Row(
+  //         children: [
+  //           const Icon(Icons.check_circle_outline, color: Colors.white),
+  //           const SizedBox(width: 8),
+  //           Expanded(child: Text(message)),
+  //         ],
+  //       ),
+  //       backgroundColor: Colors.green,
+  //       behavior: SnackBarBehavior.floating,
+  //       margin: const EdgeInsets.all(16),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  //     ),
+  //   );
+  // }
 
   void _toggleTorch() async {
     if (_isDisposed || showManualInput) return;
@@ -329,7 +327,7 @@ class _QrScannerPageState extends State<QrScannerPage> with TickerProviderStateM
 
                   if (uri != null && uri.pathSegments.isNotEmpty) {
                     final extractedCode = uri.pathSegments.last;
-                    final response = await fetchData(extractedCode);
+                    await fetchData(extractedCode);
                   } else {
                     _showErrorSnackBar("Invalid QR code format");
                     if (mounted) {

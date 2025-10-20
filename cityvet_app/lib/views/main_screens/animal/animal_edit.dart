@@ -39,9 +39,17 @@ class _AnimalEditState extends State<AnimalEdit> {
 
   String? breedError;
   String? genderError;
-  bool _isLoadingBreeds = true;
 
   Map<String, List<String>> petBreeds = {};
+
+  // Disease options per animal type
+  final Map<String, List<String>> diseaseOptions = {
+    'dog': ['Parvovirus', 'Distemper', 'Rabies', 'Specify'],
+    'cat': ['Feline Leukemia', 'FIV', 'Rabies', 'Specify'],
+  };
+
+  String? selectedCondition;
+  String? specifiedCondition;
 
   @override
   void initState() {
@@ -54,8 +62,20 @@ class _AnimalEditState extends State<AnimalEdit> {
     weightController.text = animal.weight?.toString() ?? '';
     heightController.text = animal.height?.toString() ?? '';
     uniqueSpotController.text = animal.uniqueSpot ?? '';
-    knownConditionsController.text = animal.knownConditions ?? '';
-
+    // Set known condition dropdown and specify field
+    if (diseaseOptions[animal.type]?.contains(animal.knownConditions) ?? false) {
+      selectedCondition = animal.knownConditions;
+      specifiedCondition = null;
+      knownConditionsController.text = '';
+    } else if (animal.knownConditions != null && animal.knownConditions!.isNotEmpty) {
+      selectedCondition = 'Specify';
+      specifiedCondition = animal.knownConditions;
+      knownConditionsController.text = animal.knownConditions!;
+    } else {
+      selectedCondition = null;
+      specifiedCondition = null;
+      knownConditionsController.text = '';
+    }
     selectedPetType = animal.type;
     selectedBreed = animal.breed;
     selectedDate = animal.birthDate != null ? DateTime.tryParse(animal.birthDate!) : null;
@@ -68,12 +88,8 @@ class _AnimalEditState extends State<AnimalEdit> {
       final data = await _animalTypeService.getAnimalTypesAndBreeds();
       setState(() {
         petBreeds = data['petBreeds'] as Map<String, List<String>>;
-        _isLoadingBreeds = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoadingBreeds = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load animal types: $e')),
@@ -451,19 +467,38 @@ class _AnimalEditState extends State<AnimalEdit> {
                             fontSize: Config.fontMedium,
                           ),
                         ),
-                        TextFormField(
-                          controller: knownConditionsController,
-                          focusNode: knownConditionsNode,
-                          keyboardType: TextInputType.text,
+                        DropdownButtonFormField<String>(
+                          value: selectedCondition,
                           decoration: _buildInputDecoration(),
-                          enabled: !ref.isLoading,
+                          items: (selectedPetType != null)
+                              ? ((diseaseOptions[selectedPetType!] != null && diseaseOptions[selectedPetType!]!.isNotEmpty)
+                                  ? diseaseOptions[selectedPetType!]!.map((disease) => DropdownMenuItem(value: disease, child: Text(disease))).toList()
+                                  : [DropdownMenuItem(value: 'Specify', child: Text('Specify'))])
+                              : [],
+                          onChanged: ref.isLoading ? null : (value) {
+                            setState(() {
+                              selectedCondition = value;
+                              if (value != 'Specify') specifiedCondition = null;
+                            });
+                          },
                           validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
                             return null;
                           },
                         ),
+                        if (selectedCondition == 'Specify')
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12.0),
+                            child: TextFormField(
+                              controller: knownConditionsController,
+                              focusNode: knownConditionsNode,
+                              keyboardType: TextInputType.text,
+                              decoration: _buildInputDecoration().copyWith(hintText: 'Specify Condition'),
+                              enabled: !ref.isLoading,
+                              onChanged: (value) {
+                                specifiedCondition = value;
+                              },
+                            ),
+                          ),
 
                         const SizedBox(height: 24),
 
@@ -510,7 +545,7 @@ class _AnimalEditState extends State<AnimalEdit> {
                               height: double.tryParse(heightController.text.trim()),
                               color: selectedColor!,
                               uniqueSpot: uniqueSpotController.text,
-                              knownConditions: knownConditionsController.text,
+                              knownConditions: selectedCondition == 'Specify' ? (specifiedCondition ?? '') : (selectedCondition ?? ''),
                               owner: widget.animalModel.owner,
                               code: widget.animalModel.code,
                               qrCode: widget.animalModel.qrCode,

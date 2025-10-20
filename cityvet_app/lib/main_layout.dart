@@ -88,7 +88,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       const CommunityView(),
       if (canUseQrScanner) const QrScannerPage(),
       if (isAEW) const ScheduleActivityView(),
-      if (!isAEW) isVetStaffOrAdmin ? const AnimalManagementView() : const AnimalView(),
+      if (!isAEW) isVetStaffOrAdmin ? const VaccinationHistoryView() : const AnimalView(),
       const NotificationView(),
     ];
   }
@@ -548,50 +548,80 @@ Drawer _buildDrawer(UserViewModel userViewModel) {
         _buildDrawerHeader(user),
         _buildDrawerItem(
           'Profile',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProfileView()),
-          ),
+          () {
+            Navigator.pop(context); // Close drawer first
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileView()),
+            );
+          },
         ),
-        if (!canAccessVaccination) // For pet, livestock, poultry owners
+        if (!canAccessVaccination) 
           _buildDrawerItem(
             'Archived Animals',
             () {
+              Navigator.pop(context); // Close drawer first
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ArchivedAnimalsView()),
               );
             },
           ),
-        if (canAccessVaccination)
+        if (userRole == Role.aew || 
+        userRole == Role.barangayPersonnel || userRole == Role.subAdmin)
           _buildDrawerItem(
             'Vaccination History',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const VaccinationHistoryView()),
-            ),
+            () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const VaccinationHistoryView()),
+              );
+            },
           ),
         if (canAccessVaccination)
           _buildDrawerItem(
             'Register Animal Owner',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RegisterOwnerView()),
-            ),
+            () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RegisterOwnerView()),
+              );
+            },
+          ),
+        if (canAccessVaccination)
+          _buildDrawerItem(
+            'Animals',
+            () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AnimalManagementView(),
+                ),
+              );
+            },
           ),
         _buildDrawerItem(
           'Report Incident',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ReportIncidentView()),
-          ),
+          () {
+            Navigator.pop(context); // Close drawer first
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReportIncidentView()),
+            );
+          },
         ),
         _buildDrawerItem(
           'Settings',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const SettingsView()),
-          ),
+          () {
+            Navigator.pop(context); // Close drawer first
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsView()),
+            );
+          },
         ),
       ],
     ),

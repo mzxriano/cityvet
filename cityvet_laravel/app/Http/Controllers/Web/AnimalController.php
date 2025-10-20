@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Web;
 
+use DB;
+use Validator;
 use App\Models\Animal;
 use App\Models\AnimalType;
 use App\Models\User;
-use DB;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Validator;
 use App\Services\NotificationService;
 
 class AnimalController extends Controller

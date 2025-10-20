@@ -17,75 +17,35 @@
     [x-cloak] {
       display: none !important;
     }
+    
+    /* Custom Scrollbar for Notifications */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 4px;
+    }
+    
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #4a5568;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+    
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #718096;
+    }
   </style>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   @yield('styles')
-  <script>
-    // Auto-apply dark theme classes to common elements
-    document.addEventListener('DOMContentLoaded', function() {
-      if (document.body.classList.contains('dark')) {
-        // Auto-apply dark classes to common patterns that might not have them
-        const whiteElements = document.querySelectorAll('.bg-white:not(.dark\\:bg-gray-800)');
-        whiteElements.forEach(el => el.classList.add('dark:bg-gray-800'));
-        
-        const grayTexts = document.querySelectorAll('.text-gray-700:not(.dark\\:text-gray-300)');
-        grayTexts.forEach(el => el.classList.add('dark:text-gray-300'));
-        
-        const borders = document.querySelectorAll('.border-gray-200:not(.dark\\:border-gray-700)');
-        borders.forEach(el => el.classList.add('dark:border-gray-700'));
-        
-        // Apply table dark theme classes
-        const tables = document.querySelectorAll('table:not(.table-styled)');
-        tables.forEach(table => {
-          table.classList.add('table-styled');
-          
-          // Add container wrapper if not exists
-          if (!table.closest('.table-container')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'table-container';
-            table.parentNode.insertBefore(wrapper, table);
-            wrapper.appendChild(table);
-          }
-          
-          // Style table headers
-          const headers = table.querySelectorAll('th');
-          headers.forEach(th => {
-            th.classList.add('px-6', 'py-3', 'text-left', 'text-xs', 'font-medium', 'text-gray-500', 'dark:text-gray-300', 'uppercase', 'tracking-wider', 'border-b', 'border-gray-200', 'dark:border-gray-600');
-          });
-          
-          // Style table cells
-          const cells = table.querySelectorAll('td');
-          cells.forEach(td => {
-            td.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-900', 'dark:text-gray-100', 'border-b', 'border-gray-200', 'dark:border-gray-700');
-          });
-          
-          // Style table rows
-          const rows = table.querySelectorAll('tbody tr');
-          rows.forEach(tr => {
-            tr.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'transition-colors');
-          });
-          
-          // Style thead
-          const thead = table.querySelector('thead');
-          if (thead) {
-            thead.classList.add('bg-gray-50', 'dark:bg-gray-700');
-          }
-          
-          // Style tbody
-          const tbody = table.querySelector('tbody');
-          if (tbody) {
-            tbody.classList.add('bg-white', 'dark:bg-gray-800', 'divide-y', 'divide-gray-200', 'dark:divide-gray-700');
-          }
-        });
-        
-        // Apply form element styles
-        const inputs = document.querySelectorAll('input:not(.styled), select:not(.styled), textarea:not(.styled)');
-        inputs.forEach(input => {
-          input.classList.add('styled', 'dark:bg-gray-700', 'dark:border-gray-600', 'dark:text-white', 'dark:placeholder-gray-400');
-        });
-      }
-    });
-  </script>
 </head>
 @php
   $currentTheme = \App\Models\Setting::get('app_theme', 'light');
@@ -126,38 +86,95 @@
           <!-- Right Section: Notifications and Admin -->
           <div class="flex items-center space-x-4">
             <!-- Notification Bell -->
-            <div class="relative" x-data="{ showNotifications: false }">
-              <button @click="showNotifications = !showNotifications" 
-                      class="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors relative">
+            <div class="relative" x-data="notificationSystem()">
+              <button @click="toggleNotifications()" 
+                      class="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
                 <!-- Notification Badge -->
-                <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                <span x-show="unreadCount > 0" 
+                      x-text="unreadCount > 99 ? '99+' : unreadCount"
+                      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
+                </span>
               </button>
 
               <!-- Notifications Dropdown -->
               <div x-show="showNotifications" 
                    @click.away="showNotifications = false"
                    x-transition:enter="transition ease-out duration-200"
-                   x-transition:enter-start="opacity-0 scale-95"
-                   x-transition:enter-end="opacity-100 scale-100"
-                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                   x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                   x-transition:leave="transition ease-in duration-100"
                    x-transition:leave-start="opacity-100 scale-100"
                    x-transition:leave-end="opacity-0 scale-95"
-                   class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                   class="absolute right-0 mt-3 w-[360px] bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50"
                    x-cloak>
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Notifications</h3>
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Notifications</h3>
+                  <button @click="markAllAsRead()" 
+                          x-show="unreadCount > 0"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+                    Mark all as read
+                  </button>
                 </div>
-                <div class="max-h-64 overflow-y-auto" id="notifications-list">
-                  <!-- Dynamic notifications will be loaded here -->
-                  <div class="p-3 text-center text-gray-500 dark:text-gray-400">
-                    <p class="text-sm">Loading notifications...</p>
-                  </div>
+
+                <!-- Notifications List -->
+                <div class="max-h-[480px] overflow-y-auto custom-scrollbar">
+                  <template x-if="loading">
+                    <div class="flex items-center justify-center p-8">
+                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  </template>
+
+                  <template x-if="!loading && notifications.length === 0">
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                      <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                      </svg>
+                      <p class="text-gray-500 dark:text-gray-400 font-medium">No notifications yet</p>
+                      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">When you get notifications, they'll show up here</p>
+                    </div>
+                  </template>
+
+                  <template x-if="!loading && notifications.length > 0">
+                    <div>
+                      <template x-for="notification in notifications" :key="notification.id">
+                        <div @click="handleNotificationClick(notification)"
+                             :class="notification.is_read ? 'bg-white dark:bg-gray-800' : 'bg-blue-50 dark:bg-blue-900/20'"
+                             class="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                          
+                          <!-- Icon -->
+                          <div :class="getNotificationIconBg(notification.type)"
+                               class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center">
+                            <span x-html="getNotificationIcon(notification.type)"></span>
+                          </div>
+
+                          <!-- Content -->
+                          <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-800 dark:text-gray-100 font-medium leading-snug"
+                               x-text="notification.title"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                               x-text="formatTime(notification.created_at)"></p>
+                          </div>
+
+                          <!-- Unread Indicator -->
+                          <div x-show="!notification.read"
+                               class="flex-shrink-0 w-2.5 h-2.5 bg-blue-600 rounded-full mt-1"></div>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
                 </div>
-                <div class="p-3 border-t border-gray-200 dark:border-gray-700">
-                  <a href="{{ route('admin.notifications') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View all notifications</a>
+
+                <!-- Footer -->
+                <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 rounded-b-lg">
+                  <a href="{{ route('admin.notifications') }}" 
+                     class="block text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-1">
+                    See all notifications
+                  </a>
                 </div>
               </div>
             </div>
@@ -166,7 +183,6 @@
             <div class="relative" x-data="{ showProfile: false }">
               <button @click="showProfile = !showProfile" 
                       class="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <!-- Admin Avatar Circle -->
                 <div class="w-8 h-8 bg-[#8ED968] rounded-full flex items-center justify-center">
                   <span class="text-white text-sm font-medium">A</span>
                 </div>
@@ -221,7 +237,7 @@
     </div>
   </main>
 
-  <!-- Logout Confirmation Modal - Positioned at viewport level -->
+  <!-- Logout Confirmation Modal -->
   <div x-show="$store.app.showLogoutModal" x-cloak x-transition 
        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
@@ -248,68 +264,122 @@
   @yield('scripts')
   
   <script>
-    // Load notifications on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      loadNotifications();
-      
-      // Reload notifications every 30 seconds
-      setInterval(loadNotifications, 30000);
-    });
+function notificationSystem() {
+  return {
+    showNotifications: false,
+    notifications: [],
+    unreadCount: 0,
+    loading: false,
 
-    async function loadNotifications() {
+    init() {
+      this.loadNotifications();
+      setInterval(() => this.loadNotifications(), 30000);
+    },
+
+    async toggleNotifications() {
+      this.showNotifications = !this.showNotifications;
+      if (this.showNotifications) {
+        await this.loadNotifications();
+      }
+    },
+
+    async loadNotifications() {
       try {
-        const response = await fetch('/admin/api/notifications/recent');
+        this.loading = true;
+        const response = await fetch('/admin/notifications/recent');
         const data = await response.json();
         
-        updateNotificationBadge(data.count);
-        updateNotificationsList(data.notifications);
+        this.notifications = data.notifications || [];
+        this.unreadCount = data.count || 0;
       } catch (error) {
         console.error('Error loading notifications:', error);
+      } finally {
+        this.loading = false;
       }
-    }
+    },
 
-    function updateNotificationBadge(count) {
-      const badge = document.getElementById('notification-badge');
-      if (count > 0) {
-        badge.textContent = count > 99 ? '99+' : count;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
-
-    function updateNotificationsList(notifications) {
-      const container = document.getElementById('notifications-list');
-      
-      if (notifications.length === 0) {
-        container.innerHTML = `
-          <div class="p-4 text-center text-gray-500 dark:text-gray-400">
-            <p class="text-sm">No new notifications</p>
-          </div>
-        `;
-        return;
+    async handleNotificationClick(notification) {
+      if (!notification.read) {
+        await this.markAsRead(notification.id);
+        notification.read = true;
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
       }
 
-      container.innerHTML = notifications.map(notification => `
-        <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
-          <p class="text-sm text-gray-800 dark:text-gray-100 font-medium">${notification.title}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${formatDate(notification.created_at)}</p>
-        </div>
-      `).join('');
-    }
+      if (notification.link) {
+        window.location.href = notification.link;
+      }
+    },
 
-    function formatDate(dateString) {
+    async markAsRead(notificationId) {
+      try {
+        await fetch(`/admin/notifications/${notificationId}/read`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.csrfToken
+          }
+        });
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    },
+
+    async markAllAsRead() {
+      try {
+        await fetch('/admin/notifications/mark-all-read', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': window.csrfToken
+          }
+        });
+
+        this.notifications.forEach(n => n.read = true);
+        this.unreadCount = 0;
+      } catch (error) {
+        console.error('Error marking all as read:', error);
+      }
+    },
+
+    getNotificationIcon(type) {
+      const icons = {
+        'user_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+        'animal_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>',
+        'activity_schedule': '<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+        'stock_alert': '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+        'community_post': '<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>',
+        'bite_case': '<svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>'
+      };
+      return icons[type] || icons['activity_schedule'];
+    },
+
+    getNotificationIconBg(type) {
+      const backgrounds = {
+        'user_registration': 'bg-green-100 dark:bg-green-900/30',
+        'animal_registration': 'bg-green-100 dark:bg-green-900/30',
+        'activity_schedule': 'bg-blue-100 dark:bg-blue-900/30',
+        'stock_alert': 'bg-red-100 dark:bg-red-900/30',
+        'community_post': 'bg-purple-100 dark:bg-purple-900/30',
+        'bite_case': 'bg-orange-100 dark:bg-orange-900/30'
+      };
+      return backgrounds[type] || 'bg-gray-100 dark:bg-gray-700';
+    },
+
+    formatTime(dateString) {
       const date = new Date(dateString);
       const now = new Date();
       const diff = Math.floor((now - date) / 1000);
 
       if (diff < 60) return 'Just now';
-      if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
-      if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
-      if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+      if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
       
-      return date.toLocaleDateString();
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
+  }
+}
   </script>
 </body>
 </html>

@@ -1,10 +1,17 @@
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/views/main_screens/home/disease_info_page.dart';
+import 'package:cityvet_app/views/main_screens/home/nutrition_guide_page.dart';
 import 'package:flutter/material.dart';
 
 class AnimalOptionsDialog {
   static void show(BuildContext context, String animalType) {
     final List<Map<String, dynamic>> animalOptions = [
+      {
+        'title': 'Nutrition Guide',
+        'subtitle': 'Nutrition recommendations',
+        'icon': Icons.restaurant_menu,
+        'color': Colors.green,
+      },
       {
         'title': 'Diseases',
         'subtitle': 'Disease guidelines',
@@ -154,6 +161,14 @@ class AnimalOptionsDialog {
           context,
           MaterialPageRoute(
             builder: (_) => DiseaseInfoPage(animalType: animalType),
+          ),
+        );
+        break;
+      case 'Nutrition Guide':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => NutritionGuidePage(animalType: animalType),
           ),
         );
         break;

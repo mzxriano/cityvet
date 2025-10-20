@@ -1,8 +1,11 @@
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/utils/role_constant.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 
 class VaccinationHistoryView extends StatefulWidget {
   const VaccinationHistoryView({super.key});
@@ -24,12 +27,14 @@ class _VaccinationHistoryViewState extends State<VaccinationHistoryView> {
   String _selectedFilter = 'All';
   final List<String> _filterOptions = ['All', 'This Month', 'Last 3 Months', 'This Year'];
   bool _showSearchBar = false;
+  String? userRole;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_performSearch);
     _initializeAndFetch();
+    userRole = Provider.of<UserViewModel>(context, listen: false).user?.role;
   }
 
   @override
@@ -232,253 +237,268 @@ class _VaccinationHistoryViewState extends State<VaccinationHistoryView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: _showSearchBar 
-          ? TextField(
-              controller: _searchController,
-              autofocus: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Search vaccinations...',
-                hintStyle: TextStyle(color: Colors.white70),
-                border: InputBorder.none,
-                prefixIcon: Icon(Icons.search, color: Colors.white70),
-              ),
-            )
-          : const Text('Vaccination History'),
-        backgroundColor: Colors.green[600],
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context), 
-          icon: Config.backButtonIcon
-        ),
-        actions: [
-          if (_showSearchBar) ...[
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: _clearSearch,
-              tooltip: 'Clear search',
-            ),
-          ] else ...[
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                setState(() {
-                  _showSearchBar = true;
-                });
-              },
-              tooltip: 'Search',
-            ),
-          ],
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter',
-            onSelected: (value) {
-              setState(() {
-                _selectedFilter = value;
-              });
-              _applyFilters();
-            },
-            itemBuilder: (context) => _filterOptions.map((filter) {
-              return PopupMenuItem<String>(
-                value: filter,
-                child: Row(
-                  children: [
-                    Icon(
-                      _selectedFilter == filter 
-                        ? Icons.radio_button_checked 
-                        : Icons.radio_button_unchecked,
-                      color: Colors.green[600],
-                      size: 20,
+    final mainBody = Container(
+      decoration: BoxDecoration(
+        // gradient: LinearGradient(
+        //   begin: Alignment.topCenter,
+        //   end: Alignment.bottomCenter,
+        //   colors: [
+        //     Colors.green[50]!,
+        //     Colors.white,
+        //   ],
+        // ),
+      ),
+      child: Column(
+        children: [
+          // Filter/Results info bar
+          if (vaccinationRecords.isNotEmpty && !isLoading)
+            Container(
+              width: double.infinity,
+              padding: userRole == Role.veterinarian && userRole == Role.staff ? 
+                EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Colors.green[700]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Showing ${filteredRecords.length} of ${vaccinationRecords.length} records',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green[700],
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(width: 8),
-                    Text(filter),
+                  ),
+                  if (_selectedFilter != 'All') ...[
+                    const Spacer(),
+                    Chip(
+                      label: Text(
+                        _selectedFilter,
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                      backgroundColor: Colors.green[100],
+                      deleteIcon: const Icon(Icons.close, size: 14),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedFilter = 'All';
+                        });
+                        _applyFilters();
+                      },
+                    ),
                   ],
+                ],
+              ),
+            ),
+          // Filters (moved from AppBar to body)
+          Padding(
+            padding: userRole == Role.veterinarian && userRole == Role.staff ? 
+              EdgeInsets.zero : const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _showSearchBar
+                      ? TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: const InputDecoration(
+                            hintText: 'Search vaccinations...',
+                            hintStyle: TextStyle(color: Colors.black54),
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.search, color: Colors.black54),
+                          ),
+                        )
+                      : const Text('Vaccination History', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
-              );
-            }).toList(),
+                if (_showSearchBar)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                    tooltip: 'Clear search',
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      setState(() {
+                        _showSearchBar = true;
+                      });
+                    },
+                    tooltip: 'Search',
+                  ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.filter_list),
+                  tooltip: 'Filter',
+                  onSelected: (value) {
+                    setState(() {
+                      _selectedFilter = value;
+                    });
+                    _applyFilters();
+                  },
+                  itemBuilder: (context) => _filterOptions.map((filter) {
+                    return PopupMenuItem<String>(
+                      value: filter,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _selectedFilter == filter 
+                              ? Icons.radio_button_checked 
+                              : Icons.radio_button_unchecked,
+                            color: Colors.green[600],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(filter),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: isLoading ? null : _refreshData,
+                  tooltip: 'Refresh',
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: isLoading ? null : _refreshData,
-            tooltip: 'Refresh',
+          // Main content
+          Expanded(
+            child: isLoading
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: Colors.green),
+                        SizedBox(height: 16),
+                        Text('Loading vaccination records...'),
+                      ],
+                    ),
+                  )
+                : errorMessage.isNotEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red[300],
+                            ),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                errorMessage,
+                                style: const TextStyle(fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _refreshData,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Retry'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green[600],
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : filteredRecords.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _searchController.text.isNotEmpty || _selectedFilter != 'All'
+                                    ? Icons.search_off
+                                    : Icons.vaccines_outlined,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _searchController.text.isNotEmpty || _selectedFilter != 'All'
+                                    ? 'No records match your search'
+                                    : 'No vaccination records found',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _searchController.text.isNotEmpty || _selectedFilter != 'All'
+                                    ? 'Try adjusting your search or filters'
+                                    : 'Vaccination records will appear here once available',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                if (_searchController.text.isNotEmpty || _selectedFilter != 'All') ...[
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _selectedFilter = 'All';
+                                        _showSearchBar = false;
+                                      });
+                                      _applyFilters();
+                                    },
+                                    icon: const Icon(Icons.clear),
+                                    label: const Text('Clear Filters'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green[600],
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _refreshData,
+                            child: ListView.builder(
+                              padding: userRole == Role.veterinarian && userRole == Role.staff
+                                  ? const EdgeInsets.all(16)
+                                  : const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: filteredRecords.length,
+                              itemBuilder: (context, index) {
+                                final record = filteredRecords[index];
+                                return VaccinationCard(
+                                  record: record,
+                                  searchQuery: _searchController.text,
+                                );
+                              },
+                            ),
+                          ),
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green[50]!,
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            // Filter/Results info bar
-            if (vaccinationRecords.isNotEmpty && !isLoading)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: Colors.green[50],
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 16, color: Colors.green[700]),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Showing ${filteredRecords.length} of ${vaccinationRecords.length} records',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.green[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (_selectedFilter != 'All') ...[
-                      const Spacer(),
-                      Chip(
-                        label: Text(
-                          _selectedFilter,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                        backgroundColor: Colors.green[100],
-                        deleteIcon: const Icon(Icons.close, size: 14),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedFilter = 'All';
-                          });
-                          _applyFilters();
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            
-            // Main content
-            Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(color: Colors.green),
-                          SizedBox(height: 16),
-                          Text('Loading vaccination records...'),
-                        ],
-                      ),
-                    )
-                  : errorMessage.isNotEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.red[300],
-                              ),
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 32),
-                                child: Text(
-                                  errorMessage,
-                                  style: const TextStyle(fontSize: 16),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: _refreshData,
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Retry'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green[600],
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : filteredRecords.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _searchController.text.isNotEmpty || _selectedFilter != 'All'
-                                      ? Icons.search_off
-                                      : Icons.vaccines_outlined,
-                                    size: 64,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    _searchController.text.isNotEmpty || _selectedFilter != 'All'
-                                      ? 'No records match your search'
-                                      : 'No vaccination records found',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _searchController.text.isNotEmpty || _selectedFilter != 'All'
-                                      ? 'Try adjusting your search or filters'
-                                      : 'Vaccination records will appear here once available',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  if (_searchController.text.isNotEmpty || _selectedFilter != 'All') ...[
-                                    const SizedBox(height: 16),
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {
-                                          _selectedFilter = 'All';
-                                          _showSearchBar = false;
-                                        });
-                                        _applyFilters();
-                                      },
-                                      icon: const Icon(Icons.clear),
-                                      label: const Text('Clear Filters'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green[600],
-                                        foregroundColor: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: _refreshData,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: filteredRecords.length,
-                                itemBuilder: (context, index) {
-                                  final record = filteredRecords[index];
-                                  return VaccinationCard(
-                                    record: record,
-                                    searchQuery: _searchController.text,
-                                  );
-                                },
-                              ),
-                            ),
-            ),
-          ],
-        ),
-      ),
     );
+
+    if (userRole != Role.veterinarian && userRole != Role.staff) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Config.backButtonIcon,
+          ),
+          backgroundColor: Colors.green[600],
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: mainBody,
+      );
+    } else {
+      return mainBody;
+    }
   }
 }
 

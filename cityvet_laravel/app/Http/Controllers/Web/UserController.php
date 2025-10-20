@@ -21,17 +21,51 @@ class UserController
      */
     public function index(Request $request)
     {
+        // Define Role Groups (assuming role names are snake_case)
+        $ownerRoles = ['pet_owner', 'livestock_owner', 'poultry_owner'];
+        $adminRoles = ['aew', 'veterinarian', 'staff', 'sub_admin', 'barangay_personnel'];
+        $allApprovedStatuses = ['active', 'inactive'];
+
+        // --- Base Query Setup and Filtering ---
+
         $query = User::with(["roles", "barangay"]);
 
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
-        } else {
-            // For "All" tab, exclude pending users - only show approved/active users
-            $query->whereIn('status', ['active', 'inactive']);
-        }
+        // --- Tab Filtering Logic ---
+        $currentRoleGroup = $request->input('role_group');
+        $currentStatus = $request->input('status');
 
-        // Filter by role
+        // Determine the effective role_group for the query.
+        // If no status or role_group is specified, default to 'animal_owners'.
+        $effectiveRoleGroup = $currentRoleGroup ?: ($currentStatus ? null : 'animal_owners');
+
+        if ($currentStatus === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($currentStatus === 'rejected') {
+            $query->where('status', 'rejected');
+        } elseif ($effectiveRoleGroup) {
+            // Role Group Tabs (only apply to approved users)
+            $query->whereIn('status', $allApprovedStatuses);
+            
+            $roleNames = [];
+            if ($effectiveRoleGroup === 'animal_owners') {
+                $roleNames = $ownerRoles;
+            } elseif ($effectiveRoleGroup === 'administrative') {
+                $roleNames = $adminRoles;
+            }
+
+            if (!empty($roleNames)) {
+                 // Find role IDs for the names
+                $roleIds = Role::whereIn('name', $roleNames)->pluck('id')->toArray();
+
+                $query->whereHas('roles', function ($q) use ($roleIds) {
+                    $q->whereIn('id', $roleIds);
+                });
+            }
+        }
+        
+        // --- Existing Role/Search Filters (Applied to the current query) ---
+        
+        // Filter by single role (from filter form)
         if ($request->filled('role')) {
             $roleId = $request->input('role');
             $query->whereHas('roles', function ($q) use ($roleId) {
@@ -55,10 +89,29 @@ class UserController
         // Paginate results
         $users = $query->paginate($perPage);
 
-        // Get counts for tabs
-        $allCount = User::whereIn('status', ['active', 'inactive'])->count();
+        // --- Get counts for tabs ---
+        
+        $rolesModel = Role::whereIn('name', array_merge($ownerRoles, $adminRoles))->get()->keyBy('name');
+
+        // Get role IDs for groups
+        $ownerRoleIds = $rolesModel->whereIn('name', $ownerRoles)->pluck('id')->toArray();
+        $adminRoleIds = $rolesModel->whereIn('name', $adminRoles)->pluck('id')->toArray();
+
+        // Counts for status tabs
         $pendingCount = User::where('status', 'pending')->count();
         $rejectedCount = User::where('status', 'rejected')->count();
+
+        // Combined Owner Count
+        $ownerCount = User::whereIn('status', $allApprovedStatuses)->whereHas('roles', function ($q) use ($ownerRoleIds) {
+            $q->whereIn('id', $ownerRoleIds);
+        })->count();
+        
+        // Administrative Count
+        $administrativeCount = User::whereIn('status', $allApprovedStatuses)->whereHas('roles', function ($q) use ($adminRoleIds) {
+            $q->whereIn('id', $adminRoleIds);
+        })->count();
+        
+        // --- Existing data for view ---
 
         $roles = Role::all();
         $barangays = Barangay::all();
@@ -73,7 +126,9 @@ class UserController
             "users",
             "roles",
             "barangays",
-            "allCount",
+            // Updated Counts
+            "ownerCount",
+            "administrativeCount",
             "pendingCount",
             "rejectedCount",
             "roleRequests"
@@ -98,8 +153,8 @@ class UserController
             "first_name" => "required|string|max:255",
             "last_name" => "required|string|max:255",
             "birth_date" => "required|date",
-            "email" => "required|email|unique:users,email",
-            "phone_number" => "required|string|unique:users,phone_number",
+            "email" => ($request->has('has_no_email') ? 'nullable' : 'required') . "|email|unique:users,email",
+            "phone_number" => ($request->has('has_no_phone') ? 'nullable' : 'required') . "|string|unique:users,phone_number",
             "barangay_id" => "required|integer|exists:barangays,id",
             "street" => "required|string|max:255",
             "role_ids" => "required|array|min:1",
@@ -114,6 +169,17 @@ class UserController
         $validated = $validate->validated();
         $validated["status"] = $validated["status"] ?? "pending";
 
+        // Handle no email
+        $validated['has_no_email'] = $request->has('has_no_email');
+        if ($validated['has_no_email']) {
+            $validated['email'] = 'no-email-' . uniqid() . '@cityvet.local';
+        }
+        // Handle no phone
+        $validated['has_no_phone'] = $request->has('has_no_phone');
+        if ($validated['has_no_phone']) {
+            $validated['phone_number'] = '0000' . str_pad(rand(1, 9999999), 7, '0');
+        }
+
         // Generate a random password for the user
         $password = Str::random(10);
         $validated["password"] = Hash::make($password);
@@ -124,7 +190,13 @@ class UserController
 
         NotificationService::newUserRegistration($user);
 
-        $user->notify(new NewUserCredentials($password));
+        // Only notify if user has email
+        if (!$request->has('has_no_email')) {
+            $user->notify(new NewUserCredentials($password));
+        } else {
+            // Attach random code to session for display or notification
+            session()->flash('user_code', $randomCode);
+        }
 
         return redirect()->route("admin.users")->with("success", "User Successfully Created.");
 

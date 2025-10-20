@@ -52,7 +52,16 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   String? selectedGender;
   DateTime? selectedDate;
   String? selectedColor;
-  bool _isLoadingBreeds = true;
+
+  // Disease options per animal type
+  final Map<String, List<String>> diseaseOptions = {
+    'dog': ['Parvovirus', 'Distemper', 'Rabies', 'Specify'],
+    'cat': ['Feline Leukemia', 'FIV', 'Rabies', 'Specify'],
+    // Add more types and diseases as needed
+  };
+
+  String? selectedCondition;
+  String? specifiedCondition;
 
   Map<String, List<String>> petBreeds = {};
 
@@ -67,12 +76,9 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
       final data = await _animalTypeService.getAnimalTypesAndBreeds();
       setState(() {
         petBreeds = data['petBreeds'] as Map<String, List<String>>;
-        _isLoadingBreeds = false;
+        // diseaseOptions is hardcoded, do not assign here
       });
     } catch (e) {
-      setState(() {
-        _isLoadingBreeds = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load animal types: $e')),
@@ -475,13 +481,38 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
 
                     const SizedBox(height: 16),
 
-                    _buildTextField(
-                      controller: knownConditionsController,
+                    // Known Conditions Dropdown
+                    _buildDropdownField<String>(
+                      value: selectedCondition,
                       label: 'Known Conditions',
                       icon: Icons.medical_services_outlined,
-                      maxLines: 3,
+                      items: (selectedPetType != null)
+                          ? ((diseaseOptions[selectedPetType!.toLowerCase()] != null && diseaseOptions[selectedPetType!.toLowerCase()]!.isNotEmpty)
+                              ? diseaseOptions[selectedPetType!.toLowerCase()]!.map((disease) => DropdownMenuItem(value: disease, child: Text(disease))).toList()
+                              : [DropdownMenuItem(value: 'Specify', child: Text('Specify'))])
+                          : [],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCondition = value;
+                          if (value != 'Specify') specifiedCondition = null;
+                        });
+                      },
+                      isRequired: false,
                     ),
 
+                    if (selectedCondition == 'Specify')
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: _buildTextField(
+                          controller: knownConditionsController,
+                          label: 'Specify Condition',
+                          icon: Icons.edit,
+                          maxLines: 2,
+                          onChanged: (value) {
+                            specifiedCondition = value;
+                          },
+                        ),
+                      ),
                     const SizedBox(height: 32),
 
                     /// Submit Button
@@ -518,7 +549,7 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
                             height: double.tryParse(heightController.text), 
                             color: colorController.text,
                             uniqueSpot: uniqueSpotController.text,
-                            knownConditions: knownConditionsController.text,
+                            knownConditions: selectedCondition == 'Specify' ? (specifiedCondition ?? '') : (selectedCondition ?? ''),
                           );
 
                           await formRef.createAnimal(animal);
@@ -608,10 +639,12 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLines: maxLines ?? 1,
-      validator: isRequired ? (value) {
-        if (value == null || value.isEmpty) return '$label is required';
-        return null;
-      } : validator,
+      validator: isRequired
+          ? (value) {
+              if (value == null || value.isEmpty) return '$label is required';
+              return null;
+            }
+          : validator,
       onChanged: onChanged,
       style: TextStyle(
         fontFamily: Config.primaryFont,

@@ -1,6 +1,7 @@
 import 'package:cityvet_app/models/incident_model.dart';
 import 'package:cityvet_app/services/incident_service.dart';
 import 'package:cityvet_app/utils/config.dart';
+import 'package:cityvet_app/utils/role_constant.dart';
 import 'package:cityvet_app/viewmodels/home_view_model.dart';
 import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/activity_vaccination_report_view.dart';
@@ -73,10 +74,10 @@ class HomeViewState extends State<HomeView> {
 
             // Vet, AEW, sub admin, and staff can see all upcoming activities
             // Pet/poultry/livestock owners only see their barangay activities
-            final showAllActivities = userRole == 'veterinarian' || 
-                                      userRole == 'aew' || 
-                                      userRole == 'sub_admin' || 
-                                      userRole == 'staff';
+            final showAllActivities = userRole == Role.veterinarian || 
+                                      userRole == Role.aew || 
+                                      userRole == Role.subAdmin || 
+                                      userRole == Role.staff;
 
             final filteredUpcoming = showAllActivities 
                 ? (homeViewModel.upcomingActivities ?? [])

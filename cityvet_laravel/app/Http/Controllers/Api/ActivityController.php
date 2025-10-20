@@ -518,6 +518,8 @@ class ActivityController extends Controller
                 'date' => 'required|date|after:today',
                 'time' => 'required|date_format:H:i',
                 'details' => 'required|string|max:1000',
+                'memos' => 'nullable|array',
+                'memos.*' => 'file|mimes:pdf|max:10240', // 10MB per PDF
             ]);
 
             // Get the authenticated user
@@ -530,6 +532,23 @@ class ActivityController extends Controller
                 ], 403);
             }
 
+            // Handle memo file uploads
+            $memoPaths = [];
+            if ($request->hasFile('memos')) {
+                foreach ($request->file('memos') as $memoFile) {
+                    if ($memoFile && $memoFile->isValid()) {
+                        $path = $memoFile->store('activity_memos', 'public');
+                        $memoPaths[] = $path;
+                    }
+                }
+            }
+
+            // Store as JSON array if multiple, single string if one, null if none
+            $memoValue = null;
+            if (!empty($memoPaths)) {
+                $memoValue = count($memoPaths) > 1 ? json_encode($memoPaths) : $memoPaths[0];
+            }
+
             // Create the activity request with pending status
             $activity = Activity::create([
                 'reason' => $validated['reason'],
@@ -540,6 +559,7 @@ class ActivityController extends Controller
                 'status' => 'pending', 
                 'created_by' => $user->id,
                 'category' => $validated['category'],
+                'memo' => $memoValue,
             ]);
 
             NotificationService::newRequestedActivitySchedule($activity);
@@ -547,7 +567,8 @@ class ActivityController extends Controller
             \Log::info('Activity request submitted successfully', [
                 'activity_id' => $activity->id,
                 'user_id' => $user->id,
-                'reason' => $validated['reason']
+                'reason' => $validated['reason'],
+                'memos' => $memoPaths
             ]);
 
             return response()->json([
@@ -558,6 +579,7 @@ class ActivityController extends Controller
                     'date' => $activity->date->format('Y-m-d'),
                     'time' => $activity->time->format('H:i'),
                     'status' => $activity->status,
+                    'memos' => $memoPaths,
                 ]
             ], 201);
 

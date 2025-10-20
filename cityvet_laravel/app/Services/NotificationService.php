@@ -35,12 +35,12 @@ class NotificationService
     {
         self::notifyAdmin(
             'New User Registration',
-            "A new user {$user->first_name} {$user->last_name} has registered from {$user->barangay}",
+            "A new user {$user->first_name} {$user->last_name} has registered from {$user->barangay->name}",
             'user_registration',
             [
                 'user_id' => $user->id,
                 'user_name' => $user->first_name . ' ' . $user->last_name,
-                'barangay' => $user->barangay,
+                'barangay' => $user->barangay->name,
                 'email' => $user->email
             ]
         );
@@ -51,8 +51,8 @@ class NotificationService
      */
     public static function newAnimalRegistration($animal)
     {
-        $ownerName = $animal->owner ? $animal->owner->first_name . ' ' . $animal->owner->last_name : 'Unknown Owner';
-        
+        $ownerName = $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown Owner';
+
         self::notifyAdmin(
             'New Animal Registration',
             "A new {$animal->type} named {$animal->name} has been registered by {$ownerName}",
@@ -62,7 +62,26 @@ class NotificationService
                 'animal_name' => $animal->name,
                 'animal_type' => $animal->type,
                 'owner_name' => $ownerName,
-                'owner_id' => $animal->owner_id
+                'owner_id' => $animal->user_id
+            ]
+        );
+    }
+
+    public static function notifyKnownCondition($animal)
+    {
+        $ownerName = $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown Owner';
+
+        self::notifyAdmin(
+            'An animal with known condition has been registered',
+            "A new {$animal->type} named {$animal->name} has been registered with a known condition by {$ownerName}
+            Address: {$animal->user->barangay->name}, {$animal->user->street}",
+            'animal_registration',
+            [
+                'animal_id' => $animal->id,
+                'animal_name' => $animal->name,
+                'animal_type' => $animal->type,
+                'owner_name' => $ownerName,
+                'owner_id' => $animal->user_id
             ]
         );
     }
@@ -207,8 +226,11 @@ class NotificationService
      */
     public static function markAsRead($notificationId)
     {
-        return AdminNotification::where('id', $notificationId)
-            ->update(['read' => true]);
+        $notification = AdminNotification::find($notificationId);
+        
+        if ($notification) {
+            $notification->markAsRead();
+        }
     }
 
     /**

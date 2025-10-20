@@ -8,6 +8,7 @@ import 'package:cityvet_app/models/animal_model.dart';
 import 'package:cityvet_app/utils/config.dart';
 import 'package:cityvet_app/viewmodels/animal_preview_view_model.dart';
 import 'package:cityvet_app/viewmodels/animal_view_model.dart';
+import 'package:cityvet_app/viewmodels/user_view_model.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_edit.dart';
 import 'package:cityvet_app/views/main_screens/animal/animal_vaccination_record_page.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,6 @@ class AnimalPreview extends StatefulWidget {
 }
 
 class _AnimalPreviewState extends State<AnimalPreview> {
-  final GlobalKey _qrKey = GlobalKey();
   final GlobalKey _qrCardKey = GlobalKey(); 
 
   final _boxShadow = BoxShadow(
@@ -95,10 +95,14 @@ class _AnimalPreviewState extends State<AnimalPreview> {
   @override
   Widget build(BuildContext context) {
     final animalViewModel = Provider.of<AnimalViewModel>(context);
+    final currentUserId = Provider.of<UserViewModel>(context, listen: false).user?.id;
     final myAnimal = animalViewModel.animals.firstWhere(
       (a) => a.id == widget.animalModel.id,
       orElse: () => widget.animalModel,
     );
+    final bool isOwner = myAnimal.ownerId == currentUserId;
+    print("Owner ID: ${myAnimal.ownerId}, Current User ID: $currentUserId, Is Owner: $isOwner");
+
 
     final double getScreenHeight = MediaQuery.of(context).size.height;
     final double getScreenWidth = MediaQuery.of(context).size.width;
@@ -128,13 +132,14 @@ class _AnimalPreviewState extends State<AnimalPreview> {
                 icon: Config.backButtonIcon, color: Colors.white,
               ),
               actions: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalEdit(animalModel: myAnimal,)));
-                  }, 
-                  padding: EdgeInsets.only(right: 20.0),
-                  icon: const Icon(Icons.edit_square, color: Colors.white,),
-                ),
+                if(isOwner)
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => AnimalEdit(animalModel: myAnimal,)));
+                    }, 
+                    padding: EdgeInsets.only(right: 20.0),
+                    icon: const Icon(Icons.edit_square, color: Colors.white,),
+                  ),
               ],
             ),
             body: Stack(

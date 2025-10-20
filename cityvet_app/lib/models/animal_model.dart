@@ -5,6 +5,7 @@ class AnimalModel {
   final String type;
   final String name;
   final String? owner;
+  final int? ownerId;
   final String? breed;
   final String? birthDate;
   final String gender;
@@ -31,6 +32,7 @@ class AnimalModel {
     this.uniqueSpot,
     this.knownConditions,
     this.owner,
+    this.ownerId,
     this.code,
     this.qrCode,
     this.birthDate,
@@ -59,6 +61,7 @@ class AnimalModel {
       qrCode: json['qr_code_base64'],
       qrCodeUrl: json['qr_code_url'],
       owner: json['owner'],
+      ownerId: json['owner_id'],
       imageUrl: json['image_url'],
       imagePublicId: json['image_public_id'],
       vaccinations: json['vaccinations'] != null

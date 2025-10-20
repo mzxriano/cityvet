@@ -23,20 +23,12 @@
             'dashboard' => ['label' => 'Dashboard'],
             'activities' => ['label' => 'Activities'],
             'users' => ['label' => 'User Accounts'],
-            'animals' => [                               
-                'label' => 'Animals',
-                'children' => [
-                    ['label' => 'Pets', 'route' => 'animals', 'params' => 'type=pet'],
-                    ['label' => 'Livestock', 'route' => 'animals', 'params' => 'type=livestock'],
-                    ['label' => 'Poultry', 'route' => 'animals', 'params' => 'type=poultry'],
-                ],
-            ],
+            'animals' => ['label' => 'Animals'],
             'barangay' => ['label' => 'Barangay'],
             'vaccines' => ['label' => 'Vaccines'],
             'community' => ['label' => 'Community'],
             'bite-case' => ['label' => 'Bite Case'],
             'reports' => ['label' => 'Reports'],
-            'archives' => ['label' => 'Archives'],
             'cms' => ['label' => 'CMS'],
         ];
     @endphp
