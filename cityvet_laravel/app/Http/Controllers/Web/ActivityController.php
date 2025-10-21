@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Models\Activity;
 use App\Models\Barangay;
 use App\Models\User;
+use App\Models\VaccineAdministration;
 use App\Notifications\PushNotification;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ActivityController extends Controller
     public function index(Request $request)
     {
         $query = Activity::with('barangay')
-            ->whereNotIn('status', ['pending']); // Exclude pending from main view
+            ->whereNotIn('status', ['pending']);
 
         // Apply status filter if provided
         if ($request->filled('status')) {
@@ -37,52 +38,111 @@ class ActivityController extends Controller
         
         // Get vaccination counts for each activity
         foreach ($activities as $activity) {
-            $activity->vaccinated_animals_count = \App\Models\Animal::whereHas('vaccines', function($query) use ($activity) {
-                $query->where('animal_vaccine.activity_id', $activity->id);
-            })->count();
+            $activity->vaccinated_animals_count = VaccineAdministration::where('activity_id', $activity->id)->count();
         }
 
-        // Get all barangays for the dropdown
-        $barangays = Barangay::orderBy('name')->get();
-
-        return view("admin.activities", compact("activities", "barangays"));
+        return view('admin.activities', [
+            'activities' => $activities,
+            'barangays' => Barangay::all(),
+            'search_query' => $request->search,
+        ]);
     }
 
-    public function show($id) 
+    /**
+     * Show the details of a specific activity.
+     */
+    public function show($id)
     {
         $activity = Activity::findOrFail($id);
 
-        // Get vaccinated animals for this activity
-        $vaccinatedAnimals = \App\Models\Animal::with(['user', 'vaccines' => function($query) use ($activity) {
-            $query->where('animal_vaccine.activity_id', $activity->id);
-        }])
-        ->whereHas('vaccines', function($query) use ($activity) {
-            $query->where('animal_vaccine.activity_id', $activity->id);
-        })
-        ->get()
-        ->map(function($animal) {
-            return [
-                'id' => $animal->id,
-                'name' => $animal->name,
-                'type' => $animal->type,
-                'breed' => $animal->breed,
-                'color' => $animal->color,
-                'gender' => $animal->gender,
-                'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
-                'owner_phone' => $animal->user ? $animal->user->phone_number : null,
-                'vaccinations' => $animal->vaccines->map(function($vaccine) {
-                    return [
-                        'vaccine_name' => $vaccine->name,
-                        'dose' => $vaccine->pivot->dose,
-                        'date_given' => $vaccine->pivot->date_given,
-                        'administrator' => $vaccine->pivot->administrator,
-                    ];
-                })
-            ];
-        });
+        $administrations = VaccineAdministration::where('activity_id', $activity->id)
+            ->with([
+                'animal.user', 
+                'lot.product',
+            ])
+            ->orderBy('date_given', 'desc')
+            ->get();
+            
+        $vaccinatedAnimals = [];
 
-        return view('admin.activities_view', compact('activity', 'vaccinatedAnimals'));
+        foreach ($administrations as $admin) {
+            $animalId = $admin->animal_id;
+            
+            if (!isset($vaccinatedAnimals[$animalId])) {
+                $owner = $admin->animal->user;
+                $vaccinatedAnimals[$animalId] = [
+                    'id' => $admin->animal->id,
+                    'name' => $admin->animal->name,
+                    'type' => $admin->animal->type,
+                    'breed' => $admin->animal->breed,
+                    'owner' => $owner->first_name . ' ' . $owner->last_name ?? 'N/A',
+                    'owner_phone' => $owner->phone_number ?? 'N/A',
+                    'vaccinations' => [],
+                ];
+            }
+
+            // Append the vaccination details to the animal's nested array
+            $vaccinatedAnimals[$animalId]['vaccinations'][] = [
+                'vaccine_name' => $admin->lot->product->name ?? 'Unknown Vaccine',
+                'dose' => $admin->doses_given,
+                'administrator' => $admin->administrator,
+                'date_given' => $admin->date_given->format('Y-m-d'),
+                'lot_number' => $admin->lot->lot_number ?? 'N/A',
+            ];
+        }
+
+        $vaccinatedAnimals = array_values($vaccinatedAnimals);
+        
+        $memoPaths = [];
+        if (!empty($activity->memo)) {
+            $memo = json_decode($activity->memo, true);
+            $memoPaths = is_array($memo) ? $memo : [$activity->memo];
+            $memoPaths = array_map(fn($path) => \Storage::disk('public')->url($path), $memoPaths);
+        }
+
+        return view('admin.activities_view', [
+            'activity' => $activity,
+            'memoPaths' => $memoPaths,
+            'vaccinatedAnimals' => collect($vaccinatedAnimals),
+            'adminCount' => count($vaccinatedAnimals),
+        ]);
     }
+
+    // public function show($id) 
+    // {
+    //     $activity = Activity::findOrFail($id);
+
+    //     // Get vaccinated animals for this activity
+    //     $vaccinatedAnimals = \App\Models\Animal::with(['user', 'vaccines' => function($query) use ($activity) {
+    //         $query->where('animal_vaccine.activity_id', $activity->id);
+    //     }])
+    //     ->whereHas('vaccines', function($query) use ($activity) {
+    //         $query->where('animal_vaccine.activity_id', $activity->id);
+    //     })
+    //     ->get()
+    //     ->map(function($animal) {
+    //         return [
+    //             'id' => $animal->id,
+    //             'name' => $animal->name,
+    //             'type' => $animal->type,
+    //             'breed' => $animal->breed,
+    //             'color' => $animal->color,
+    //             'gender' => $animal->gender,
+    //             'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
+    //             'owner_phone' => $animal->user ? $animal->user->phone_number : null,
+    //             'vaccinations' => $animal->vaccines->map(function($vaccine) {
+    //                 return [
+    //                     'vaccine_name' => $vaccine->name,
+    //                     'dose' => $vaccine->pivot->dose,
+    //                     'date_given' => $vaccine->pivot->date_given,
+    //                     'administrator' => $vaccine->pivot->administrator,
+    //                 ];
+    //             })
+    //         ];
+    //     });
+
+    //     return view('admin.activities_view', compact('activity', 'vaccinatedAnimals'));
+    // }
 
     public function downloadMemo($id, $index = 0)
     {

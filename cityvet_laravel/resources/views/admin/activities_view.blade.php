@@ -164,9 +164,11 @@
                 <td class="px-6 py-4">
                   <div class="space-y-1">
                     @foreach($animal['vaccinations'] as $vaccination)
-                    <div class="text-sm text-gray-900">
+                    <div class="text-sm text-gray-900 flex flex-col">
                       <span class="font-medium">{{ $vaccination['vaccine_name'] }}</span>
-                      <span class="text-gray-500">(Dose {{ $vaccination['dose'] }})</span>
+                      <span class="text-gray-500">Dose {{ $vaccination['dose'] }}</span>
+                      <span class="text-gray-500">Lot Number: {{ $vaccination['lot_number'] }}</span>
+                      <span class="text-gray-500">Date Given: {{ $vaccination['date_given'] }}</span>
                     </div>
                     @endforeach
                   </div>

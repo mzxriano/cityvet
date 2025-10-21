@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\VaccineController;
 use App\Http\Controllers\Api\IncidentController;
 use App\Http\Controllers\Api\RoleRequestController;
+use App\Http\Controllers\Api\VaccineProductController;
 
 Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail']);
 
@@ -58,8 +59,9 @@ Route::prefix('auth')->group(function () {
             Route::get('/upcoming', [ActivityController::class,'index']);
             Route::get('/ongoing', [ActivityController::class,'ongoingActivity']);
             Route::get('/recent', [ActivityController::class,'recentActivities']);
-            Route::get('/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimals']);
-            Route::get('/{activityId}/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimalsByActivity']);
+            //Route::get('/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimals']);
+            //Route::get('/{activityId}/vaccinated-animals', [ActivityController::class,'getVaccinatedAnimalsByActivity']);
+            Route::get('/vaccinated-animals/{activityId}', [ActivityController::class,'getVaccinatedAnimalsByActivityNew']);
             Route::post('/{id}/upload-images', [ActivityController::class,'uploadImages']);
         });
 
@@ -68,7 +70,7 @@ Route::prefix('auth')->group(function () {
 
         Route::get('/recent-activities', [ActivityController::class,'recentActivities']);
 
-        Route::get('/vaccination-records', [VaccineController::class,'getAllVaccinationRecords']);
+        //Route::get('/vaccination-records', [VaccineController::class,'getAllVaccinationRecords']);
 
         
         // Animals 
@@ -77,6 +79,7 @@ Route::prefix('auth')->group(function () {
             Route::get('/', [AnimalController::class,'index']);
             Route::get('/all', [AnimalController::class,'fetchAllAnimals']);
             Route::post('/add-for-owner', [AnimalController::class,'addAnimalForOwner']);
+            Route::get('/vaccinated-animals/all', [AnimalController::class,'getAllVaccinatedAnimals']);
             
             // Specific routes must come BEFORE parameterized routes
             Route::get('/archived', [AnimalController::class,'getArchivedAnimals']);
@@ -95,8 +98,12 @@ Route::prefix('auth')->group(function () {
         // Search Owners
         Route::get('/search-owners', [AnimalController::class, 'searchOwners']);
 
-        // Vaccines
-        Route::get('/vaccines', [VaccineController::class, 'index']);
+        // Old Vaccines
+        //Route::get('/vaccines', [VaccineController::class, 'index']);
+
+        Route::get('/vaccines', [VaccineProductController::class, 'getAvailableVaccines']);
+        Route::post('/vaccinations/log', [VaccineProductController::class, 'logAdministration']);
+
 
         // Fetch Veterinarians
         Route::get('/veterinarians', [VaccineController::class, 'fetchVeterinarians']);

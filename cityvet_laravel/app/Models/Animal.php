@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\VaccineAdministration;
 
 class Animal extends Model
 {
@@ -72,6 +73,14 @@ class Animal extends Model
         return $this->belongsToMany(Vaccine::class)
             ->withPivot('dose', 'date_given', 'administrator', 'activity_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Get all the vaccine administration records for the Animal.
+     */
+    public function administrations()
+    {
+        return $this->hasMany(VaccineAdministration::class, 'animal_id');
     }
 
     /**

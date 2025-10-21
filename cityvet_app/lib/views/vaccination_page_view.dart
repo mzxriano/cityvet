@@ -1,5 +1,5 @@
 import 'package:cityvet_app/models/animal_model.dart';
-import 'package:cityvet_app/models/vaccine_model.dart';
+import 'package:cityvet_app/models/vaccine_product_model.dart';
 import 'package:cityvet_app/services/api_service.dart';
 import 'package:cityvet_app/utils/auth_storage.dart';
 import 'package:cityvet_app/utils/config.dart';
@@ -20,9 +20,9 @@ class VaccinationPage extends StatefulWidget {
 }
 
 class _VaccinationPageState extends State<VaccinationPage> with TickerProviderStateMixin {
-  List<VaccineModel> vaccines = [];
+  List<VaccineProductModel> vaccines = [];
   List<Map<String, dynamic>> veterinarians = [];
-  VaccineModel? selectedVaccine;
+  VaccineProductModel? selectedVaccine;
   DateTime? selectedDate;
   final TextEditingController doseController = TextEditingController();
   final TextEditingController adminController = TextEditingController();
@@ -60,12 +60,12 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     
     final api = ApiService();
     try {
-      final data = await api.getVaccines(token!);
+      final data = await api.getNewVaccines(token!);
       
       if (!mounted) return; 
       
       setState(() {
-        vaccines = data.map<VaccineModel>((v) => VaccineModel.fromJson(v)).toList();
+        vaccines = data.map<VaccineProductModel>((v) => VaccineProductModel.fromJson(v)).toList();
         isLoading = false;
       });
     } catch (e) {
@@ -105,20 +105,26 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
     super.dispose();
   }
 
-  void _submit() async {
-
+  // Inside _VaccinationPageState
+void _submit() async {
     if (!mounted) return; 
 
     if (selectedVaccine == null) {
       _showSnackBar('Please select a vaccine', Colors.orange);
       return;
     }
+    // Check for Lot ID (which is the selectedVaccine.id)
+    if (selectedVaccine?.id == null) {
+        _showSnackBar('Selected vaccine lot data is missing.', Colors.red);
+        return;
+    }
     if (widget.activityId == null && selectedDate == null) {
       _showSnackBar('Please select a date', Colors.orange);
       return;
     }
-    if (doseController.text.isEmpty) {
-      _showSnackBar('Please enter dose number', Colors.orange);
+    // Change: Check if the dose is valid (can be a fraction, so check the text)
+    if (doseController.text.isEmpty || (double.tryParse(doseController.text) ?? 0) <= 0) {
+      _showSnackBar('Please enter a valid dose (number greater than zero)', Colors.orange);
       return;
     }
     if (adminController.text.isEmpty) {
@@ -143,38 +149,42 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
 
     final api = ApiService();
     try {
-      if (widget.activityId != null) {
-        await api.attachVaccinesToActivity(
-          token,
-          widget.activityId!,
-          widget.animalModel.id!,
-          [
-            {
-              'id': selectedVaccine!.id,
-              'dose': int.tryParse(doseController.text) ?? 1,
-              'administrator': adminController.text,
-            }
-          ],
-        );
-      } else {
-        await api.attachVaccinesToAnimal(
-          token,
-          widget.animalModel.id!,
-          [
-            {
-              'id': selectedVaccine!.id,
-              'dose': int.tryParse(doseController.text) ?? 1,
-              'date_given': selectedDate!.toIso8601String().split('T')[0],
-              'administrator': adminController.text,
-            }
-          ],
-        );
-      }
+        final double dose = double.tryParse(doseController.text) ?? 1.0;
+        
+        // Determine the date to send: If part of an activity, send the activity ID
+        // The date logic here prioritizes selectedDate if no activityId is present.
+        final DateTime submissionDate = widget.activityId != null 
+            ? DateTime.now() // Backend should use Activity date, but send current date as fallback/timestamp
+            : selectedDate!;
+            
+        // 1. Prepare the Unified Payload for the single /vaccinations/log endpoint
+        final payload = {
+            'animal_id': widget.animalModel.id, 
+            // CRITICAL: Send the Lot ID, which is stored in the model's 'id' field
+            'vaccine_lot_id': selectedVaccine!.id, 
+            // Use 'doses_given' to match the Laravel schema
+            'doses_given': dose, 
+            'administrator': adminController.text,
+            // Format date for Laravel 'date' column type
+            'date_given': submissionDate.toIso8601String().split('T')[0],
+
+            // Conditionally include activity_id
+            if (widget.activityId != null) 
+              'activity_id': widget.activityId,
+              
+            // NOTE: If you add fields like adverse_reaction, site_of_admin, etc. to the UI, 
+            // they must be added to this payload map.
+        };
+
+
+        // 2. Call the NEW Unified Logging API Service Method
+        // This function must be implemented in your ApiService.
+        await api.logAdministration(token, payload);
       
       if (!mounted) return; 
       
       setState(() { isLoading = false; });
-      _showSnackBar('Vaccination recorded successfully!', Colors.green);
+      _showSnackBar('Vaccination recorded successfully! Stock deducted.', Colors.green);
       
       await Future.delayed(const Duration(milliseconds: 500));
       
@@ -188,10 +198,13 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       print('error attach vaccine $e');
       
       String errorMessage = 'Failed to record vaccination';
-      if (e.toString().contains('422')) {
+      // Check for specific backend errors (e.g., Insufficient stock)
+      if (e.toString().contains('Insufficient stock')) {
+         errorMessage = 'Insufficient stock in the selected lot.';
+      } else if (e.toString().contains('422')) {
         errorMessage = 'Invalid vaccination data. Please check your inputs.';
       } else if (e.toString().contains('404')) {
-        errorMessage = 'Animal not found. Please try again.';
+        errorMessage = 'Animal or Lot not found. Please try again.';
       } else if (e.toString().contains('401')) {
         errorMessage = 'Authentication failed. Please log in again.';
       } else if (e.toString().contains('500')) {
@@ -200,7 +213,7 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
       
       _showSnackBar(errorMessage, Colors.red);
     }
-  }
+}
 
   void _showSnackBar(String message, Color color) {
     if (!mounted) return; 
@@ -545,12 +558,12 @@ class _VaccinationPageState extends State<VaccinationPage> with TickerProviderSt
                         ),
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<VaccineModel>(
+                      DropdownButtonFormField<VaccineProductModel>(
                         value: selectedVaccine,
                         items: vaccines.map((vaccine) {
-                          return DropdownMenuItem<VaccineModel>(
+                          return DropdownMenuItem<VaccineProductModel>(
                             value: vaccine,
-                            child: Text("${vaccine.name} (${vaccine.stock} in stock)"),
+                            child: Text("${vaccine.name} (${vaccine.currentStock} in stock) \n Lot: ${vaccine.lotNumber}, Exp: ${vaccine.expirationDate}"),
                           );
                         }).toList(),
                         onChanged: (v) {

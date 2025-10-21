@@ -61,7 +61,7 @@ class _ActivityVaccinationReportViewState extends State<ActivityVaccinationRepor
       Map<String, dynamic> data;
 
       if (widget.activityId != null) {
-        data = await api.getVaccinatedAnimalsByActivity(token, int.parse(widget.activityId!));
+        data = await api.getVaccinatedAnimalsByActivityNew(token, int.parse(widget.activityId!));
       } else {
         data = await api.getVaccinatedAnimals(token, widget.date ?? '2025-01-01');
       }

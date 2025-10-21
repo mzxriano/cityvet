@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cityvet_app/models/notification_model.dart';
 import 'package:cityvet_app/utils/api_constant.dart';
 import 'package:dio/dio.dart';
@@ -28,7 +30,23 @@ class ApiService {
     }
   }
 
+  // Old fetching vaccines method
   Future<List<dynamic>> getVaccines(String token) async {
+    try {
+      final response = await _dio.get('/vaccines', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load vaccines: \\${response.statusCode}');
+      }
+    } catch (e) {
+      print('Request failed: $e');
+      throw Exception('Error: $e');
+    }
+  }
+
+  // New fetching vaccines method
+  Future<List<dynamic>> getNewVaccines(String token) async {
     try {
       final response = await _dio.get('/vaccines', options: Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
@@ -76,6 +94,38 @@ class ApiService {
     } catch (e) {
       print('Request failed: $e');
       throw Exception('Error: $e');
+    }
+  }
+
+  // Log vaccinated animal on a specific activity
+  Future<void> logAdministration(String token, Map<String, dynamic> payload) async {
+    
+    try {
+        final response = await _dio.post(
+            '/vaccinations/log', // Match the Laravel route prefix
+            data: payload,
+            options: Options(headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+            }),
+        );
+
+        // Expecting 201 Created from the Laravel controller
+        if (response.statusCode != 201) {
+            // If the backend sends an error message in the response body
+            final responseData = response.data is String ? json.decode(response.data) : response.data;
+            final errorMessage = responseData['message'] ?? 'Failed to log vaccination.';
+            throw Exception(errorMessage);
+        }
+    } on DioException catch (e) {
+        // Handle specific Dio errors, e.g., Insufficient Stock (400 or 422)
+        if (e.response?.data != null) {
+              final errorMessage = e.response!.data['message'] ?? e.response!.statusMessage;
+              throw Exception(errorMessage);
+        }
+        throw Exception('API Request failed: ${e.message}');
+    } catch (e) {
+        throw Exception('Error: $e');
     }
   }
 
@@ -139,10 +189,52 @@ class ApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchAllVaccinatedAnimals() async {
+    try {
+      final response = await _dio.get(
+        '/animals/vaccinated-animals/all',
+      );
+
+      if (response.statusCode == 200) {
+        // The Laravel endpoint is expected to return a JSON array of complex objects
+        List<dynamic> data = json.decode(response.data)['vaccinated_animals']; 
+        
+        // Cast the dynamic list to List<Map<String, dynamic>>
+        return data.cast<Map<String, dynamic>>().toList();
+      } else {
+        final responseBody = json.decode(response.data);
+        final errorMessage = responseBody['message'] ?? 'Failed to load vaccinated animals.';
+        throw Exception('API Error (${response.statusCode}): $errorMessage');
+      }
+    } catch (e) {
+      print('Error fetching all vaccinated animals: $e');
+      throw Exception('Network error or failed to fetch vaccinated animals.');
+    }
+  }
+
   Future<Map<String, dynamic>> getVaccinatedAnimalsByActivity(String token, int activityId) async {
     try {
       final response = await _dio.get(
         '/activity/$activityId/vaccinated-animals',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load vaccinated animals for activity: \\${response.statusCode}');
+      }
+    } catch (e) {
+      print('Request failed: $e');
+      throw Exception('Error: $e');
+    }
+  }
+
+  // New method for fetching vaccinated animals by activity
+  Future<Map<String, dynamic>> getVaccinatedAnimalsByActivityNew(String token, int activityId) async {
+    try {
+      final response = await _dio.get(
+        '/activity/vaccinated-animals/$activityId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       

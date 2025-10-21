@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\PushNotification;
 use Cloudinary\Cloudinary;
 use App\Services\NotificationService;
+use App\Models\VaccineAdministration;
 
 class ActivityController extends Controller
 {
@@ -603,5 +604,79 @@ class ActivityController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getVaccinatedAnimalsByActivityNew($activityId)
+    {
+        // 1. Fetch Activity Details
+        $activity = Activity::with('barangay')->find($activityId);
+        
+        if (!$activity) {
+            return response()->json(['message' => 'Activity not found'], 404);
+        }
+
+        // 2. Fetch Administration Records for this Activity
+        // We query the administrations directly, eager-loading the related Animal and Lot/Product data.
+        $administrations = VaccineAdministration::where('activity_id', $activity->id)
+            ->with([
+                'animal' => function ($query) {
+                    // Select only the fields needed for the Animal summary
+                    $query->select('id', 'user_id', 'name', 'type', 'breed', 'color', 'gender')
+                          ->with('user:id,first_name,last_name,phone_number'); // Eager load owner details
+                },
+                'lot.product' // Eager load the Lot to get the Product (Vaccine Name)
+            ])
+            ->get();
+
+
+        // 3. Group Administrations by Animal to match the desired output structure
+        $animalsGrouped = $administrations->groupBy('animal_id');
+        
+        $vaccinatedAnimals = $animalsGrouped->map(function ($administrations, $animalId) {
+            $animal = $administrations->first()->animal; // Get the animal model from the first record
+
+            // Build the vaccination array from the administration records for this animal
+            $vaccinations = $administrations->map(function ($admin) {
+                return [
+                    // CRITICAL CHANGE: Get vaccine name via lot -> product relationship
+                    'vaccine_name' => $admin->lot->product->name ?? 'Unknown Vaccine', 
+                    'dose' => $admin->doses_given, // Uses the doses_given field
+                    'date_given' => $admin->date_given,
+                    'administrator' => $admin->administrator,
+                    'route_of_admin' => $admin->route_of_admin, // New field from your schema
+                    'site_of_admin' => $admin->site_of_admin,   // New field from your schema
+                    'adverse_reaction' => (bool)$admin->adverse_reaction, // Convert to boolean
+                ];
+            });
+
+            return [
+                'id' => $animal->id,
+                'name' => $animal->name,
+                'type' => $animal->type,
+                'breed' => $animal->breed,
+                'color' => $animal->color,
+                'gender' => $animal->gender,
+                // Owner details are now accessed via the eagerly loaded 'user' relationship
+                'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
+                'owner_phone' => $animal->user ? $animal->user->phone_number : null,
+                'vaccinations' => $vaccinations
+            ];
+        })
+        ->values(); // Convert the collection map back to a standard indexed array (0, 1, 2...)
+
+        // 4. Return Final JSON Response
+        return response()->json([
+            'activity' => [
+                'id' => $activity->id,
+                'reason' => $activity->reason,
+                'details' => $activity->details,
+                'barangay' => $activity->barangay->name,
+                'date' => $activity->date->format('Y-m-d'),
+                'time' => $activity->time->format('H:i'),
+                'status' => $activity->status
+            ],
+            'total_vaccinated_animals' => $vaccinatedAnimals->count(),
+            'vaccinated_animals' => $vaccinatedAnimals
+        ]);
     }
 }

@@ -207,75 +207,79 @@
         <h2 class="text-xl font-semibold text-secondary">Vaccination History</h2>
       </div>
 
-      @if($animal->vaccines && $animal->vaccines->count() > 0)
+      @if($vaccines->count() > 0)
         <!-- Vaccination Records Cards -->
         <div class="max-h-[60vh] overflow-y-auto pr-2">
           <div class="space-y-4">
-            @foreach($animal->vaccines->sortByDesc('pivot.date_given') as $vaccine)
+            @foreach($vaccines->sortByDesc('date_given') as $vaccine)
               <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                  <!-- Left Section: Vaccine Info -->
-                  <div class="flex flex-wrap items-start gap-4">
-                    <!-- Vaccine Name -->
-                    <div class="min-w-0 flex-1">
-                      <h3 class="text-lg font-semibold text-secondary break-words">
-                        {{ $vaccine->name ?? 'Unknown Vaccine' }}
-                      </h3>
-                      @if($vaccine->description)
-                        <p class="text-sm text-secondary mt-1 break-words">{{ Str::limit($vaccine->description, 80) }}</p>
-                      @endif
-                    </div>
+                <!-- Vaccine Name (Full Width) -->
+                <div class="mb-4">
+                  <h3 class="text-lg font-semibold text-secondary break-words">
+                    {{ $vaccine->name ?? 'Unknown Vaccine' }}
+                  </h3>
+                </div>
 
-                    <!-- Dose -->
-                    <div class="flex items-center space-x-2">
-                      <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                      </svg>
-                      <div>
-                        <span class="text-xs text-secondary">Dose</span>
-                        <p class="text-sm font-semibold text-secondary">{{ $vaccine->pivot->dose ?? 'N/A' }}</p>
-                      </div>
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  <!-- Dose -->
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-xs text-secondary block">Dose</span>
+                      <p class="text-sm font-semibold text-primary break-words">{{ $vaccine->dose ?? 'N/A' }}</p>
                     </div>
+                  </div>
 
-                    <!-- Administered By -->
-                    <div class="flex items-center space-x-2">
-                      <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                      </svg>
-                      <div>
-                        <span class="text-xs text-secondary">Administered by</span>
-                        <p class="text-sm font-semibold text-secondary break-words">{{ $vaccine->pivot->administrator ?? 'Unknown' }}</p>
-                      </div>
+                  <!-- Lot Number -->
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-xs text-secondary block">Lot Number</span>
+                      <p class="text-sm font-semibold text-primary break-words">{{ $vaccine->lot_number ?? 'N/A' }}</p>
                     </div>
+                  </div>
 
-                    <!-- Date -->
-                    <div class="flex items-center space-x-2">
-                      <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                      </svg>
-                      <div>
-                        <span class="text-xs text-secondary">Date</span>
-                        <p class="text-sm font-semibold text-secondary">
-                          {{ $vaccine->pivot->date_given ? \Carbon\Carbon::parse($vaccine->pivot->date_given)->format('M j, Y') : 'N/A' }}
-                        </p>
-                      </div>
+                  <!-- Administered By -->
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-xs text-secondary block">Administered by</span>
+                      <p class="text-sm font-semibold text-primary break-words">{{ $vaccine->administrator ?? 'Unknown' }}</p>
                     </div>
+                  </div>
 
-                    <!-- Status Badge -->
-                    <div>
-                      <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  <!-- Date -->
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-xs text-secondary block">Date</span>
+                      <p class="text-sm font-semibold text-primary">
+                        {{ $vaccine->date_given ? \Carbon\Carbon::parse($vaccine->date_given)->format('M j, Y') : 'N/A' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Status Badge -->
+                  <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-xs text-secondary block">Status</span>
+                      <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 mt-0.5">
                         Completed
                       </span>
                     </div>
                   </div>
-
-                  <!-- Right Section: Protects Against -->
-                  @if($vaccine->protect_against)
-                    <div class="text-left md:text-right">
-                      <span class="text-xs text-secondary">Protects against</span>
-                      <p class="text-sm font-medium text-secondary break-words">{{ Str::limit($vaccine->protect_against, 30) }}</p>
-                    </div>
-                  @endif
                 </div>
               </div>
             @endforeach

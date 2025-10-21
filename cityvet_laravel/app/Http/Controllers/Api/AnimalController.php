@@ -868,10 +868,46 @@ class AnimalController
         ], 200);
     }
 
+    public function getAllVaccinatedAnimals()
+    {
+        $vaccinationRecords = [];
+
+        Animal::whereHas('administrations')
+            ->with([
+                'user:id,first_name,last_name,phone_number',
+                'administrations.lot.product:id,name'
+            ])
+            ->select('id', 'user_id', 'name', 'type', 'breed', 'color', 'gender')
+            ->chunk(100, function ($animals) use (&$vaccinationRecords) {
+                foreach ($animals as $animal) {
+                    $ownerName = $animal->user 
+                        ? $animal->user->first_name . ' ' . $animal->user->last_name 
+                        : 'Unknown';
+                    
+                    foreach ($animal->administrations as $admin) {
+                        $vaccinationRecords[] = [
+                            'animal_id' => $animal->id,
+                            'animal_name' => $animal->name,
+                            'animal_type' => $animal->type,
+                            'animal_breed' => $animal->breed,
+                            'owner_full_name' => $ownerName,
+                            'owner_phone' => $animal->user?->phone_number,
+                            'vaccine_name' => $admin->lot->product->name ?? 'Unknown',
+                            'lot_number' => $admin->lot->lot_number ?? 'N/A',
+                            'dose' => $admin->doses_given,
+                            'date_given' => $admin->date_given,
+                            'administrator' => $admin->administrator,
+                        ];
+                    }
+                }
+            });
+
+        return response()->json($vaccinationRecords, 200);
+    }
+
     /**
      * Attach vaccines to an animal
      */
-
     public function attachVaccines(Request $request, $animalId)
     {
         try {

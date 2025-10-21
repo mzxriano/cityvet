@@ -142,12 +142,12 @@ class VaccineController extends Controller
         $vaccinesForFilter = Vaccine::select('id', 'name')->orderBy('name')->get();
         $barangays = Barangay::select('id', 'name')->orderBy('name')->get();
         
-        return view('admin.vaccines', compact('vaccines', 'usageData', 'vaccinesForFilter', 'barangays'));
+        return view('admin.vaccine.vaccines', compact('vaccines', 'usageData', 'vaccinesForFilter', 'barangays'));
     }
 
     public function create()
     {
-        return view('admin.vaccines_add');
+        return view('admin.vaccine.vaccines_add');
     }
 
     /**

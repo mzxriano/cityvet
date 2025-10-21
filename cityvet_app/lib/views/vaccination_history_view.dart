@@ -89,13 +89,15 @@ class _VaccinationHistoryViewState extends State<VaccinationHistoryView> {
         });
       }
 
-      final response = await _dio.get('/vaccination-records');
+      final response = await _dio.get('/animals/vaccinated-animals/all');
+
+      print(response.data);
       
       if (!mounted || _isDisposed) return;
       
       if (response.statusCode == 200) {
         setState(() {
-          if (response.data is List) {
+          if (response.data is List<dynamic>) {
             vaccinationRecords = response.data;
           } else if (response.data is Map && response.data['data'] is List) {
             vaccinationRecords = response.data['data'];
@@ -569,6 +571,15 @@ class VaccinationCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Dose ${record['dose'] ?? 'N/A'}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.green[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Lot Number: ${record['lot_number'] ?? 'N/A'}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.green[600],

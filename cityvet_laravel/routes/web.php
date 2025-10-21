@@ -13,6 +13,8 @@ use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\IncidentController;
 use App\Http\Controllers\Web\ArchiveController;
 use App\Http\Controllers\Web\RoleRequestController;
+use App\Http\Controllers\Web\VaccineProductController;
+use App\Http\Controllers\Web\VaccineLotController;
 
 
 Route::get('/successful-verification', function () {
@@ -110,16 +112,34 @@ Route::prefix('admin')->group(function () {
             Route::get('/users/search', [App\Http\Controllers\Web\ApiController::class, 'searchUsers']);
         });
 
-        Route::prefix('vaccines')->group(function () {
-            Route::get('/', [VaccineController::class, 'index'])->name('admin.vaccines');
-            Route::get('/add', [VaccineController::class, 'create'])->name('admin.vaccines.add');
-            Route::get('/{id}/show', [VaccineController::class, 'show'])->name('admin.vaccines.show');
-            Route::post('/', [VaccineController::class, 'store'])->name('admin.vaccines.store');
-            Route::get('/{id}/edit', [VaccineController::class, 'edit'])->name('admin.vaccines.edit');
-            Route::put('/{id}', [VaccineController::class, 'update'])->name('admin.vaccines.update');
-            Route::delete('/{id}', [VaccineController::class, 'destroy'])->name('admin.vaccines.destroy');
-            Route::patch('/{vaccine}/stock', [VaccineController::class, 'updateStock'])->name('admin.vaccines.stock');
-        });
+        // Route::prefix('vaccines')->group(function () {
+        //     Route::get('/', [VaccineController::class, 'index'])->name('admin.vaccines');
+        //     Route::get('/add', [VaccineController::class, 'create'])->name('admin.vaccines.add');
+        //     Route::get('/{id}/show', [VaccineController::class, 'show'])->name('admin.vaccines.show');
+        //     Route::post('/', [VaccineController::class, 'store'])->name('admin.vaccines.store');
+        //     Route::get('/{id}/edit', [VaccineController::class, 'edit'])->name('admin.vaccines.edit');
+        //     Route::put('/{id}', [VaccineController::class, 'update'])->name('admin.vaccines.update');
+        //     Route::delete('/{id}', [VaccineController::class, 'destroy'])->name('admin.vaccines.destroy');
+        //     Route::patch('/{vaccine}/stock', [VaccineController::class, 'updateStock'])->name('admin.vaccines.stock');
+        // });
+
+        // --- 1. VACCINE PRODUCTS (Catalog Management) ---
+        // GET /admin/vaccines: Shows the main dashboard, product list, and lots.
+        Route::get('/vaccines', [VaccineProductController::class, 'index'])->name('admin.vaccines');
+
+        // POST /admin/vaccines: Creates a new generic vaccine product.
+        Route::post('/vaccines', [VaccineProductController::class, 'store'])->name('vaccines.store');
+        Route::post('/vaccines/lot', [VaccineLotController::class, 'store'])->name('vaccines.lot.store');
+        Route::put('/vaccines/lot/adjust-stock/{lot}', [VaccineLotController::class, 'adjustStock'])->name('vaccines.lot.adjust-stock');
+
+        // GET /admin/vaccines/{id}/edit: Fetches data for the Edit modal (as JSON).
+        Route::get('/vaccines/{vaccineProduct}/edit', [VaccineProductController::class, 'edit'])->name('vaccines.edit');
+
+        // PUT/PATCH /admin/vaccines/{id}: Updates an existing vaccine product.
+        Route::put('/vaccines/{vaccineProduct}', [VaccineProductController::class, 'update'])->name('vaccines.update');
+
+        // DELETE /admin/vaccines/{id}: Deletes a product and cascades to delete all associated lots.
+        Route::delete('/vaccines/{vaccineProduct}', [VaccineProductController::class, 'destroy'])->name('vaccines.destroy');
 
 
         Route::get('/community', function () {

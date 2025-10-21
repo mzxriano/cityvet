@@ -7,6 +7,7 @@ use Validator;
 use App\Models\Animal;
 use App\Models\AnimalType;
 use App\Models\User;
+use App\Models\VaccineAdministration;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -476,11 +477,27 @@ class AnimalController extends Controller
      */
     public function show($id)
     {   
-        $animal = Animal::find($id);
-        $vaccines = $animal->vaccines;
+        $animal = Animal::with(['user.barangay', 'vaccines'])->findOrFail($id);
+        
+        $vaccines = VaccineAdministration::where('animal_id', $animal->id)
+            ->with([
+                'lot.product:id,name', 
+                'lot:id,lot_number,vaccine_product_id',    
+            ])
+            ->orderBy('date_given', 'desc')
+            ->get()
+            ->map(function($admin) {
+                return (object)[
+                    'name' => $admin->lot->product->name ?? 'Unknown Vaccine',
+                    'dose' => $admin->doses_given ?? 1,
+                    'administrator' => $admin->administrator ?? 'Unknown',
+                    'date_given' => $admin->date_given,
+                    'lot_number' => $admin->lot->lot_number ?? null,
+                ];
+            });
+        
         return view('admin.animals_view', compact('animal', 'vaccines'));
     }
-
     /**
      * Show the form for editing the specified resource.
      */
