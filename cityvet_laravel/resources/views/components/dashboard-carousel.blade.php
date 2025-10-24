@@ -306,7 +306,8 @@ let yearlyActivitiesData = []; // Store yearly activities for barangay status
 // Fetch activities from server
 async function fetchActivities() {
   try {
-    const response = await fetch(`/admin/api/activities/calendar?month=${currentMonth + 1}&year=${currentYear}`);
+    const response = await fetch(`/admin/activities/calendar?month=${currentMonth + 1}&year=${currentYear}`);
+    console.log(response.body);
     if (response.ok) {
       activitiesData = await response.json();
     }
@@ -319,7 +320,8 @@ async function fetchActivities() {
 // Fetch yearly activities for barangay status (doesn't change when month changes)
 async function fetchYearlyActivities() {
   try {
-    const response = await fetch(`/admin/api/activities/calendar?year=${currentYear}`);
+    const response = await fetch(`/admin/activities/calendar?year=${currentYear}`);
+    console.log(response.body);
     if (response.ok) {
       yearlyActivitiesData = await response.json();
       updateBarangayStatus();
@@ -429,7 +431,6 @@ function generateCalendar() {
   
   let html = '';
   
-  // Empty cells for days before the first day of the month
   for (let i = 0; i < firstDay; i++) {
     html += '<div class="p-2 h-16"></div>';
   }
@@ -442,52 +443,42 @@ function generateCalendar() {
     
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayActivities = activitiesData.filter(activity => activity.date === dateStr);
-    const activityStatus = getActivityStatus(day);
+    const activityStatus = getActivityStatus(day); 
     
-    // Get unique barangay names, times, and vaccination categories for this day
-    const barangayInfo = dayActivities.map(a => ({
-      name: a.barangay_name,
-      time: a.time || '',
-      vaccination_category: a.vaccination_category || ''
-    }));
     
-    // Create display text with barangay and time
-    let detailsHtml = '';
-    if (barangayInfo.length > 0) {
-      const uniqueBarangays = [...new Set(barangayInfo.map(b => b.name))];
-      const firstActivity = barangayInfo[0];
+    let detailsHtml = ''; 
+    let tooltipText = ''; 
+    
+    if (dayActivities.length > 0) {
+      const activity = dayActivities[0]; 
+
       
-      if (uniqueBarangays.length === 1 && firstActivity.time) {
-        // Single barangay with time
-        detailsHtml = `<div class="text-[0.55rem] text-gray-600 dark:text-gray-400 truncate px-1 leading-tight mb-1">${firstActivity.name}</div>
-                       <div class="text-[0.5rem] text-gray-500 dark:text-gray-500 truncate px-1">${firstActivity.time}</div>`;
-      } else if (uniqueBarangays.length === 1) {
-        // Single barangay without time
-        detailsHtml = `<div class="text-[0.55rem] text-gray-600 dark:text-gray-400 truncate px-1 leading-tight mb-1">${firstActivity.name}</div>`;
+      const barangayNames = activity.barangay_names; 
+      const time = activity.time;
+
+      if (time) {
+        // Display barangay names and time
+        detailsHtml = `<div class="text-[0.55rem] text-gray-600 dark:text-gray-400 truncate px-1 leading-tight mb-1">${barangayNames}</div>
+                       <div class="text-[0.5rem] text-gray-500 dark:text-gray-500 truncate px-1">${time}</div>`;
       } else {
-        // Multiple barangays
-        detailsHtml = `<div class="text-[0.55rem] text-gray-600 dark:text-gray-400 truncate px-1 leading-tight mb-1">${uniqueBarangays.join(', ')}</div>`;
+        // Display only barangay names
+        detailsHtml = `<div class="text-[0.55rem] text-gray-600 dark:text-gray-400 truncate px-1 leading-tight mb-1">${barangayNames}</div>`;
       }
+      
+      const reason = activity.reason;
+
+      tooltipText = 
+          `Areas: ${barangayNames}` + ' | ' +
+          `Time: ${time}` + ' | ' +
+          `Category: ${activity.vaccination_category}`;
     }
-    
-    // Create tooltip with barangay, time, and vaccination category
-    const tooltipText = barangayInfo.map(b => {
-      let text = b.name;
-      if (b.vaccination_category) {
-        text += ` (${b.vaccination_category})`;
-      }
-      if (b.time) {
-        text += ` - ${b.time}`;
-      }
-      return text;
-    }).join('\\n');
     
     html += `<div class="p-1.5 min-h-[5rem] text-center border border-gray-200 dark:border-gray-600 rounded-lg
                         ${isToday ? 'ring-2 ring-blue-500' : ''}
                         bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
                         hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer relative
                         flex flex-col"
-                        title="${tooltipText}">
+                        title="${tooltipText}"> 
               <div class="text-sm font-medium mb-0.5">${day}</div>
               <div class="flex-1 flex flex-col justify-center mb-1">
                 ${detailsHtml}
@@ -500,34 +491,47 @@ function generateCalendar() {
 }
 
 function updateBarangayStatus() {
-  // Reset all barangays to no schedule
+  // 1. Reset all barangays to no schedule
   const allStatusElements = document.querySelectorAll('[id^="status-"]');
   allStatusElements.forEach(el => {
     el.className = 'w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600 ml-2';
   });
   
-  // Update barangay status based on YEARLY activities (not monthly)
+  // 2. Initialize tracking objects
   const barangayStatus = {};
   const barangayFirstActivity = {}; // Track first activity date for each barangay
   
+  // 3. Loop through activities and then through their associated barangays
   yearlyActivitiesData.forEach(activity => {
-    let status = activity.status; // Use status directly from database
-    
-    // Track the first activity date for each barangay
-    if (!barangayFirstActivity[activity.barangay_id] || activity.date < barangayFirstActivity[activity.barangay_id]) {
-      barangayFirstActivity[activity.barangay_id] = activity.date;
-    }
-    
-    // Priority: on_going > up_coming > completed
-    if (!barangayStatus[activity.barangay_id] || 
-        (status === 'on_going') ||
-        (status === 'up_coming' && barangayStatus[activity.barangay_id] !== 'on_going') ||
-        (status === 'completed' && !barangayStatus[activity.barangay_id])) {
-      barangayStatus[activity.barangay_id] = status;
+    let status = activity.status; // Get the activity status
+
+    // CRITICAL FIX: Loop over the 'barangays' array for EACH activity
+    if (activity.barangays && Array.isArray(activity.barangays)) {
+        
+        activity.barangays.forEach(barangay => {
+            const barangayId = barangay.id; // Correctly get the ID from the individual barangay object
+
+            // a. Track the first activity date for this specific barangay ID
+            if (!barangayFirstActivity[barangayId] || activity.date < barangayFirstActivity[barangayId]) {
+              barangayFirstActivity[barangayId] = activity.date;
+            }
+            
+            // b. Apply status priority to the barangay
+            // Priority: on_going > up_coming > completed
+            const currentBarangayStatus = barangayStatus[barangayId];
+
+            if (!currentBarangayStatus || 
+                (status === 'on_going') ||
+                (status === 'up_coming' && currentBarangayStatus !== 'on_going') ||
+                (status === 'completed' && !currentBarangayStatus)) {
+              
+              barangayStatus[barangayId] = status;
+            }
+        });
     }
   });
   
-  // Apply status colors and click handlers
+  // 4. Apply status colors and click handlers
   Object.keys(barangayStatus).forEach(barangayId => {
     const statusEl = document.getElementById(`status-${barangayId}`);
     const barangayEl = document.querySelector(`[data-barangay-id="${barangayId}"]`);
@@ -550,6 +554,7 @@ function updateBarangayStatus() {
     // Add click handler to barangay element
     if (barangayEl && barangayFirstActivity[barangayId]) {
       barangayEl.style.cursor = 'pointer';
+      // Ensure navigateToBarangayActivity is updated to handle the new date/ID parameters
       barangayEl.onclick = () => navigateToBarangayActivity(barangayId, barangayFirstActivity[barangayId]);
     }
   });

@@ -41,13 +41,14 @@ class ActivityService {
 
       if (response.statusCode == 200) {
         final dynamic data = response.data;
+        print(data);
         return ActivityModel.fromJson(data);
       } else {
         throw Exception('Failed to fetch upcoming activity');
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        return null; // Return null when no activity found
+        return null; 
       }
       rethrow;
     }

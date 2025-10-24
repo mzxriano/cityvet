@@ -9,17 +9,18 @@ use App\Models\Incident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\VaccineAdministration;
 
 class DashboardController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+public function index()
     {
         $totalUsers = User::count();
         $totalAnimals = Animal::count();
-        $totalVaccinatedAnimals = Animal::whereHas('vaccines')->distinct()->count('id');
+        $totalVaccinatedAnimals = VaccineAdministration::distinct('animal_id')->count('animal_id');
         $userTypeCounts = DB::table('user_roles')
             ->join('roles', 'user_roles.role_id', '=', 'roles.id')
             ->select('roles.name', DB::raw('COUNT(user_roles.user_id) as count'))
@@ -51,39 +52,76 @@ class DashboardController
         }
         
         // Get all barangays with vaccination counts by year
-        $barangays = Barangay::all();
+        $barangays = Barangay::select('id', 'name')->orderBy('name')->get();
         $vaccinationDataByYear = [];
         
-        // Get available years from animal_vaccine table based on actual vaccination date
-        $availableYears = DB::table('animal_vaccine')
-            ->whereNotNull('date_given')
-            ->selectRaw('DISTINCT YEAR(date_given) as year')
+        $availableYears = VaccineAdministration::select(
+                DB::raw('YEAR(date_given) as year')
+            )
+            ->distinct()
             ->orderBy('year', 'desc')
-            ->pluck('year');
+            ->pluck('year')
+            ->toArray();
+
+        if (!in_array(date('Y'), $availableYears)) {
+            array_unshift($availableYears, (int)date('Y'));
+        }
+
+        // --- FIX START: Correctly join 'users' table to access 'barangay_id' ---
+        $annualVaccinationCounts = DB::table('animal_vaccine_administrations as va')
+            ->join('animals as a', 'va.animal_id', '=', 'a.id')
+            ->join('users as u', 'a.user_id', '=', 'u.id') // New join to users table
+            ->select(
+                DB::raw('YEAR(va.date_given) as year'),
+                'u.barangay_id', // Select barangay_id from the users table (u)
+                DB::raw('COUNT(DISTINCT a.id) as vaccinated_count') // Count unique animals
+            )
+            ->groupBy('year', 'u.barangay_id') // Group by users table's barangay_id
+            ->get();
+        // --- FIX END ---
         
         foreach ($availableYears as $year) {
-            $yearData = Barangay::select('barangays.id', 'barangays.name')
-                ->selectRaw('COALESCE(vaccination_counts.count, 0) as vaccinated_animals_count')
-                ->leftJoin(DB::raw("(
-                    SELECT 
-                        users.barangay_id,
-                        COUNT(DISTINCT animals.id) as count
-                    FROM users 
-                    INNER JOIN animals ON users.id = animals.user_id 
-                    INNER JOIN animal_vaccine ON animals.id = animal_vaccine.animal_id 
-                    WHERE users.barangay_id IS NOT NULL
-                    AND animal_vaccine.date_given IS NOT NULL
-                    AND YEAR(animal_vaccine.date_given) = {$year}
-                    GROUP BY users.barangay_id
-                ) as vaccination_counts"), 'barangays.id', '=', 'vaccination_counts.barangay_id')
-                ->orderBy('barangays.name')
-                ->get();
+            $barangayLabels = $barangays->pluck('name')->toArray();
+            $barangayData = array_fill(0, count($barangayLabels), 0);
             
-            $vaccinationDataByYear[$year] = [
-                'labels' => $yearData->pluck('name'),
-                'data' => $yearData->pluck('vaccinated_animals_count')
+            // Map the fetched counts to the ordered barangay data array
+            foreach ($barangays as $index => $barangay) {
+                $countRecord = $annualVaccinationCounts
+                    ->where('year', $year)
+                    ->where('barangay_id', $barangay->id)
+                    ->first();
+                
+                if ($countRecord) {
+                    $barangayData[$index] = (int)$countRecord->vaccinated_count;
+                }
+            }
+
+            $vaccinationDataByYear[(string)$year] = [
+                'labels' => $barangayLabels,
+                'data' => $barangayData,
             ];
         }
+
+                $totalVaccinationCounts = DB::table('animals as a')
+            ->select(
+                'u.barangay_id',
+                DB::raw('COUNT(DISTINCT a.id) as total_vaccinated_count')
+            )
+            ->join('users as u', 'a.user_id', '=', 'u.id') // New join to users table
+            ->whereIn('a.id', function ($query) {
+                $query->select('animal_id')
+                    ->from('animal_vaccine_administrations');
+            })
+            ->groupBy('u.barangay_id') // Group by users table's barangay_id
+            ->get()
+            ->keyBy('barangay_id'); // Key by barangay_id for easy lookup
+        
+        // Attach the count to the $barangays collection for initial chart rendering
+        $barangays = $barangays->map(function ($barangay) use ($totalVaccinationCounts) {
+            $count = $totalVaccinationCounts->get($barangay->id);
+            $barangay->vaccinated_animals_count = $count ? (int)$count->total_vaccinated_count : 0;
+            return $barangay;
+        });
 
         // Get bite case data for charts
         $biteCases = $this->getBiteCaseData();
@@ -114,38 +152,59 @@ class DashboardController
     {
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
-        
-        // Get activities from the database
-        $activities = DB::table('activities')
-            ->leftJoin('barangays', 'activities.barangay_id', '=', 'barangays.id')
-            ->select(
-                'activities.id',
-                'activities.reason',
-                'activities.date',
-                'activities.time',
-                'activities.barangay_id',
-                'activities.status',
-                'activities.category as vaccination_category',
-                'barangays.name as barangay_name'
-            )
-            ->whereYear('activities.date', $year)
-            ->whereMonth('activities.date', $month)
-            ->whereNotIn('activities.status', ['failed'])
-            ->get()
-            ->map(function ($activity) {
+
+        try {
+            // 1. Fetch activities with eager-loaded barangays
+            $activities = \App\Models\Activity::with('barangays')
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->whereNotIn('status', ['failed'])
+                ->orderBy('date', 'asc')
+                ->orderBy('time', 'asc')
+                ->get();
+
+            // 2. Map the data for the calendar frontend
+            $calendarActivities = $activities->map(function ($activity) {
+                
+                // Safely get all barangay names, returns empty string if no barangays
+                $barangayNames = $activity->barangays->pluck('name')->implode(', ');
+                
+                // Safely format date/time: Use Carbon checks, as the error often comes from $activity->time
+                $formattedDate = $activity->date instanceof \Carbon\Carbon ? $activity->date->format('Y-m-d') : $activity->date;
+                $formattedTime = $activity->time instanceof \Carbon\Carbon ? $activity->time->format('H:i') : $activity->time;
+
                 return [
                     'id' => $activity->id,
                     'title' => $activity->reason,
-                    'date' => $activity->date,
-                    'time' => $activity->time,
-                    'barangay_id' => $activity->barangay_id,
-                    'barangay_name' => $activity->barangay_name,
+                    
+                    // Use the safely formatted date/time
+                    'date' => $formattedDate, 
+                    'time' => $formattedTime,
+                    
+                    // Use the combined string of barangay names
+                    'barangay_names' => $barangayNames, 
+                    
                     'status' => $activity->status,
-                    'vaccination_category' => $activity->vaccination_category,
+                    // Ensure you use the model's attribute name 'category'
+                    'vaccination_category' => $activity->category,
+                    
+                    // Full list of barangays (optional but good practice)
+                    'barangays' => $activity->barangays->map(fn($b) => ['id' => $b->id, 'name' => $b->name])->toArray(),
                 ];
             });
-        
-        return response()->json($activities);
+            
+            return response()->json($calendarActivities);
+
+        } catch (\Exception $e) {
+            // CRITICAL STEP: Log the detailed error for real debugging
+            \Log::error('Error fetching calendar activities: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+            
+            // Return a generic 500 response to the client
+            return response()->json([
+                'message' => 'Internal Server Error: Could not fetch activities.', 
+                'error_details' => $e->getMessage() // You might remove this for production
+            ], 500);
+        }
     }
 
     /**

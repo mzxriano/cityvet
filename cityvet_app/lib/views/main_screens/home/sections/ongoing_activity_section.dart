@@ -96,7 +96,7 @@ class OngoingActivitySection extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    homeViewModel.ongoingActivities!.first.barangay.toString(),
+                    homeViewModel.ongoingActivities!.first.barangays.first.name.toString(),
                     style: const TextStyle(
                       fontFamily: Config.primaryFont,
                       fontSize: Config.fontSmall,

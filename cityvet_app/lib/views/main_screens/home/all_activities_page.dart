@@ -223,7 +223,7 @@ class _AllActivitiesViewState extends State<AllActivitiesView> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        activity.barangay.toString(),
+                        activity.barangays.first.name.toString(),
                         style: const TextStyle(
                           fontFamily: Config.primaryFont,
                           fontSize: Config.fontSmall,

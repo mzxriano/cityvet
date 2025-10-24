@@ -1,10 +1,11 @@
+import 'package:cityvet_app/models/barangay_model.dart';
 import 'package:intl/intl.dart';
 
 class ActivityModel {
   final int? id;
   final String reason;
   final String details;
-  final String barangay;
+  final List<BarangayModel> barangays;
   final DateTime date;
   final DateTime time;
 
@@ -12,7 +13,7 @@ class ActivityModel {
     this.id,
     required this.reason,
     required this.details,
-    required this.barangay,
+    required this.barangays,
     required this.date,
     required this.time,
   });
@@ -33,13 +34,17 @@ class ActivityModel {
       parsedTime.minute,
     );
 
-    return ActivityModel(
+    final List<BarangayModel> parsedBarangays = (json['barangays'] as List<dynamic>?)
+        ?.map((bJson) => BarangayModel.fromJson(bJson))
+        .toList() ?? [];
+
+return ActivityModel(
       id: json['id'],
       reason: json['reason'] ?? '',
       details: json['details'] ?? '',
-      barangay: json['barangay'] ?? '',
+      barangays: parsedBarangays,
       date: parsedDate,  
-      time: combinedDateTime,  
+      time: combinedDateTime,
     );
   }
 }

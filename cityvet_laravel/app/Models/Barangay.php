@@ -16,7 +16,7 @@ class Barangay extends Model
     // Relationship with Activity
     public function activities()
     {
-        return $this->hasMany(Activity::class);
+        return $this->belongsToMany(Activity::class);
     }
 
     public function users() {

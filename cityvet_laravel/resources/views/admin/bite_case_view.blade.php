@@ -50,10 +50,10 @@
                                  data-lat="{{ $incident->latitude }}" 
                                  data-lng="{{ $incident->longitude }}"
                                  onclick="viewIncidentDetails({{ $incident->id }})">
-                                <h4 class="font-bold text-primary">{{ $incident->victim_name }}</h4>
+                                <h4 class="font-bold text-primary">{{ $incident->victim_name }} ({{ $incident->age }}y)</h4>
                                 <p class="text-sm text-secondary">{{ $incident->incident_time->format('M d, Y') }}</p>
                                 <p class="text-sm text-secondary">{{ Str::limit($incident->location_address, 30) }}</p>
-                                <p class="text-sm text-secondary mb-3">{{ $incident->species }} ({{ $incident->age }}y)</p>
+                                <p class="text-sm text-secondary mb-3">{{ $incident->species }}</p>
                                 @if($incident->status === 'pending')
                                     <span class="bg-yellow-200 px-2 py-1 text-xs rounded">Pending</span>
                                 @elseif($incident->status === 'under_review')

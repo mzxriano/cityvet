@@ -32,7 +32,7 @@ class ActivityController extends Controller
      */
     public function index()
     {
-        $upcomingActivity = Activity::with('barangay')
+        $upcomingActivity = Activity::with('barangays')
             ->where('status', 'up_coming')
             ->orderBy('date', 'asc')
             ->orderBy('time', 'asc')
@@ -42,14 +42,20 @@ class ActivityController extends Controller
             return response()->json(['message' => 'No upcoming activities found'], 404);
         }
 
+        \Log::info("Upcoming: $upcomingActivity");
+
         $activity = [
             'id' => $upcomingActivity->id,
             'reason' => $upcomingActivity->reason,
             'details' => $upcomingActivity->details,
-            'barangay' => $upcomingActivity->barangay->name ?? 'Unknown',
+            'barangay' => $upcomingActivity->barangays->first()->name ?? 'Unknown',
             'date' => $upcomingActivity->date->format('Y-m-d'),
             'time' => $upcomingActivity->time->format('H:i'),
             'status' => $upcomingActivity->status,
+            'barangays' => $upcomingActivity->barangays->map(fn($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+            ])->toArray(),
         ];
 
         return response()->json($activity);
@@ -60,7 +66,7 @@ class ActivityController extends Controller
      */
     public function ongoingActivity()
     {
-        $ongoingActivity = Activity::with('barangay')
+        $ongoingActivity = Activity::with('barangays')
             ->where('status', 'on_going')
             ->latest('date') 
             ->first(); 
@@ -87,7 +93,7 @@ class ActivityController extends Controller
      */
     public function recentActivities()
     {
-        $recentActivities = Activity::with('barangay')
+        $recentActivities = Activity::with('barangays')
             ->where('status', 'completed')
             ->orderBy('date', 'desc')
             ->orderBy('time', 'desc')
@@ -120,7 +126,6 @@ class ActivityController extends Controller
         $validated = $request->validate([
             'reason' => 'required|string|max:255',
             'details' => 'required|string',
-            'barangay_id' => 'required|exists:barangays,id',
             'time' => 'required',
             'date' => 'required|date',
             'status' => 'required|in:up_coming,on_going,completed,failed',

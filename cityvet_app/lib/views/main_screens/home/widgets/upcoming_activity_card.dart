@@ -177,7 +177,7 @@ class UpcomingActivityCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    activity.barangay.toString(),
+                    activity.barangays.first.name.toString(),
                     style: TextStyle(
                       fontFamily: Config.primaryFont,
                       fontSize: Config.fontSmall,

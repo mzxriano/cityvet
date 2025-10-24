@@ -68,7 +68,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         
         // API endpoint for calendar activities
-        Route::get('/api/activities/calendar', [DashboardController::class, 'getCalendarActivities'])->name('admin.api.activities.calendar');
+        Route::get('/activities/calendar', [DashboardController::class, 'getCalendarActivities'])->name('admin.api.activities.calendar');
 
         Route::prefix('activities')->group(function () {
             Route::get('/', [ActivityController::class, 'index'])->name('admin.activities');

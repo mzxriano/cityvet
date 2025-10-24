@@ -52,7 +52,7 @@ class ActivityDialog {
               _buildDetailRow(Icons.access_time_outlined, 'Time', 
                   DateFormat('h:mm a').format(activity.time)),
               _buildDetailRow(Icons.location_on_outlined, 'Location', 
-                  activity.barangay.toString()),
+                  activity.barangays.toString()),
             ],
           ),
           actions: [

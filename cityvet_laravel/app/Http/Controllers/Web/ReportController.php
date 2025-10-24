@@ -15,37 +15,54 @@ class ReportController
     /**
      * Display a listing of the resource.
      */
-   public function index(Request $request)
+        public function index(Request $request)
     {
+        // 1. Initialize all view variables to null or empty array/collection
+        $vaccinationReports = null;
+        $biteCaseReports = null;
+        
+        $barangays = collect([]);
+        $animalTypes = collect([]);
+        $ownerRoles = []; 
+        $biteSpecies = collect([]);
+        $biteProvocations = collect([]);
+
         try {
-            $query = DB::table('animal_vaccine')
-                ->join('animals', 'animal_vaccine.animal_id', '=', 'animals.id')
-                ->join('vaccines', 'animal_vaccine.vaccine_id', '=', 'vaccines.id')
-                ->join('users', 'animals.user_id', '=', 'users.id')
-                ->join('barangays', 'users.barangay_id', '=', 'barangays.id')
+            // --- Reports Query Logic (Vaccination) ---
+            
+            // FIX: Updated joins to reflect the new vaccine traceability tables:
+            // va (animal_vaccine_administrations) -> vl (vaccine_lots) -> vp (vaccine_products)
+            $query = DB::table('animal_vaccine_administrations as va')
+                ->join('animals as a', 'va.animal_id', '=', 'a.id')
+                // Join 1: Get the lot information
+                ->join('vaccine_lots as vl', 'va.vaccine_lot_id', '=', 'vl.id')
+                // Join 2: Get the product information (name and protect_against)
+                ->join('vaccine_products as vp', 'vl.vaccine_product_id', '=', 'vp.id')
+                ->join('users as u', 'a.user_id', '=', 'u.id')
+                ->join('barangays as b', 'u.barangay_id', '=', 'b.id')
                 ->select([
-                    'animal_vaccine.id',
-                    'animal_vaccine.dose',
-                    'animal_vaccine.date_given',
-                    'animal_vaccine.administrator',
-                    'animals.name as animal_name',
-                    'animals.type as animal_type',
-                    'animals.breed',
-                    'animals.code as animal_code',
-                    'vaccines.name as vaccine_name',
-                    'vaccines.protect_against',
-                    DB::raw("CONCAT(users.first_name, ' ', users.last_name) as owner_name"),
-                    'users.id as owner_id',
-                    'users.barangay_id',
-                    'barangays.name as barangay_name',
-                    'animal_vaccine.created_at',
-                    'animal_vaccine.updated_at'
+                    'va.id',
+                    'va.doses_given', 
+                    'va.date_given',
+                    'va.administrator',
+                    'a.name as animal_name',
+                    'a.type as animal_type',
+                    'a.breed',
+                    'a.code as animal_code',
+                    'vp.name as vaccine_name', 
+                    'vp.protect_against',      
+                    DB::raw("CONCAT(u.first_name, ' ', u.last_name) as owner_name"),
+                    'u.id as owner_id',
+                    'u.barangay_id',
+                    'b.name as barangay_name',
+                    'va.created_at',
+                    'va.updated_at'
                 ]);
 
 
             // Filter by animal type
             if ($request->filled('animal_type')) {
-                $query->where('animals.type', $request->animal_type);
+                $query->where('a.type', $request->animal_type);
             }
 
             if ($request->filled('owner_role')) {
@@ -54,37 +71,40 @@ class ReportController
                 $query->whereExists(function ($subQuery) use ($animalType) {
                     $subQuery->select(DB::raw(1))
                         ->from('animals as a2')
-                        ->whereColumn('a2.user_id', 'users.id')
+                        ->whereColumn('a2.user_id', 'u.id')
                         ->where('a2.type', $animalType);
                 });
             }
 
             // Filter by barangay
             if ($request->filled('barangay_id')) {
-                $query->where('users.barangay_id', $request->barangay_id);
+                $query->where('u.barangay_id', $request->barangay_id);
             }
 
             // Filter by date range
             if ($request->filled('date_from')) {
-                $query->whereDate('animal_vaccine.date_given', '>=', $request->date_from);
+                $query->whereDate('va.date_given', '>=', $request->date_from);
             }
 
             if ($request->filled('date_to')) {
-                $query->whereDate('animal_vaccine.date_given', '<=', $request->date_to);
+                $query->whereDate('va.date_given', '<=', $request->date_to);
             }
 
             // Handle pagination
             $perPage = $request->filled('per_page') ? $request->per_page : 10;
             
             if ($perPage === 'all') {
-                $vaccinationReports = $query
-                    ->orderBy('animal_vaccine.date_given', 'desc')
+                $results = $query
+                    ->orderBy('va.date_given', 'desc')
                     ->get();
-                // Create a mock paginator for "all" results
-                $vaccinationReports = new \Illuminate\Pagination\LengthAwarePaginator(
-                    $vaccinationReports,
-                    $vaccinationReports->count(),
-                    $vaccinationReports->count(),
+                
+                $count = $results ? $results->count() : 0;
+                
+                // Create a paginator for "all" results
+                $vaccinationReports = new LengthAwarePaginator(
+                    $results,
+                    $count,
+                    $count,
                     1,
                     [
                         'path' => request()->url(),
@@ -94,7 +114,7 @@ class ReportController
                 $vaccinationReports->appends($request->only(['animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to', 'per_page']));
             } else {
                 $vaccinationReports = $query
-                    ->orderBy('animal_vaccine.date_given', 'desc')
+                    ->orderBy('va.date_given', 'desc')
                     ->paginate((int)$perPage)
                     ->appends($request->only(['animal_type', 'owner_role', 'barangay_id', 'date_from', 'date_to', 'per_page']));
             }
@@ -119,7 +139,7 @@ class ReportController
                 'poultry_owner' => 'Poultry Owner'
             ];
 
-            // Get confirmed bite case reports with filtering
+            // --- Reports Query Logic (Bite Case) ---
             $biteCaseQuery = Incident::confirmed()
                 ->select([
                     'id',
@@ -158,14 +178,17 @@ class ReportController
             $bitePerPage = $request->filled('bite_per_page') ? $request->bite_per_page : 10;
             
             if ($bitePerPage === 'all') {
-                $biteCaseReports = $biteCaseQuery
+                $biteCaseResults = $biteCaseQuery
                     ->orderBy('incident_time', 'desc')
                     ->get();
-                // Create a mock paginator for "all" results
-                $biteCaseReports = new \Illuminate\Pagination\LengthAwarePaginator(
-                    $biteCaseReports,
-                    $biteCaseReports->count(),
-                    $biteCaseReports->count(),
+                
+                $biteCount = $biteCaseResults ? $biteCaseResults->count() : 0;
+                
+                // Create a paginator for "all" results
+                $biteCaseReports = new LengthAwarePaginator(
+                    $biteCaseResults,
+                    $biteCount,
+                    $biteCount,
                     1,
                     [
                         'path' => request()->url(),
@@ -194,23 +217,29 @@ class ReportController
                 ->orderBy('bite_provocation')
                 ->pluck('bite_provocation');
 
-            return view('admin.reports', [
-                'vaccinationReports' => $vaccinationReports,
-                'biteCaseReports' => $biteCaseReports,
-                'barangays' => $barangays,
-                'animalTypes' => $animalTypes,
-                'ownerRoles' => $ownerRoles,
-                'biteSpecies' => $biteSpecies,
-                'biteProvocations' => $biteProvocations,
-                'selectedSpecies' => $request->species,
-                'selectedAnimalType' => $request->animal_type,
-                'selectedOwnerRole' => $request->owner_role,
-                'selectedBarangay' => $request->barangay_id,
-            ]);
-
         } catch (\Exception $e) {
-            return view('admin.reports')->with('error', 'Failed to load reports: ' . $e->getMessage());
+            \Log::error('Failed to load reports: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+            
+            // If an error occurred, explicitly set paginators to empty objects
+            $vaccinationReports = new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'page']);
+            $biteCaseReports = new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'bite_page']);
         }
+
+        // 3. Return the view with all required (and now defined) variables
+        return view('admin.reports', [
+            // Ensure these variables are never null when passed to the view
+            'vaccinationReports' => $vaccinationReports ?? new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'page']),
+            'biteCaseReports' => $biteCaseReports ?? new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'bite_page']),
+            'barangays' => $barangays,
+            'animalTypes' => $animalTypes,
+            'ownerRoles' => $ownerRoles,
+            'biteSpecies' => $biteSpecies,
+            'biteProvocations' => $biteProvocations,
+            'selectedSpecies' => $request->species,
+            'selectedAnimalType' => $request->animal_type,
+            'selectedOwnerRole' => $request->owner_role,
+            'selectedBarangay' => $request->barangay_id,
+        ]);
     }
 
 

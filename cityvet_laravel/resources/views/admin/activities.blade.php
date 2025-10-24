@@ -346,7 +346,7 @@ function activitiesManager() {
                 @endif
               </td>
               <td class="px-4 py-2">
-                {{ $activity->barangay->name ?? 'N/A' }}
+                {{ $activity->barangays->pluck('name')->implode(', ') ?? '-' }}
               </td>
               <td class="px-4 py-2 whitespace-nowrap">
                 {{ \Carbon\Carbon::parse($activity->time)->format('h:i A') }}
@@ -375,7 +375,6 @@ function activitiesManager() {
                         id: {{ $activity->id }},
                         reason: @js($activity->reason),
                         category: @js($activity->category ?? ''),
-                        barangay_id: {{ $activity->barangay_id }},
                         time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
                         date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
                         status: @js($activity->status),
@@ -408,7 +407,7 @@ function activitiesManager() {
               </h3>
               <p class="text-sm text-primary dark:text-gray-300 cursor-pointer truncate" 
                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
-                {{ $activity->barangay->name ?? 'N/A' }}
+                {{ $activity->barangays->pluck('name')->implode(', ') ?? '-' }}
               </p>
             </div>
             <div class="flex space-x-2 flex-shrink-0" onclick="event.stopPropagation()">
@@ -587,7 +586,7 @@ function activitiesManager() {
                   <span class="text-gray-400 italic">Not set</span>
                 @endif
               </td>
-              <td class="px-4 py-2">{{ $request->barangay->name ?? 'N/A' }}</td>
+              <td class="px-4 py-2">{{ $request->barangays->pluck('name')->implode(', ') ?? '-' }}</td>
               <td class="px-4 py-2">
                 @if($request->creator)
                   <div class="font-medium">{{ $request->creator->first_name }} {{ $request->creator->last_name }}</div>
@@ -659,7 +658,7 @@ function activitiesManager() {
           <div class="flex justify-between items-start mb-3">
             <div class="flex-1 min-w-0">
               <h3 class="font-semibold text-lg text-gray-900 dark:text-white truncate pr-2">{{ $request->reason }}</h3>
-              <p class="text-sm text-primary dark:text-gray-300 truncate">{{ $request->barangay->name ?? 'N/A' }}</p>
+              <p class="text-sm text-primary dark:text-gray-300 truncate">{{ $request->barangay->name ?? '-' }}</p>
               @if($request->creator)
                 <p class="text-sm text-gray-500">Requested by: {{ $request->creator->first_name }} {{ $request->creator->last_name }}</p>
               @endif
@@ -838,18 +837,8 @@ function activitiesManager() {
           @csrf
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Reason</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Title</label>
             <input type="text" name="reason" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
-          </div>
-
-          <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Barangay</label>
-            <select name="barangay_id" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" required>
-              <option value="" disabled selected>Select Barangay</option>
-              @foreach($barangays as $barangay)
-                <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
-              @endforeach
-            </select>
           </div>
 
           <div x-data="{ selectedCategory: '', customCategory: '' }">
@@ -916,7 +905,7 @@ function activitiesManager() {
           </div>
 
           <div x-data="{ notifyAll: true, selectedBarangays: [] }">
-            <label class="block font-medium mb-3 text-sm md:text-base text-gray-900 dark:text-white">Notify Users</label>
+            <label class="block font-medium mb-3 text-sm md:text-base text-gray-900 dark:text-white">Select Barangay</label>
             
             <div class="mb-3">
               <label class="flex items-center">
@@ -924,12 +913,12 @@ function activitiesManager() {
                        x-model="notifyAll" 
                        @change="if(notifyAll) selectedBarangays = []"
                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                <span class="ml-2 text-sm md:text-base text-gray-900 dark:text-white">Notify all users</span>
+                <span class="ml-2 text-sm md:text-base text-gray-900 dark:text-white">Select all barangays</span>
               </label>
             </div>
 
             <div x-show="!notifyAll" x-transition class="space-y-2">
-              <p class="text-sm text-gray-900 dark:text-white mb-2">Select specific barangays to notify:</p>
+              <p class="text-sm text-gray-900 dark:text-white mb-2">Select specific barangay</p>
               <div class="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded p-2 space-y-1">
                 @foreach($barangays as $barangay)
                 <label class="flex items-center">
@@ -1018,27 +1007,13 @@ function activitiesManager() {
           @method('PUT')
 
           <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Reason</label>
+            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Title</label>
             <input 
               type="text" 
               name="reason"
               x-model="currentActivity.reason" 
               class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
               required>
-          </div>
-
-          <div>
-            <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Barangay</label>
-            <select 
-              name="barangay_id" 
-              x-model="currentActivity.barangay_id"
-              class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base" 
-              required>
-              <option value="">Select Barangay</option>
-              @foreach($barangays as $barangay)
-                <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
-              @endforeach
-            </select>
           </div>
 
           <div x-data="{ 

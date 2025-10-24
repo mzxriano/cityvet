@@ -51,7 +51,7 @@
       </a>
 
       <!-- More CMS sections can be added here -->
-      <div class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-300 overflow-hidden opacity-50">
+      <!-- <div class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-300 overflow-hidden opacity-50">
         <div class="p-8 h-full flex flex-col items-center justify-center">
           <div class="p-3 bg-gray-100 dark:bg-gray-700/30 rounded-xl mb-4">
             <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +60,7 @@
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-500 text-center">More sections coming soon...</p>
         </div>
-      </div>
+      </div> -->
 
     </div>
 

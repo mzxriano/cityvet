@@ -12,7 +12,6 @@ class Activity extends Model
     protected $fillable = [
         'reason',
         'category',
-        'barangay_id',
         'details',
         'time',
         'date',
@@ -36,9 +35,9 @@ class Activity extends Model
     ];
 
     // Relationship with Barangay
-    public function barangay()
+    public function barangays()
     {
-        return $this->belongsTo(Barangay::class);
+        return $this->belongsToMany(Barangay::class);
     }
 
     // Relationship with User (creator)

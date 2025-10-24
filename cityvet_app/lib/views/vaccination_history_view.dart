@@ -797,7 +797,7 @@ class VaccinationCard extends StatelessWidget {
   String _formatDate(String? dateString) {
     if (dateString == null) return 'No Date';
     try {
-      final date = DateTime.parse(dateString);
+      final date = DateTime.parse(dateString).toLocal();
       return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
     } catch (e) {
       return dateString;

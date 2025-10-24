@@ -11,12 +11,16 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use App\Services\ActivityCreationService;
 
 class ActivityController extends Controller
 {
+
+    public function __construct(protected ActivityCreationService $activityService) {}
+
     public function index(Request $request)
     {
-        $query = Activity::with('barangay')
+        $query = Activity::with('barangays')
             ->whereNotIn('status', ['pending']);
 
         // Apply status filter if provided
@@ -28,7 +32,7 @@ class ActivityController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('reason', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('barangay', function ($barangayQuery) use ($request) {
+                  ->orWhereHas('barangays', function ($barangayQuery) use ($request) {
                       $barangayQuery->where('name', 'like', '%' . $request->search . '%');
                   });
             });
@@ -108,42 +112,6 @@ class ActivityController extends Controller
         ]);
     }
 
-    // public function show($id) 
-    // {
-    //     $activity = Activity::findOrFail($id);
-
-    //     // Get vaccinated animals for this activity
-    //     $vaccinatedAnimals = \App\Models\Animal::with(['user', 'vaccines' => function($query) use ($activity) {
-    //         $query->where('animal_vaccine.activity_id', $activity->id);
-    //     }])
-    //     ->whereHas('vaccines', function($query) use ($activity) {
-    //         $query->where('animal_vaccine.activity_id', $activity->id);
-    //     })
-    //     ->get()
-    //     ->map(function($animal) {
-    //         return [
-    //             'id' => $animal->id,
-    //             'name' => $animal->name,
-    //             'type' => $animal->type,
-    //             'breed' => $animal->breed,
-    //             'color' => $animal->color,
-    //             'gender' => $animal->gender,
-    //             'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
-    //             'owner_phone' => $animal->user ? $animal->user->phone_number : null,
-    //             'vaccinations' => $animal->vaccines->map(function($vaccine) {
-    //                 return [
-    //                     'vaccine_name' => $vaccine->name,
-    //                     'dose' => $vaccine->pivot->dose,
-    //                     'date_given' => $vaccine->pivot->date_given,
-    //                     'administrator' => $vaccine->pivot->administrator,
-    //                 ];
-    //             })
-    //         ];
-    //     });
-
-    //     return view('admin.activities_view', compact('activity', 'vaccinatedAnimals'));
-    // }
-
     public function downloadMemo($id, $index = 0)
     {
         $activity = Activity::findOrFail($id);
@@ -186,141 +154,45 @@ class ActivityController extends Controller
 
     public function create(Request $request)
     {
-        // Validate the incoming request
+        // 1. Validate the incoming request (UPDATED validation)
         $validatedData = $request->validate([
             'reason' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'barangay_id' => 'required|exists:barangays,id',
             'details' => 'required|string|max:1000',
             'time' => 'required|date_format:H:i',
             'date' => 'required|date',
             'status' => 'required|in:up_coming,on_going,completed,failed',
-            'notify_all' => 'sometimes|boolean',
-            'notify_barangays' => 'sometimes|array',
+            'notify_barangays' => 'required|array|min:1',
             'notify_barangays.*' => 'exists:barangays,id',
             'memos' => 'nullable|array',
-            'memos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240', // 10MB max per file
+            'memos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
         ]);
 
         try {
-            $memoPath = null;
-            
-            // Handle multiple memo files upload
+            $memoPaths = [];
+            // Handle file upload paths (keep this simple logic here, or move it to a FileService)
             if ($request->hasFile('memos')) {
-                $memoPaths = [];
-                
                 foreach ($request->file('memos') as $memoFile) {
-                    try {
-                        $uploadedPath = $memoFile->store('activity_memos', 'public');
-                        $memoPaths[] = $uploadedPath;
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to upload memo file: ' . $e->getMessage());
-                    }
+                    // Centralize upload logic if possible, but keep simple file handling here
+                    $memoPaths[] = $memoFile->store('activity_memos', 'public');
                 }
-                
-                // Store as JSON array if multiple, single string if one
-                $memoPath = count($memoPaths) > 1 ? json_encode($memoPaths) : ($memoPaths[0] ?? null);
             }
 
-            // Create the activity
-            $activity = Activity::create([
-                'reason' => $validatedData['reason'],
-                'category' => $validatedData['category'],
-                'barangay_id' => $validatedData['barangay_id'],
-                'details' => $validatedData['details'], 
-                'time' => $validatedData['time'],
-                'date' => $validatedData['date'],
-                'status' => $validatedData['status'],
-                'memo' => $memoPath
-            ]);
+            $selectedBarangays = $validatedData['notify_barangays'];
 
-            // Load the barangay relationship for notifications
-            $activity->load('barangay');
+            // 2. DELEGATE the entire workflow to the Service
+            $this->activityService->createActivityAndNotify(
+                $validatedData,
+                $memoPaths,
+                $selectedBarangays
+            );
 
-            // Notify users based on selection
-            $notifyAll = $request->input('notify_all', true);
-
-            // Notify admin
-            NotificationService::newActivitySchedule($activity);
-            
-            if ($notifyAll) {
-                // Notify all users except rejected ones
-                $users = User::where('status', '!=', 'rejected')->get();
-            } else {
-                // Notify users from selected barangays only, excluding rejected ones
-                $selectedBarangays = $request->input('notify_barangays', []);
-                $users = User::whereIn('barangay_id', $selectedBarangays)
-                            ->where('status', '!=', 'rejected')
-                            ->get();
-            }
-            
-            foreach ($users as $user) {
-                // Get activity details for notification
-                $activityDate = \Carbon\Carbon::parse($activity->date)->format('F j, Y');
-                $activityTime = \Carbon\Carbon::parse($activity->time)->format('h:i A');
-                $barangayName = $activity->barangay->name ?? 'Your Area';
-                $category = ucfirst($activity->category ?? 'Veterinary');
-                
-                // Create status-appropriate notification messages
-                switch ($activity->status) {
-                    case 'up_coming':
-                        $icon = '📅';
-                        $actionText = 'scheduled';
-                        $instruction = 'Please prepare your pets and bring necessary documents.';
-                        break;
-                    case 'on_going':
-                        $icon = '🏥';
-                        $actionText = 'is currently ongoing';
-                        $instruction = 'You can still participate if you\'re in the area.';
-                        break;
-                    case 'completed':
-                        $icon = '✅';
-                        $actionText = 'has been completed';
-                        $instruction = 'Thank you to everyone who participated.';
-                        break;
-                    case 'failed':
-                        $icon = '❌';
-                        $actionText = 'has been cancelled';
-                        $instruction = 'We apologize for any inconvenience. Please stay tuned for rescheduling information.';
-                        break;
-                    default:
-                        $icon = '🏥';
-                        $actionText = 'has been scheduled';
-                        $instruction = 'Please check the details and prepare accordingly.';
-                }
-                
-                $notificationTitle = "{$icon} CityVet: {$category} Activity Update";
-                $notificationBody = "A {$category} activity '{$activity->reason}' {$actionText} in {$barangayName} on {$activityDate} at {$activityTime}. {$instruction}";
-                
-                // Log memo attachment for debugging
-                if ($activity->memo) {
-                    \Log::info("Sending notification with memo attachment: {$activity->memo} for activity {$activity->id}");
-                }
-                
-                $user->notify(new PushNotification(
-                    $notificationTitle,
-                    $notificationBody,
-                    [
-                        'activity_id' => $activity->id,
-                        'activity_date' => $activityDate,
-                        'activity_time' => $activityTime,
-                        'barangay_name' => $barangayName,
-                        'category' => $activity->category,
-                        'reason' => $activity->reason,
-                        'status' => $activity->status,
-                        'details' => $activity->details ?? ''
-                    ],
-                    null, // device token
-                    $activity->memo // memo file path
-                ));
-            }
-
-            // Redirect back with success message
+            // 3. RESPONSE
             return redirect()->route('admin.activities')->with('success', 'Activity created successfully!');
 
         } catch (\Exception $e) {
-            // Redirect back with error message
-            \Log::info($e);
+            // 4. ERROR RESPONSE
+            \Log::error('Failed to create activity: ' . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Failed to create activity. Please try again.');
         }
     }
@@ -332,7 +204,7 @@ class ActivityController extends Controller
 
     public function edit($id)
     {
-        $activity = Activity::with('barangay')->findOrFail($id);
+        $activity = Activity::with('barangays')->findOrFail($id);
         $barangays = Barangay::orderBy('name')->get();
         
         return response()->json([
@@ -367,14 +239,14 @@ class ActivityController extends Controller
         $validatedData = $request->validate([
             'reason' => 'sometimes|string|max:255',
             'category' => 'sometimes|string|max:255',
-            'barangay_id' => 'sometimes|exists:barangays,id',
+            
+            'selected_barangays' => 'sometimes|array', 
+            'selected_barangays.*' => 'exists:barangays,id',
+            
             'details' => 'sometimes|string|max:1000', 
             'time' => 'sometimes|date_format:H:i',
             'date' => 'sometimes|date',
             'status' => 'sometimes|in:up_coming,on_going,completed,failed',
-            'notify_all' => 'sometimes|boolean',
-            'notify_barangays' => 'sometimes|array',
-            'notify_barangays.*' => 'exists:barangays,id',
             'memos' => 'nullable|array',
             'memos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
         ]);
@@ -385,7 +257,6 @@ class ActivityController extends Controller
             $updateData = [
                 'reason' => $validatedData['reason'],
                 'category' => $validatedData['category'],
-                'barangay_id' => $validatedData['barangay_id'],
                 'details' => $validatedData['details'], 
                 'time' => $validatedData['time'],
                 'date' => $validatedData['date'],
@@ -420,6 +291,10 @@ class ActivityController extends Controller
             }
             
             $activity->update($updateData);
+
+            if (isset($validatedData['selected_barangays'])) {
+                $activity->barangays()->sync($validatedData['selected_barangays']);
+            }
 
             return redirect()->route('admin.activities')->with('success', 'Activity updated successfully!');
 
@@ -457,7 +332,7 @@ class ActivityController extends Controller
      */
     public function pendingRequests(Request $request)
     {
-        $query = Activity::with(['barangay', 'creator'])
+        $query = Activity::with(['barangays', 'creator'])
             ->whereIn('status', ['pending', 'rejected'])
             ->orderBy('created_at', 'desc');
 
@@ -473,7 +348,7 @@ class ActivityController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('reason', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('barangay', function ($barangayQuery) use ($request) {
+                  ->orWhereHas('barangays', function ($barangayQuery) use ($request) {
                       $barangayQuery->where('name', 'like', '%' . $request->search . '%');
                   })
                   ->orWhereHas('creator', function ($userQuery) use ($request) {

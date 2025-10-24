@@ -92,12 +92,12 @@
                 <button @click="activeTab = 'administration'" 
                         :class="{'border-purple-500 text-purple-600': activeTab === 'administration', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'administration'}" 
                         class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 whitespace-nowrap">
-                    Log Administration
+                    Vaccine Administration
                 </button>
                 <button @click="activeTab = 'wastage'" 
                         :class="{'border-red-500 text-red-600': activeTab === 'wastage', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'wastage'}" 
                         class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 whitespace-nowrap">
-                    Disposal/Wastage Log
+                    Disposal/Wastage
                 </button>
             </nav>
         </div>
@@ -151,7 +151,7 @@
                                             class="bg-blue-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-blue-600 transition">
                                         View Lots ({{ $product->lots->count() }})
                                     </button>
-                                    <button class="bg-indigo-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-indigo-600 transition">
+                                    <!-- <button class="bg-indigo-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-indigo-600 transition">
                                         Edit
                                     </button>
                                     <form action="/admin/vaccines/{{ $product->id }}" method="POST" class="inline" onsubmit="return confirm('Are you sure? All related inventory will be deleted!');">
@@ -160,7 +160,7 @@
                                         <button type="submit" class="bg-red-500 text-white px-2 py-1 sm:px-3 rounded text-xs hover:bg-red-600 transition">
                                             Delete
                                         </button>
-                                    </form>
+                                    </form> -->
                                 </div>
                             </td>
                         </tr>

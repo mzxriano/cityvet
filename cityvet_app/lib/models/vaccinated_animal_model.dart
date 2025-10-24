@@ -120,7 +120,7 @@ class ActivityVaccinationReportModel {
       'activity': activity != null ? {
         'reason': activity!.reason,
         'details': activity!.details,
-        'barangay': activity!.barangay,
+        'barangay': activity!.barangays,
         'date': activity!.date.toIso8601String().split('T')[0],
         'time': '${activity!.time.hour.toString().padLeft(2, '0')}:${activity!.time.minute.toString().padLeft(2, '0')}',
       } : null,

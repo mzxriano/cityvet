@@ -81,7 +81,16 @@ class HomeViewState extends State<HomeView> {
 
             final filteredUpcoming = showAllActivities 
                 ? (homeViewModel.upcomingActivities ?? [])
-                : (homeViewModel.upcomingActivities?.where((activity) => activity.barangay == userBarangayName).toList() ?? []);
+                : (homeViewModel.upcomingActivities?.where((activity) {
+                    
+                    final activityBarangayNames = activity.barangays.map((b) => b.name).toList();
+
+                    print("Barangays: $activityBarangayNames");
+
+                    // 2. Check if the user's barangay is in that list
+                    return activityBarangayNames.contains(userBarangayName);
+                    
+                }).toList() ?? []);
 
             return SafeArea(
               child: RefreshIndicator(

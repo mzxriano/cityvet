@@ -14,7 +14,7 @@
       <ol class="list-reset flex space-x-2">
         <li>Activities</li>
         <li>&gt;</li>
-        <li class="text-gray-400">{{ $activity->barangay->name }}</li>
+        <li class="text-gray-400">{{ $activity->barangays->first()->name }}</li>
       </ol>
     </nav>
 
@@ -62,9 +62,13 @@
       
       <!-- Details card - Takes up 2/4 columns -->
       <div class="md:col-span-2 bg-white rounded-xl p-6 shadow-lg">
+        <span class="text-sm text-secondary">Title: </span>
         <h2 class="text-3xl font-semibold mb-3 text-primary">{{ $activity->reason }}</h2>
+        <span class="text-sm text-secondary">Details: </span>
         <p class="text-primary font-light mb-3">{{ $activity->details }}</p>
-        <address class="not-italic text-gray-700 mb-3 text-lg">{{ $activity->barangay->name }}</address>
+        <span class="text-sm text-secondary">Barangays: </span>
+        <address class="not-italic text-gray-700 mb-3 text-lg">{{ $activity->barangays->pluck('name')->implode(', ') }}</address>
+        <span class="text-sm text-secondary">Date & Time: </span>
         <p class="text-gray-700">{{ \Carbon\Carbon::parse($activity->date)->format('F j, Y') }}<br />{{ \Carbon\Carbon::parse($activity->time)->format('H:i a') }}</p>
       </div>
 
