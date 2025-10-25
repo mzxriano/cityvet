@@ -68,6 +68,7 @@ class ActivityService {
 
       if (response.statusCode == 200) {
         final dynamic data = response.data;
+        print(data);
         return ActivityModel.fromJson(data);
       } else {
         throw Exception('Failed to fetch ongoing activity');

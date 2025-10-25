@@ -56,15 +56,26 @@
         <thead class="bg-purple-200 text-left text-purple-800">
             <tr>
                 <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>
-                <th class="px-4 py-2 font-medium">Timestamp</th>
-                <th class="px-4 py-2 font-medium">User/System</th>
-                <th class="px-4 py-2 font-medium">Action</th>
-                <th class="px-4 py-2 font-medium">Target Record</th>
-                <th class="px-4 py-2 font-medium rounded-tr-xl">Details</th>
+                <th class="px-4 py-2 font-medium">Catergory</th>
+                <th class="px-4 py-2 font-medium">Barangay</th>
+                <th class="px-4 py-2 font-medium">Date</th>
+                <th class="px-4 py-2 font-medium">Status</th>
+                <th class="px-4 py-2 font-medium rounded-tr-xl">Total Vaccinated Animals</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td colspan="6" class="text-center py-8 text-gray-500">UI Placeholder: User and system activity logs will appear here.</td></tr>
+            @forelse($activities as $activity)
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="px-4 py-3"> {{ $loop->iteration }} </td>
+                    <td class="px-4 py-3"> {{ ucwords($activity->category) ?? '-'}} </td>
+                    <td class="px-4 py-3"> {{ $activity->barangays->pluck('name')->implode(', ') ?? '-' }} </td>
+                    <td class="px-4 py-3"> {{ \Carbon\Carbon::parse($activity->created_at)->toDateString() ?? '-' }} </td>
+                    <td class="px-4 py-3"> {{ ucwords(str_replace('_', ' ', $activity->status)) ?? '-' }} </td>
+                    <td class="px-4 py-3"> {{ $activity->administrations_count }} </td>
+                </tr>
+            @empty
+                <td colspan="6" class="text-center text-secondary">No records found.</td>
+            @endforelse
         </tbody>
     </table>
     <div class="mt-4">

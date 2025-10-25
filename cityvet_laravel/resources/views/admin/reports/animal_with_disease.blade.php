@@ -59,12 +59,20 @@
                 <th class="px-4 py-2 font-medium">Owner Name</th>
                 <th class="px-4 py-2 font-medium">Species</th>
                 <th class="px-4 py-2 font-medium">Disease/Condition</th>
-                <th class="px-4 py-2 font-medium">Diagnosis Date</th>
-                <th class="px-4 py-2 font-medium rounded-tr-xl">Status</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td colspan="7" class="text-center py-8 text-gray-500">UI Placeholder: Data for animals currently marked with a disease will appear here.</td></tr>
+            @forelse($animalsWithDisease as $animalWithDisease)
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="px-4 py-3">{{ $loop->iteration }}</td>
+                    <td class="px-4 py-3">{{ $animalWithDisease->name }}</td>
+                    <td class="px-4 py-3">{{ $animalWithDisease->user->first_name }} {{ $animalWithDisease->user->last_name }}</td>
+                    <td class="px-4 py-3">{{ ucwords($animalWithDisease->type) }}</td>
+                    <td class="px-4 py-3">{{ $animalWithDisease->known_conditions }}</td>
+                </tr>
+            @empty
+                <td colspan="5" class="text-center text-secondary">No records found.</td>
+            @endforelse
         </tbody>
     </table>
     <div class="mt-4">

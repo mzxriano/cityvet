@@ -8,6 +8,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\VaccinationReportsExport;
 use App\Models\Incident;
+use App\Models\Animal;
+use App\Models\Activity;
+use App\Models\VaccineAdministration;
+use App\Models\VaccineStockAdjustment;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportController
@@ -217,6 +221,23 @@ class ReportController
                 ->orderBy('bite_provocation')
                 ->pluck('bite_provocation');
 
+            // Registered Animals
+            $registeredAnimals = Animal::all();
+
+            // Animals with disease
+            $animalsWithDisease = $registeredAnimals->filter(function ($animal) {
+                return !is_null($animal->known_conditions);
+            });
+
+            // Damaged Vaccines
+            $damagedVaccines = VaccineStockAdjustment::all();
+
+            // Activities
+            $activities = Activity::with('barangays.users.animals')
+                      ->withCount('administrations')
+                      ->where('status', '==', 'completed')
+                      ->get();
+
         } catch (\Exception $e) {
             \Log::error('Failed to load reports: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
             
@@ -225,9 +246,7 @@ class ReportController
             $biteCaseReports = new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'bite_page']);
         }
 
-        // 3. Return the view with all required (and now defined) variables
         return view('admin.reports', [
-            // Ensure these variables are never null when passed to the view
             'vaccinationReports' => $vaccinationReports ?? new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'page']),
             'biteCaseReports' => $biteCaseReports ?? new LengthAwarePaginator([], 0, 10, 1, ['path' => request()->url(), 'pageName' => 'bite_page']),
             'barangays' => $barangays,
@@ -239,6 +258,10 @@ class ReportController
             'selectedAnimalType' => $request->animal_type,
             'selectedOwnerRole' => $request->owner_role,
             'selectedBarangay' => $request->barangay_id,
+            'registeredAnimals' => $registeredAnimals,
+            'animalsWithDisease' => $animalsWithDisease,
+            'damagedVaccines' => $damagedVaccines,
+            'activities' => $activities,
         ]);
     }
 

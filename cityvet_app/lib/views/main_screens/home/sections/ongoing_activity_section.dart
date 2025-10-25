@@ -54,66 +54,74 @@ class OngoingActivitySection extends StatelessWidget {
             child: CustomCard(
               width: double.infinity,
               color: Colors.white,
-              widget: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              widget: Builder(
+                builder: (context) {
+                  final activity = homeViewModel.ongoingActivities!.first; 
+                  final barangayName = activity.barangays.isNotEmpty 
+                      ? activity.barangays.first.name.toString() 
+                      : 'N/A';
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'ON GOING',
-                          style: TextStyle(
-                            fontFamily: Config.primaryFont,
-                            fontSize: 10,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'ON GOING',
+                              style: TextStyle(
+                                fontFamily: Config.primaryFont,
+                                fontSize: 10,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Config.tertiaryColor,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        homeViewModel.ongoingActivities!.first.reason,
+                        style: const TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontMedium,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF524F4F),
                         ),
                       ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Config.tertiaryColor,
+                      const SizedBox(height: 4),
+                      Text(
+                        barangayName,
+                        style: const TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Config.tertiaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('MMM d, yyyy • h:mm a')
+                            .format(homeViewModel.ongoingActivities!.first.date),
+                        style: const TextStyle(
+                          fontFamily: Config.primaryFont,
+                          fontSize: Config.fontSmall,
+                          color: Config.tertiaryColor,
+                        ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    homeViewModel.ongoingActivities!.first.reason,
-                    style: const TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontMedium,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF524F4F),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    homeViewModel.ongoingActivities!.first.barangays.first.name.toString(),
-                    style: const TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
-                      color: Config.tertiaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    DateFormat('MMM d, yyyy • h:mm a')
-                        .format(homeViewModel.ongoingActivities!.first.date),
-                    style: const TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
-                      color: Config.tertiaryColor,
-                    ),
-                  ),
-                ],
+                  );
+                }
               ),
             ),
           )

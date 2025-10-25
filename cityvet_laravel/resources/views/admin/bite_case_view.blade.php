@@ -150,14 +150,14 @@ window.onload = function() {
         }).addTo(map);
         
         // Add Urdaneta City label marker
-        L.marker(URDANETA_CENTER, {
-            icon: L.divIcon({
-                className: 'city-label',
-                html: '<div style="background: white; padding: 5px 10px; border-radius: 5px; border: 2px solid #3388ff; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Urdaneta City</div>',
-                iconSize: [120, 30],
-                iconAnchor: [60, 15]
-            })
-        }).addTo(map);
+        // L.marker(URDANETA_CENTER, {
+        //     icon: L.divIcon({
+        //         className: 'city-label',
+        //         html: '<div style="background: white; padding: 5px 10px; border-radius: 5px; border: 2px solid #3388ff; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Urdaneta City</div>',
+        //         iconSize: [120, 30],
+        //         iconAnchor: [60, 15]
+        //     })
+        // }).addTo(map);
         console.log('City label added');
         
         // Add incident data

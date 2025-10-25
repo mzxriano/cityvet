@@ -2,7 +2,6 @@
 
 @section('content')
 
-<!-- Success/Error Messages -->
 @if(session('success'))
 <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
   {{ session('success') }}
@@ -28,12 +27,9 @@
 <div x-data="animalModals" x-init="init()">
   <h1 class="title-style mb-4 sm:mb-8">Animals</h1>
 
-  <!-- Breed Data -->
   <input type="hidden" id="breed-data" value='@json($breedOptions)' />
 
-<!-- Animals Table Card -->
 <div class="w-full bg-white rounded-xl p-2 sm:p-4 lg:p-8 shadow-md">
-  <!-- Add Animal Buttons -->
   <div class="flex justify-end gap-2 sm:gap-5 mb-4 sm:mb-8">
     <a href="{{ route('admin.animals.batch-register') }}" class="bg-purple-500 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded hover:bg-purple-600 transition">
       <span class="hidden sm:inline">Batch Register</span>
@@ -44,7 +40,6 @@
       <span class="sm:hidden">+ Add</span>
     </button>
   </div>
-  <!-- Filter Form -->
   <div class="mb-4">
     <form method="GET" action="{{ route('admin.animals') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 sm:items-center sm:justify-between">
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
@@ -82,7 +77,6 @@
       </div>
     </form>
 
-    <!-- Active Filters Display -->
     @if(request()->hasAny(['type', 'search', 'per_page']))
       <div class="mt-3 flex flex-wrap gap-2">
         <span class="text-sm font-medium text-gray-700">Active filters:</span>
@@ -105,7 +99,6 @@
     @endif
   </div>
 
-  <!-- Results Count -->
   @if($animals->count() > 0)
     <div class="mb-4 text-sm text-gray-600">
       @if(request('per_page') == 'all')
@@ -119,7 +112,6 @@
     </div>
   @endif
 
-  <!-- Table Container with horizontal scroll -->
   <div class="overflow-x-auto -mx-2 sm:mx-0">
     <div class="inline-block min-w-full align-middle">
       <table class="min-w-full border-collapse">
@@ -145,7 +137,6 @@
               </td>
               <td class="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm">
                 <div class="font-medium text-primary">{{ $animal->name }}</div>
-                <!-- Mobile-only additional info -->
                 <div class="text-gray-500 text-xs sm:hidden">
                   <div>{{ $animal->type }} - {{ $animal->breed }}</div>
                   @if($animal->birth_date)
@@ -198,7 +189,6 @@
     </div>
   </div>
 
-  <!-- Pagination -->
   @if(method_exists($animals, 'links') && request('per_page') != 'all')
     <div class="mt-4 sm:mt-6">
       {{ $animals->links() }}
@@ -206,7 +196,6 @@
   @endif
 </div>
 
-  <!-- Add Animal Modal -->
   <div x-show="showAddModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -224,7 +213,6 @@
           @csrf
           
           <div id="animals-container" class="space-y-6">
-            <!-- First animal form (template will be cloned) -->
             <template x-for="(animal, index) in animalForms" :key="index">
               <div class="animal-form-section border border-gray-200 rounded-lg p-4 relative">
                 <div class="flex justify-between items-center mb-4">
@@ -364,18 +352,30 @@
                   </div>
 
                   <div>
-                    <label class="block font-medium text-sm text-primary">Known Conditions</label>
-                    <input 
-                      type="text" 
-                      :name="`animals[${index}][known_conditions]`" 
-                      x-model="animal.known_conditions"
-                      placeholder="e.g., Allergies, medical conditions"
-                      class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
-                    >
+                      <label class="block font-medium text-sm text-primary">Known Condition</label>
+                      <select 
+                          :name="`animals[${index}][known_condition]`" 
+                          x-model="animal.known_condition"
+                          @change="animal.known_condition_specify = ''"
+                          class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                      >
+                          <option value="">Select a condition</option>
+                          <template x-for="condition in getFilteredConditions(animal.type)" :key="condition">
+                              <option :value="condition" x-text="condition"></option>
+                          </template>
+                      </select>
                   </div>
+                  </div>
+                
+                <div class="mt-4" x-show="animal.known_condition === 'Other' || animal.known_condition === 'Specify Manually'">
+                    <label class="block font-medium text-sm text-primary">Specify Condition</label>
+                    <input type="text"
+                           :name="`animals[${index}][known_condition_specify]`"
+                           x-model="animal.known_condition_specify"
+                           class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                           placeholder="Enter the specific condition"
+                           :required="animal.known_condition === 'Other' || animal.known_condition === 'Specify Manually'">
                 </div>
-
-                <!-- Owner autocomplete input -->
                 <div class="relative w-full mt-4">
                   <label class="block font-medium text-sm mb-1 text-primary">Owner</label>
                   <input
@@ -408,7 +408,6 @@
             </template>
           </div>
 
-          <!-- Add Another Animal Button -->
           <div class="mt-4 flex justify-center">
             <button 
               type="button" 
@@ -439,7 +438,6 @@
     </div>
   </div>
 
-  <!-- Edit Animal Modal -->
   <div x-show="showEditModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto">
     <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
@@ -522,12 +520,29 @@
             </div>
 
             <div>
-              <label class="block font-medium text-sm text-primary">Known Conditions</label>
-              <input type="text" x-model="currentAnimal.known_conditions" name="known_conditions" placeholder="e.g., Allergies, medical conditions" class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm">
+                <label class="block font-medium text-sm text-primary">Known Condition</label>
+                <select x-model="currentAnimal.known_condition"
+                        name="known_condition"
+                        @change="currentAnimal.known_condition_specify = ''"
+                        class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                >
+                    <option value="">Select a condition</option>
+                    <template x-for="condition in getFilteredConditions(currentAnimal?.type)" :key="condition">
+                        <option :value="condition" x-text="condition"></option>
+                    </template>
+                </select>
             </div>
-          </div>
+            </div>
 
-          <!-- Owner autocomplete input for edit modal -->
+          <div x-show="currentAnimal?.known_condition === 'Other' || currentAnimal?.known_condition === 'Specify Manually'">
+              <label class="block font-medium text-sm text-primary">Specify Condition</label>
+              <input type="text"
+                     x-model="currentAnimal.known_condition_specify"
+                     name="known_condition_specify"
+                     class="w-full border-gray-300 rounded-md p-2 sm:p-3 text-sm"
+                     placeholder="Enter the specific condition"
+                     :required="currentAnimal?.known_condition === 'Other' || currentAnimal?.known_condition === 'Specify Manually'">
+          </div>
           <div class="relative w-full">
             <label for="owner-search-edit" class="block font-medium text-sm mb-1 text-primary">Owner</label>
             <input
@@ -563,6 +578,18 @@
 <script>
   document.addEventListener('alpine:init', () => {
     Alpine.data('animalModals', () => ({
+      // START: KNOWN CONDITIONS DATA
+      knownConditions: {
+          'Dog': ['Rabies', 'Canine Parvovirus (Parvo)', 'Canine Distemper', 'Leptospirosis', 'Heartworm', 'Ehrlichiosis/Anaplasmosis', 'Other'],
+          'Cat': ['Feline Leukemia Virus (FeLV)', 'Feline Immunodeficiency Virus (FIV)', 'Feline Panleukopenia', 'Cat Flu (FVR/FCV)', 'Ringworm', 'Other'],
+          'Pig': ['African Swine Fever (ASF)', 'Classical Swine Fever (CSF)', 'PRRS', 'PED', 'Foot and Mouth Disease (FMD)', 'Brucellosis', 'Leptospirosis', 'Other'],
+          'Cattle': ['Foot and Mouth Disease (FMD)', 'Haemorrhagic Septicaemia', 'Leptospirosis', 'Bovine Tuberculosis', 'Anaplasmosis', 'Mastitis', 'Other'],
+          'Chicken': ['Avian Influenza (AI)', 'Newcastle Disease (NCD/END)', 'Marek\'s Disease', 'Coccidiosis', 'Infectious Bronchitis', 'Fowl Pox', 'Fowl Cholera', 'Other'],
+          'Duck': ['Avian Influenza (AI)', 'Newcastle Disease (NCD/END)', 'Duck Virus Hepatitis', 'Other'],
+          'Other': ['Specify Manually'],
+      },
+      // END: KNOWN CONDITIONS DATA
+      
       showAddModal: false,
       showEditModal: false,
       currentAnimal: null,
@@ -579,7 +606,8 @@
           height: '',
           color: '',
           unique_spot: '',
-          known_conditions: '',
+          known_condition: '', 
+          known_condition_specify: '', 
           user_id: '',
           ownerDisplay: '',
           suggestions: [],
@@ -598,6 +626,12 @@
 
         this.$watch('showEditModal', (value) => {
           if (value) {
+             // Initialize new fields on currentAnimal if they don't exist
+            if (this.currentAnimal) {
+                // Ensure the fields are set so Alpine can bind to them
+                this.currentAnimal.known_condition = this.currentAnimal.known_condition ?? '';
+                this.currentAnimal.known_condition_specify = this.currentAnimal.known_condition_specify ?? '';
+            }
             setTimeout(() => {
               this.setupEditModalBreedOptions();
               setupOwnerAutocomplete('owner-search-edit', 'owner-id-edit', 'owner-suggestions-edit');
@@ -605,6 +639,17 @@
           }
         });
       },
+      
+      // START: FUNCTION FOR DYNAMIC CONDITIONS
+      getFilteredConditions(animalType) {
+          // Returns the list of diseases for the selected animal or 'Specify Manually' if not found
+          // It looks up the animal type name, e.g., 'Dog' in the knownConditions object.
+          if (!animalType) return this.knownConditions['Other'];
+          // Use a capitalized version for matching keys, assuming the keys are Title Case
+          const typeKey = animalType.charAt(0).toUpperCase() + animalType.slice(1);
+          return this.knownConditions[typeKey] || this.knownConditions['Other'];
+      },
+      // END: FUNCTION FOR DYNAMIC CONDITIONS
 
       addAnimalForm() {
         this.animalForms.push({
@@ -617,7 +662,8 @@
           height: '',
           color: '',
           unique_spot: '',
-          known_conditions: '',
+          known_condition: '', 
+          known_condition_specify: '', 
           user_id: '',
           ownerDisplay: '',
           suggestions: [],
@@ -643,7 +689,8 @@
             height: '',
             color: '',
             unique_spot: '',
-            known_conditions: '',
+            known_condition: '', 
+            known_condition_specify: '', 
             user_id: '',
             ownerDisplay: '',
             suggestions: [],
@@ -653,7 +700,11 @@
       },
 
       updateBreeds(index) {
+        // Reset breed when type changes
         this.animalForms[index].breed = '';
+        // Reset condition fields when type changes
+        this.animalForms[index].known_condition = ''; 
+        this.animalForms[index].known_condition_specify = '';
       },
 
       getAvailableBreeds(type) {
@@ -853,6 +904,11 @@
 
         typeSelect.addEventListener('change', () => {
           updateBreeds(false);
+          // Reset condition fields in currentAnimal model when type changes
+          if (this.currentAnimal) {
+              this.currentAnimal.known_condition = '';
+              this.currentAnimal.known_condition_specify = '';
+          }
         });
       }
     }));

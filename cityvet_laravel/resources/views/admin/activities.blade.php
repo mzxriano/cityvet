@@ -42,6 +42,7 @@ function activitiesManager() {
     
     notifyAll: true,
     selectedBarangays: [],
+    allBarangays: @js($barangays),
     
     currentDate: new Date(),
     
@@ -141,6 +142,7 @@ function activitiesManager() {
       console.log('editActivity called with:', activity);
       this.currentActivity = { ...activity };
       this.selectedDate = activity.date;
+      this.selectedBarangays = activity.selected_barangay_ids;
       this.showEditModal = true;
     },
     
@@ -375,6 +377,7 @@ function activitiesManager() {
                         id: {{ $activity->id }},
                         reason: @js($activity->reason),
                         category: @js($activity->category ?? ''),
+                        selected_barangay_ids: @js($activity->barangays->pluck('id')->toArray()),
                         time: @js(\Carbon\Carbon::parse($activity->time)->format('H:i')),
                         date: @js(\Carbon\Carbon::parse($activity->date)->format('Y-m-d')),
                         status: @js($activity->status),
@@ -1142,6 +1145,38 @@ function activitiesManager() {
                       x-model="currentActivity.details"
                       class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
+
+          <div class="mb-5">
+            <div x-data="{ 
+                // We use the Alpine context from the main activitiesManager component
+                notifyAll: false, 
+                // selectedBarangays is the state we use from the parent x-data scope
+            }">
+                <label class="block font-medium mb-3 text-sm md:text-base text-gray-900 dark:text-white">
+                    Select Barangay(s)
+                </label>
+                
+                <div class="space-y-2">
+                    <p class="text-sm text-gray-900 dark:text-white mb-2">Select specific barangay</p>
+                    <div class="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded p-2 space-y-1">
+                        
+                        <template x-for="barangay in allBarangays" :key="barangay.id">
+                            <label class="flex items-center">
+                                <input type="checkbox" 
+                                      :value="barangay.id"
+                                      x-model="selectedBarangays"
+                                      class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                                <span x-text="barangay.name" class="ml-2 text-sm text-gray-900 dark:text-white"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+
+                <template x-for="barangayId in selectedBarangays" :key="barangayId">
+                    <input type="hidden" name="notify_barangays[]" :value="barangayId">
+                </template>
+            </div>
+        </div>
 
           <div x-data="{ 
               editMemoCount: 1,

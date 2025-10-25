@@ -57,7 +57,6 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
   final Map<String, List<String>> diseaseOptions = {
     'dog': ['Parvovirus', 'Distemper', 'Rabies', 'Specify'],
     'cat': ['Feline Leukemia', 'FIV', 'Rabies', 'Specify'],
-    // Add more types and diseases as needed
   };
 
   String? selectedCondition;
@@ -76,7 +75,6 @@ class _AnimalFormContentState extends State<_AnimalFormContent> {
       final data = await _animalTypeService.getAnimalTypesAndBreeds();
       setState(() {
         petBreeds = data['petBreeds'] as Map<String, List<String>>;
-        // diseaseOptions is hardcoded, do not assign here
       });
     } catch (e) {
       if (mounted) {

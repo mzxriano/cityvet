@@ -4,6 +4,14 @@ import 'package:intl/intl.dart';
 
 class ActivityDialog {
   static void show(BuildContext context, dynamic activity) {
+
+    String allBarangays = '';
+    if(activity.barangays != null && activity.barangays.isNotEmpty) {
+      allBarangays = activity.barangays
+        .map((barangay) => barangay.name as String)
+        .join(', ');
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -51,8 +59,8 @@ class ActivityDialog {
                   DateFormat('MMMM d, yyyy').format(activity.date)),
               _buildDetailRow(Icons.access_time_outlined, 'Time', 
                   DateFormat('h:mm a').format(activity.time)),
-              _buildDetailRow(Icons.location_on_outlined, 'Location', 
-                  activity.barangays.toString()),
+              _buildDetailRow(Icons.location_city, 'Barangay(s)', 
+                  allBarangays),
             ],
           ),
           actions: [

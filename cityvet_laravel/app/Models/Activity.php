@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\VaccineAdministration;
 
 class Activity extends Model
 {
@@ -56,6 +57,12 @@ class Activity extends Model
     public function rejecter()
     {
         return $this->belongsTo(\App\Models\Admin::class, 'rejected_by');
+    }
+
+    // Relationship with Vaccine Administration
+    public function administrations()
+    {
+        return $this->hasMany(VaccineAdministration::class); 
     }
 
     // Optional: Add scope for filtering by status

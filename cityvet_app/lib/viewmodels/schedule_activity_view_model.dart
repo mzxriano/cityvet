@@ -40,13 +40,6 @@ class ScheduleActivityViewModel extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error loading barangays: $e');
-      // Set fallback barangays
-      _barangays = [
-        {'id': '1', 'name': 'Barangay 1'},
-        {'id': '2', 'name': 'Barangay 2'},
-        {'id': '3', 'name': 'Barangay 3'},
-      ];
-      notifyListeners();
     }
   }
 

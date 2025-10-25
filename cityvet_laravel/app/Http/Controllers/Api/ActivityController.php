@@ -10,9 +10,12 @@ use App\Notifications\PushNotification;
 use Cloudinary\Cloudinary;
 use App\Services\NotificationService;
 use App\Models\VaccineAdministration;
+use App\Services\Api\ActivityService;
 
 class ActivityController extends Controller
 {
+    public function __construct(protected ActivityService $activityService) {}
+
     /**
      * Get Cloudinary instance
      */
@@ -42,13 +45,10 @@ class ActivityController extends Controller
             return response()->json(['message' => 'No upcoming activities found'], 404);
         }
 
-        \Log::info("Upcoming: $upcomingActivity");
-
         $activity = [
             'id' => $upcomingActivity->id,
             'reason' => $upcomingActivity->reason,
             'details' => $upcomingActivity->details,
-            'barangay' => $upcomingActivity->barangays->first()->name ?? 'Unknown',
             'date' => $upcomingActivity->date->format('Y-m-d'),
             'time' => $upcomingActivity->time->format('H:i'),
             'status' => $upcomingActivity->status,
@@ -75,15 +75,22 @@ class ActivityController extends Controller
             return response()->json(['message' => 'No ongoing activities found'], 404);
         }
 
+        \Log::info("Ongoing: $ongoingActivity");
+
         $activity = [
             'id' => $ongoingActivity->id,
             'reason' => $ongoingActivity->reason,
             'details' => $ongoingActivity->details,
-            'barangay' => $ongoingActivity->barangay->name ?? 'Unknown',
+            'barangays' => $ongoingActivity->barangays->map(fn($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+            ])->toArray(),
             'date' => $ongoingActivity->date->format('Y-m-d'),
             'time' => $ongoingActivity->time->format('H:i'),
             'status' => $ongoingActivity->status,
         ];
+
+        \Log::info("Ongoing ACT: " . json_encode($activity));
 
         return response()->json($activity);
     }
@@ -108,10 +115,13 @@ class ActivityController extends Controller
                 'id' => $activity->id,
                 'reason' => $activity->reason,
                 'details' => $activity->details,
-                'barangay' => $activity->barangay->name ?? 'Unknown',
                 'date' => $activity->date->format('Y-m-d'),
                 'time' => $activity->time->format('H:i'),
                 'status' => $activity->status,
+                'barangays' => $upcomingActivity->barangays->map(fn($b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                ])->toArray(),
             ];
         });
 
@@ -176,10 +186,9 @@ class ActivityController extends Controller
         $date = $request->date;
         $activityId = $request->activity_id;
 
-        // Get the activity if activity_id is provided
         $activity = null;
         if ($activityId) {
-            $activity = Activity::with('barangay')->find($activityId);
+            $activity = Activity::with('barangays')->find($activityId);
             if (!$activity) {
                 return response()->json(['message' => 'Activity not found'], 404);
             }
@@ -220,13 +229,15 @@ class ActivityController extends Controller
             'vaccinated_animals' => $vaccinatedAnimals
         ];
 
-        // Add activity information if provided
         if ($activity) {
             $response['activity'] = [
                 'id' => $activity->id,
                 'reason' => $activity->reason,
                 'details' => $activity->details,
-                'barangay' => $activity->barangay->name,
+                'barangays' => $activity->barangays->map(fn($b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                ])->toArray(),
                 'time' => $activity->time->format('H:i'),
                 'status' => $activity->status
             ];
@@ -245,10 +256,9 @@ class ActivityController extends Controller
         $date = $request->date;
         $activityId = $request->activity_id;
 
-        // Get the activity if activity_id is provided
         $activity = null;
         if ($activityId) {
-            $activity = Activity::with('barangay')->find($activityId);
+            $activity = Activity::with('barangays')->find($activityId);
             if (!$activity) {
                 return response()->json(['message' => 'Activity not found'], 404);
             }
@@ -289,13 +299,15 @@ class ActivityController extends Controller
             'vaccinated_animals' => $vaccinatedAnimals
         ];
 
-        // Add activity information if provided
         if ($activity) {
             $response['activity'] = [
                 'id' => $activity->id,
                 'reason' => $activity->reason,
                 'details' => $activity->details,
-                'barangay' => $activity->barangay->name,
+                'barangays' => $activity->barangays->map(fn($b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                ])->toArray(),
                 'time' => $activity->time->format('H:i'),
                 'status' => $activity->status
             ];
@@ -309,7 +321,7 @@ class ActivityController extends Controller
      */
     public function getVaccinatedAnimalsByActivity($activityId)
     {
-        $activity = Activity::with('barangay')->find($activityId);
+        $activity = Activity::with('barangays')->find($activityId);
         
         if (!$activity) {
             return response()->json(['message' => 'Activity not found'], 404);
@@ -349,7 +361,10 @@ class ActivityController extends Controller
                 'id' => $activity->id,
                 'reason' => $activity->reason,
                 'details' => $activity->details,
-                'barangay' => $activity->barangay->name,
+                'barangays' => $activity->barangays->map(fn($b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                ])->toArray(),
                 'date' => $activity->date->format('Y-m-d'),
                 'time' => $activity->time->format('H:i'),
                 'status' => $activity->status
@@ -372,7 +387,6 @@ class ActivityController extends Controller
                 'all_files_data' => $request->allFiles()
             ]);
 
-            // Filter out empty files before validation
             $files = $request->file('images', []);
             $validFiles = [];
             
@@ -402,12 +416,11 @@ class ActivityController extends Controller
                 ], 422);
             }
 
-            // Create a new request with only valid files for validation
             $validationData = ['images' => $validFiles];
             
             $validator = \Illuminate\Support\Facades\Validator::make($validationData, [
                 'images' => 'required|array|max:10',
-                'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp,heic|max:5120', // 5MB per image
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp,heic|max:5120', 
             ], [
                 'images.max' => 'You can upload a maximum of 10 images per activity.',
                 'images.*.image' => 'Each file must be a valid image.',
@@ -461,11 +474,10 @@ class ActivityController extends Controller
                         'file_name' => $image->getClientOriginalName(),
                         'trace' => $e->getTraceAsString()
                     ]);
-                    throw $e; // Re-throw to trigger the outer catch block
+                    throw $e; 
                 }
             }
             
-            // Merge with existing images or replace them
             $existingImages = $activity->images ?? [];
             $allImages = array_merge($existingImages, $imageUrls);
             
@@ -516,66 +528,26 @@ class ActivityController extends Controller
     public function submitRequest(Request $request)
     {
         try {
-            // Validate the request data
+            $user = $request->user();
+
+            if (!$user->roles->pluck('name')->contains('aew')) {
+                return response()->json(['message' => 'Only Animal Extension Workers can submit activity requests.'], 403);
+            }
+            
             $validated = $request->validate([
                 'reason' => 'required|string|max:255',
                 'category' => 'required|string|max:100',
-                'barangay_id' => 'required|integer|exists:barangays,id',
-                'date' => 'required|date|after:today',
+                'barangay_ids' => ['required', 'string', 'regex:/^\d+(,\d+)*$/'],
+                'date' => 'required|date|after_or_equal:today', 
                 'time' => 'required|date_format:H:i',
                 'details' => 'required|string|max:1000',
                 'memos' => 'nullable|array',
-                'memos.*' => 'file|mimes:pdf|max:10240', // 10MB per PDF
+                'memos.*' => 'file|mimes:pdf|max:10240',
             ]);
 
-            // Get the authenticated user
-            $user = $request->user();
+            $activity = $this->activityService->createActivityRequest($validated, $user);
 
-            // Check if user is AEW
-            if (!$user->roles->pluck('name')->contains('aew')) {
-                return response()->json([
-                    'message' => 'Only Animal Extension Workers can submit activity requests.'
-                ], 403);
-            }
-
-            // Handle memo file uploads
-            $memoPaths = [];
-            if ($request->hasFile('memos')) {
-                foreach ($request->file('memos') as $memoFile) {
-                    if ($memoFile && $memoFile->isValid()) {
-                        $path = $memoFile->store('activity_memos', 'public');
-                        $memoPaths[] = $path;
-                    }
-                }
-            }
-
-            // Store as JSON array if multiple, single string if one, null if none
-            $memoValue = null;
-            if (!empty($memoPaths)) {
-                $memoValue = count($memoPaths) > 1 ? json_encode($memoPaths) : $memoPaths[0];
-            }
-
-            // Create the activity request with pending status
-            $activity = Activity::create([
-                'reason' => $validated['reason'],
-                'details' => $validated['details'],
-                'barangay_id' => $validated['barangay_id'],
-                'date' => $validated['date'],
-                'time' => $validated['time'],
-                'status' => 'pending', 
-                'created_by' => $user->id,
-                'category' => $validated['category'],
-                'memo' => $memoValue,
-            ]);
-
-            NotificationService::newRequestedActivitySchedule($activity);
-
-            \Log::info('Activity request submitted successfully', [
-                'activity_id' => $activity->id,
-                'user_id' => $user->id,
-                'reason' => $validated['reason'],
-                'memos' => $memoPaths
-            ]);
+            $memosForResponse = $this->activityService->getMemoPaths($activity->memo);
 
             return response()->json([
                 'message' => 'Activity request submitted successfully! Please wait for admin approval.',
@@ -583,27 +555,21 @@ class ActivityController extends Controller
                     'id' => $activity->id,
                     'reason' => $activity->reason,
                     'date' => $activity->date->format('Y-m-d'),
-                    'time' => $activity->time->format('H:i'),
+                    'time' => $activity->time,
                     'status' => $activity->status,
-                    'memos' => $memoPaths,
+                    'memos' => $memosForResponse,
                 ]
             ], 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed for activity request', [
-                'user_id' => $request->user()->id ?? null,
-                'errors' => $e->errors()
-            ]);
+        } catch (ValidationException $e) {
+            Log::error('Validation failed for activity request', ['errors' => $e->errors()]);
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
             
         } catch (\Exception $e) {
-            \Log::error('Failed to submit activity request: ' . $e->getMessage(), [
-                'user_id' => $request->user()->id ?? null,
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Failed to submit activity request: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'message' => 'Failed to submit activity request. Please try again.',
                 'error' => $e->getMessage()
@@ -613,44 +579,38 @@ class ActivityController extends Controller
 
     public function getVaccinatedAnimalsByActivityNew($activityId)
     {
-        // 1. Fetch Activity Details
-        $activity = Activity::with('barangay')->find($activityId);
+        $activity = Activity::with('barangays')->find($activityId);
         
         if (!$activity) {
             return response()->json(['message' => 'Activity not found'], 404);
         }
 
-        // 2. Fetch Administration Records for this Activity
-        // We query the administrations directly, eager-loading the related Animal and Lot/Product data.
+
         $administrations = VaccineAdministration::where('activity_id', $activity->id)
             ->with([
                 'animal' => function ($query) {
-                    // Select only the fields needed for the Animal summary
                     $query->select('id', 'user_id', 'name', 'type', 'breed', 'color', 'gender')
-                          ->with('user:id,first_name,last_name,phone_number'); // Eager load owner details
+                          ->with('user:id,first_name,last_name,phone_number'); 
                 },
-                'lot.product' // Eager load the Lot to get the Product (Vaccine Name)
+                'lot.product' 
             ])
             ->get();
 
 
-        // 3. Group Administrations by Animal to match the desired output structure
         $animalsGrouped = $administrations->groupBy('animal_id');
         
         $vaccinatedAnimals = $animalsGrouped->map(function ($administrations, $animalId) {
-            $animal = $administrations->first()->animal; // Get the animal model from the first record
+            $animal = $administrations->first()->animal; 
 
-            // Build the vaccination array from the administration records for this animal
             $vaccinations = $administrations->map(function ($admin) {
                 return [
-                    // CRITICAL CHANGE: Get vaccine name via lot -> product relationship
                     'vaccine_name' => $admin->lot->product->name ?? 'Unknown Vaccine', 
-                    'dose' => $admin->doses_given, // Uses the doses_given field
+                    'dose' => $admin->doses_given, 
                     'date_given' => $admin->date_given,
                     'administrator' => $admin->administrator,
-                    'route_of_admin' => $admin->route_of_admin, // New field from your schema
-                    'site_of_admin' => $admin->site_of_admin,   // New field from your schema
-                    'adverse_reaction' => (bool)$admin->adverse_reaction, // Convert to boolean
+                    'route_of_admin' => $admin->route_of_admin, 
+                    'site_of_admin' => $admin->site_of_admin,   
+                    'adverse_reaction' => (bool)$admin->adverse_reaction, 
                 ];
             });
 
@@ -661,21 +621,21 @@ class ActivityController extends Controller
                 'breed' => $animal->breed,
                 'color' => $animal->color,
                 'gender' => $animal->gender,
-                // Owner details are now accessed via the eagerly loaded 'user' relationship
                 'owner' => $animal->user ? $animal->user->first_name . ' ' . $animal->user->last_name : 'Unknown',
                 'owner_phone' => $animal->user ? $animal->user->phone_number : null,
                 'vaccinations' => $vaccinations
             ];
         })
-        ->values(); // Convert the collection map back to a standard indexed array (0, 1, 2...)
-
-        // 4. Return Final JSON Response
+        ->values(); 
         return response()->json([
             'activity' => [
                 'id' => $activity->id,
                 'reason' => $activity->reason,
                 'details' => $activity->details,
-                'barangay' => $activity->barangay->name,
+                'barangays' => $activity->barangays->map(fn($b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                ])->toArray(),
                 'date' => $activity->date->format('Y-m-d'),
                 'time' => $activity->time->format('H:i'),
                 'status' => $activity->status

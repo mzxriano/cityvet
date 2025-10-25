@@ -47,10 +47,6 @@ class VaccineAdministration extends Model
         'doses_given' => 'float', // Use float/double as dose amount might not be a whole number
     ];
 
-    // ----------------------
-    // RELATIONSHIPS
-    // ----------------------
-
     /**
      * Get the animal that received the vaccination.
      */

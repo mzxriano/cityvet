@@ -154,7 +154,19 @@ class ActivityController extends Controller
 
     public function create(Request $request)
     {
-        // 1. Validate the incoming request (UPDATED validation)
+
+        if (!is_array($request->input('notify_barangays'))) {
+            if ($request->has('notify_barangays')) {
+                $request->merge([
+                    'notify_barangays' => [$request->input('notify_barangays')] 
+                ]);
+            } else {
+                $request->merge(['notify_barangays' => []]);
+            }
+        }
+
+        \Log::info($request->input('notify_barangays'));
+
         $validatedData = $request->validate([
             'reason' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -170,28 +182,23 @@ class ActivityController extends Controller
 
         try {
             $memoPaths = [];
-            // Handle file upload paths (keep this simple logic here, or move it to a FileService)
             if ($request->hasFile('memos')) {
                 foreach ($request->file('memos') as $memoFile) {
-                    // Centralize upload logic if possible, but keep simple file handling here
                     $memoPaths[] = $memoFile->store('activity_memos', 'public');
                 }
             }
 
             $selectedBarangays = $validatedData['notify_barangays'];
 
-            // 2. DELEGATE the entire workflow to the Service
             $this->activityService->createActivityAndNotify(
                 $validatedData,
                 $memoPaths,
                 $selectedBarangays
             );
 
-            // 3. RESPONSE
             return redirect()->route('admin.activities')->with('success', 'Activity created successfully!');
 
         } catch (\Exception $e) {
-            // 4. ERROR RESPONSE
             \Log::error('Failed to create activity: ' . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Failed to create activity. Please try again.');
         }
@@ -363,7 +370,9 @@ class ActivityController extends Controller
 
         // Only pass pendingRequests for the pending tab
         return view('admin.activities', compact('pendingRequests', 'barangays'));
-    }    /**
+    }
+
+    /**
      * Approve a pending activity request
      */
     public function approveRequest($id, Request $request)
@@ -371,46 +380,18 @@ class ActivityController extends Controller
         \Log::info('Approve request called', ['activity_id' => $id, 'request_data' => $request->all()]);
         
         try {
-            $activity = Activity::with(['barangay', 'creator'])->findOrFail($id);
+            $activity = Activity::with(['barangays', 'creator'])->findOrFail($id);
             
-            if ($activity->status !== 'pending') {
-                return redirect()->back()->with('error', 'This activity is no longer pending approval.');
-            }
-
-            $activity->update([
-                'status' => 'up_coming',
-                'approved_at' => now(),
-                'approved_by' => auth('admin')->id()
-            ]);
-
-            // Notify the AEW user who created the request
-            if ($activity->creator) {
-                $activity->creator->notify(new PushNotification(
-                    'Activity Request Approved',
-                    "Your activity request '{$activity->reason}' has been approved and scheduled for " . $activity->date->format('M d, Y') . " at " . $activity->time->format('h:i A'),
-                    ['activity_id' => $activity->id, 'type' => 'activity_approved']
-                ));
-            }
-
-            // Send notifications to relevant users if specified
-            if ($request->notify_users) {
-                $users = User::where('status', '!=', 'rejected')
-                    ->whereIn('barangay_id', [$activity->barangay_id])
-                    ->get();
-
-                foreach ($users as $user) {
-                    $user->notify(new PushNotification(
-                        'New Activity Scheduled',
-                        "A new {$activity->category} activity has been scheduled in {$activity->barangay->name} on " . $activity->date->format('M d, Y') . " at " . $activity->time->format('h:i A'),
-                        ['activity_id' => $activity->id, 'type' => 'new_activity']
-                    ));
-                }
-            }
+            $this->activityService->approveActivity(
+                $activity, 
+                $request->boolean('notify_users'), 
+                auth('admin')->id() 
+            );
 
             return redirect()->back()->with('success', 'Activity request approved successfully!');
 
         } catch (\Exception $e) {
-            \Log::error('Failed to approve activity request: ' . $e->getMessage(), [
+            Log::error('Failed to approve activity request: ' . $e->getMessage(), [
                 'activity_id' => $id,
                 'admin_id' => auth('admin')->id(),
                 'error' => $e->getTraceAsString()

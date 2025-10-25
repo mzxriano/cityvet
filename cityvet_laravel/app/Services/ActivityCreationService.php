@@ -25,11 +25,22 @@ class ActivityCreationService
             'memo' => $memoPath
         ]);
 
-        $activity->barangays()->attach($selectedBarangays);
+        try {
+                $activity->barangays()->attach($selectedBarangays);
 
-        NotificationService::newActivitySchedule($activity);
+                NotificationService::newActivitySchedule($activity);
+                $this->sendActivityNotifications($activity, $selectedBarangays);
 
-        $this->sendActivityNotifications($activity, $selectedBarangays);
+        } catch (\Throwable $e) {
+            Log::error('Service Error: Failed post-creation step for activity.', [
+                'activity_id' => $activity->id,
+                'selected_barangays' => $selectedBarangays,
+                'exception' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+        }
 
         return $activity;
     }
@@ -68,7 +79,7 @@ class ActivityCreationService
                     'activity_id' => $activity->id,
                     'activity_date' => $activityDate,
                     'activity_time' => $activityTime,
-                    'barangay_name' => $barangayName,
+                    'barangay_name' => $barangayNames,
                     'category' => $activity->category,
                     'reason' => $activity->reason,
                     'status' => $activity->status,
@@ -80,10 +91,9 @@ class ActivityCreationService
         }
     }
     
-    // Extracted logic for status details
     protected function getNotificationStatusDetails(string $status): array
     {
-        switch ($activity->status) {
+        switch ($status) {
             case 'up_coming':
                 $icon = '📅';
                 $actionText = 'scheduled';
@@ -109,5 +119,6 @@ class ActivityCreationService
                 $actionText = 'has been scheduled';
                 $instruction = 'Please check the details and prepare accordingly.';
         }
+        return [$icon, $actionText, $instruction];
     }
 }

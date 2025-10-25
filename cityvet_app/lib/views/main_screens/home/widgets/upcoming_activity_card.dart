@@ -166,28 +166,9 @@ class UpcomingActivityCard extends StatelessWidget {
             
             const SizedBox(height: 8),
             
-            // Location
             Row(
-              children: [
-                Icon(
-                  Icons.location_on_outlined,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    activity.barangays.first.name.toString(),
-                    style: TextStyle(
-                      fontFamily: Config.primaryFont,
-                      fontSize: Config.fontSmall,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                
-                // Tap to view more indicator
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [ 
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(

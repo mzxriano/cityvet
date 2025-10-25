@@ -80,7 +80,6 @@
                 <th class="px-4 py-2 font-medium">Species</th>
                 <th class="px-4 py-2 font-medium">Vaccine Date</th>
                 <th class="px-4 py-2 font-medium">Vaccine Name</th>
-                <th class="px-4 py-2 font-medium">Next Dose</th>
                 <th class="px-4 py-2 font-medium rounded-tr-xl">Barangay</th>
             </tr>
         </thead>
@@ -91,9 +90,8 @@
                     <td class="px-4 py-3 font-semibold">{{ $report->owner_name }}</td>
                     <td class="px-4 py-3">{{ $report->animal_name }}</td>
                     <td class="px-4 py-3">{{ ucfirst($report->animal_type) }}</td>
-                    <td class="px-4 py-3 text-sm">{{ \Carbon\Carbon::parse($report->date_given)->format('M d, Y') }}</td>
+                    <td class="px-4 py-3 text-sm">{{ \Carbon\Carbon::parse($report->date_given)->toDateString() }}</td>
                     <td class="px-4 py-3 text-sm">{{ $report->vaccine_name }}</td>
-                    <td class="px-4 py-3 text-sm">{{ \Carbon\Carbon::parse($report->doses_given)->format('M d, Y') }}</td>
                     <td class="px-4 py-3 text-sm">{{ $report->barangay_name }}</td>
                 </tr>
             @empty

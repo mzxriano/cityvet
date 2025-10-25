@@ -59,11 +59,24 @@
                 <th class="px-4 py-2 font-medium">Lot/Batch No.</th>
                 <th class="px-4 py-2 font-medium">Quantity Damaged</th>
                 <th class="px-4 py-2 font-medium">Reason</th>
-                <th class="px-4 py-2 font-medium rounded-tr-xl">Reported By & Date</th>
+                <th class="px-4 py-2 font-medium">Reported</th>
+                <th class="px-4 py-2 font-medium rounded-tr-xl">Date</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td colspan="6" class="text-center py-8 text-gray-500">UI Placeholder: Data for damaged or expired vaccines will appear here.</td></tr>
+            @forelse($damagedVaccines as $damagedVaccine)
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="px-4 py3"> {{ $loop->iteration }} </td>
+                    <td class="px-4 py3"> {{ $damagedVaccine->lot->product->name }} </td>
+                    <td class="px-4 py3"> {{ $damagedVaccine->lot->lot_number }} </td>
+                    <td class="px-4 py3"> {{ $damagedVaccine->quantity }} </td>
+                    <td class="px-4 py3"> {{ $damagedVaccine->reason }} </td>
+                    <td class="px-4 py3"> {{ $damagedVaccine->administrator }} </td>
+                    <td class="px-4 py3"> {{ \Carbon\Carbon::parse($damagedVaccine->created_at)->toDateString() }} </td>
+                </tr>
+                @empty
+                    <td colspan="7" class="text-center text-secondary">No records found.</td>
+            @endforelse
         </tbody>
     </table>
     <div class="mt-4">

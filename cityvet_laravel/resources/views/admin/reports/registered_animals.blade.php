@@ -62,7 +62,18 @@
             </tr>
         </thead>
         <tbody>
-            <tr><td colspan="6" class="text-center py-8 text-gray-500">UI Placeholder: Data for newly registered animals will appear here.</td></tr>
+            @forelse($registeredAnimals as $registeredAnimal)
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="px-4 py-3"> {{ $loop->iteration }} </td>
+                    <td class="px-4 py-3"> {{ $registeredAnimal->user->first_name }} {{ $registeredAnimal->user->last_name }}</td>
+                    <td class="px-4 py-3"> {{ $registeredAnimal->name }}</td>
+                    <td class="px-4 py-3"> {{ ucwords($registeredAnimal->type) }}</td>
+                    <td class="px-4 py-3"> {{ $registeredAnimal->user->barangay->name }}</td>
+                    <td class="px-4 py-3"> {{ \Carbon\Carbon::parse($registeredAnimal->created_at)->toDateString(); }}</td>
+                </tr>
+                @empty
+                    <td colspan="6" class="text-center text-secondary">No records found.</td>
+            @endforelse
         </tbody>
     </table>
     <div class="mt-4">
