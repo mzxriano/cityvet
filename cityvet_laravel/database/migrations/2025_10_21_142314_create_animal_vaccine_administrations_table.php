@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('animal_vaccine_administrations', function (Blueprint $table) {
             $table->id();
 
-            // 1. Foreign Key to the Animal
             $table->foreignId('animal_id')->constrained('animals')->cascadeOnDelete(); 
 
             $table->foreignId('vaccine_lot_id')->constrained('vaccine_lots')->cascadeOnDelete();

@@ -319,7 +319,7 @@ function activitiesManager() {
 
     @if(isset($activities))
     <div class="hidden lg:block overflow-x-auto">
-      <table class="table-auto w-full border-collapse min-w-full">
+      <table class="w-full border-collapse table-fixed">
         <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
           <tr>
             <th class="px-4 py-2 rounded-tl-xl font-medium whitespace-nowrap">No.</th>
@@ -347,7 +347,7 @@ function activitiesManager() {
                   <span class="text-gray-400 italic">Not set</span>
                 @endif
               </td>
-              <td class="px-4 py-2">
+              <td class="px-4 py-2 max-w-xs truncate whitespace-nowrap">
                 {{ $activity->barangays->pluck('name')->implode(', ') ?? '-' }}
               </td>
               <td class="px-4 py-2 whitespace-nowrap">
@@ -408,7 +408,7 @@ function activitiesManager() {
                   @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
                 {{ $activity->reason }}
               </h3>
-              <p class="text-sm text-primary dark:text-gray-300 cursor-pointer truncate" 
+              <p class="text-sm text-primary dark:text-gray-300 cursor-pointer max-w-xs truncate whitespace-nowrap" 
                  @click="window.location.href = '{{ route('admin.activities.show', $activity->id) }}'">
                 {{ $activity->barangays->pluck('name')->implode(', ') ?? '-' }}
               </p>
@@ -562,7 +562,7 @@ function activitiesManager() {
     </div>
 
     <div class="hidden lg:block overflow-x-auto">
-      <table class="table-auto w-full border-collapse min-w-full">
+      <table class="w-full border-collapse table-fixed">
         <thead class="bg-[#d9d9d9] dark:bg-gray-700 text-left text-[#3D3B3B] dark:text-gray-300">
           <tr>
             <th class="px-4 py-2 rounded-tl-xl font-medium whitespace-nowrap">No.</th>
@@ -903,19 +903,29 @@ function activitiesManager() {
             <label class="block font-medium mb-2 text-sm md:text-base text-gray-900 dark:text-white">Details</label>
             <textarea name="details" 
                       rows="3" 
-                      placeholder="Enter additional details or remarks about this activity..."
+                      placeholder="Enter additional details or remarks about this activity, escpecially the venue..."
                       class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical text-sm md:text-base"></textarea>
           </div>
 
-          <div x-data="{ notifyAll: true, selectedBarangays: [] }">
+          <div x-data="{ 
+              notifyAll: true, 
+              selectedBarangays: @js(collect($barangays)->pluck('id')->toArray()), 
+              allBarangayIds: @js(collect($barangays)->pluck('id')->toArray())
+          }" 
+          x-init="$watch('notifyAll', value => {
+              if (value) {
+                  selectedBarangays = allBarangayIds;
+              } else {
+                  selectedBarangays = [];
+              }
+          })">
             <label class="block font-medium mb-3 text-sm md:text-base text-gray-900 dark:text-white">Select Barangay</label>
             
             <div class="mb-3">
               <label class="flex items-center">
                 <input type="checkbox" 
-                       x-model="notifyAll" 
-                       @change="if(notifyAll) selectedBarangays = []"
-                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                      x-model="notifyAll" 
+                      class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
                 <span class="ml-2 text-sm md:text-base text-gray-900 dark:text-white">Select all barangays</span>
               </label>
             </div>
@@ -926,9 +936,9 @@ function activitiesManager() {
                 @foreach($barangays as $barangay)
                 <label class="flex items-center">
                   <input type="checkbox" 
-                         value="{{ $barangay->id }}"
-                         x-model="selectedBarangays"
-                         class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                        value="{{ $barangay->id }}"
+                        x-model="selectedBarangays"
+                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
                   <span class="ml-2 text-sm text-gray-900 dark:text-white">{{ $barangay->name }}</span>
                 </label>
                 @endforeach

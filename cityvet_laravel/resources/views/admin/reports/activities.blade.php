@@ -52,7 +52,7 @@
     </form>
 
     <!-- Report Table Placeholder -->
-    <table class="table-auto w-full border-collapse">
+    <table class="w-full border-collapse table-fixed">
         <thead class="bg-purple-200 text-left text-purple-800">
             <tr>
                 <th class="px-4 py-2 rounded-tl-xl font-medium">No.</th>

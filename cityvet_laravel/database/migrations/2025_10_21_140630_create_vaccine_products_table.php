@@ -8,19 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Renamed from 'vaccines' to 'vaccine_products'
         Schema::create('vaccine_products', function (Blueprint $table) {
             $table->id();
 
-            // Generic Product Information (Static)
             $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->string('brand')->nullable();
             $table->enum('category', ['vaccine', 'deworming', 'vitamin']);
             $table->string('protect_against')->nullable();
-            $table->string('affected')->nullable(); // Target species/group
+            $table->string('affected')->nullable();
 
-            // Critical Veterinary/Inventory Metadata
             $table->enum('storage_temp', ['refrigerated', 'frozen', 'ambient'])
                   ->default('refrigerated')
                   ->comment('Required storage condition');

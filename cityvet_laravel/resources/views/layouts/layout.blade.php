@@ -18,7 +18,56 @@
       display: none !important;
     }
     
-    /* Custom Scrollbar for Notifications */
+    /* Loading bar at top - NO white flash */
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(to right, #8ED968, #6BC44A);
+      z-index: 9999;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(142, 217, 104, 0.5);
+    }
+    
+    .loading-bar.active {
+      width: 85%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .loading-bar.complete {
+      width: 100%;
+      transition: width 0.2s ease, opacity 0.3s ease 0.2s;
+      opacity: 0;
+    }
+    
+    /* Subtle loading state without white flash */
+    body.page-loading {
+      cursor: wait;
+    }
+    
+    body.page-loading * {
+      pointer-events: none;
+    }
+    
+    /* Smooth content transitions */
+    .content-wrapper {
+      animation: fadeInUp 0.3s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Custom Scrollbar */
     .custom-scrollbar::-webkit-scrollbar {
       width: 8px;
     }
@@ -43,6 +92,17 @@
     .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #718096;
     }
+    
+    /* Smooth sidebar transitions */
+    .sidebar {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Optimize repaints */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   </style>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   @yield('styles')
@@ -53,8 +113,14 @@
 <body class="h-screen m-0 p-0 {{ $currentTheme === 'dark' ? 'dark' : '' }}" x-data="{ sidebarOpen: false }" x-init="
   Alpine.store('app', {
     showLogoutModal: false
-  })
+  });
+  
+  // Initialize smooth navigation
+  initSmoothNavigation();
 ">
+  <!-- Loading bar -->
+  <div id="loadingBar" class="loading-bar"></div>
+
   <!-- Mobile menu button -->
   <button @click="sidebarOpen = !sidebarOpen" 
           class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -79,7 +145,7 @@
     @include('layouts.sidebar')
     
     <!-- Main content area -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col lg:ml-[16.666667%]">
       <!-- Header -->
       <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 lg:px-8">
         <div class="flex items-center justify-end">
@@ -232,7 +298,9 @@
 
       <!-- Content Area -->
       <section class="flex-1 bg-[#eeeeee] dark:bg-gray-900 px-4 py-4 lg:px-[5rem] lg:py-[3rem] overflow-y-auto transition-all duration-300">
-        @yield('content')
+        <div class="content-wrapper">
+          @yield('content')
+        </div>
       </section>
     </div>
   </main>
@@ -263,123 +331,181 @@
 
   @yield('scripts')
   
-  <script>
-function notificationSystem() {
-  return {
-    showNotifications: false,
-    notifications: [],
-    unreadCount: 0,
-    loading: false,
-
-    init() {
-      this.loadNotifications();
-      setInterval(() => this.loadNotifications(), 30000);
-    },
-
-    async toggleNotifications() {
-      this.showNotifications = !this.showNotifications;
-      if (this.showNotifications) {
-        await this.loadNotifications();
-      }
-    },
-
-    async loadNotifications() {
-      try {
-        this.loading = true;
-        const response = await fetch('/admin/notifications/recent');
-        const data = await response.json();
-        
-        this.notifications = data.notifications || [];
-        this.unreadCount = data.count || 0;
-      } catch (error) {
-        console.error('Error loading notifications:', error);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async handleNotificationClick(notification) {
-      if (!notification.read) {
-        await this.markAsRead(notification.id);
-        notification.read = true;
-        this.unreadCount = Math.max(0, this.unreadCount - 1);
-      }
-
-      if (notification.link) {
-        window.location.href = notification.link;
-      }
-    },
-
-    async markAsRead(notificationId) {
-      try {
-        await fetch(`/admin/notifications/${notificationId}/read`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': window.csrfToken
-          }
-        });
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-      }
-    },
-
-    async markAllAsRead() {
-      try {
-        await fetch('/admin/notifications/mark-all-read', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': window.csrfToken
-          }
-        });
-
-        this.notifications.forEach(n => n.read = true);
-        this.unreadCount = 0;
-      } catch (error) {
-        console.error('Error marking all as read:', error);
-      }
-    },
-
-    getNotificationIcon(type) {
-      const icons = {
-        'user_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
-        'animal_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>',
-        'activity_schedule': '<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
-        'stock_alert': '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
-        'community_post': '<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>',
-        'bite_case': '<svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>'
-      };
-      return icons[type] || icons['activity_schedule'];
-    },
-
-    getNotificationIconBg(type) {
-      const backgrounds = {
-        'user_registration': 'bg-green-100 dark:bg-green-900/30',
-        'animal_registration': 'bg-green-100 dark:bg-green-900/30',
-        'activity_schedule': 'bg-blue-100 dark:bg-blue-900/30',
-        'stock_alert': 'bg-red-100 dark:bg-red-900/30',
-        'community_post': 'bg-purple-100 dark:bg-purple-900/30',
-        'bite_case': 'bg-orange-100 dark:bg-orange-900/30'
-      };
-      return backgrounds[type] || 'bg-gray-100 dark:bg-gray-700';
-    },
-
-    formatTime(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diff = Math.floor((now - date) / 1000);
-
-      if (diff < 60) return 'Just now';
-      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-      if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
-      if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
+<script>
+  function initSmoothNavigation() {
+    const loadingBar = document.getElementById('loadingBar');
+    
+    // Intercept all internal links
+    document.addEventListener('click', function(e) {
+      const link = e.target.closest('a');
       
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      // Only handle internal navigation links
+      if (link && link.href && 
+          link.href.startsWith(window.location.origin) && 
+          !link.hasAttribute('target') &&
+          !link.hasAttribute('download') &&
+          !link.closest('[data-no-smooth]')) {
+        
+        loadingBar.classList.add('active');
+        document.body.classList.add('page-loading');
+      }
+    });
+    
+    // Show loading bar on form submissions
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      if (!form.hasAttribute('data-no-smooth')) {
+        loadingBar.classList.add('active');
+        document.body.classList.add('page-loading');
+      }
+    });
+    
+    // Handle browser back/forward
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        document.body.classList.remove('page-loading');
+        loadingBar.classList.remove('active', 'complete');
+      }
+    });
+    
+    // Start loading bar immediately when page starts loading
+    if (document.readyState === 'loading') {
+      loadingBar.classList.add('active');
+    }
+    
+    // Complete loading bar when page is fully loaded
+    window.addEventListener('load', function() {
+      loadingBar.classList.add('complete');
+      document.body.classList.remove('page-loading');
+      setTimeout(() => {
+        loadingBar.classList.remove('active', 'complete');
+      }, 500);
+    });
+    
+    // Show progress as page loads
+    document.addEventListener('readystatechange', function() {
+      if (document.readyState === 'interactive') {
+        loadingBar.style.width = '60%';
+      }
+    });
+  }
+
+  function notificationSystem() {
+    return {
+      showNotifications: false,
+      notifications: [],
+      unreadCount: 0,
+      loading: false,
+
+      init() {
+        this.loadNotifications();
+        setInterval(() => this.loadNotifications(), 30000);
+      },
+
+      async toggleNotifications() {
+        this.showNotifications = !this.showNotifications;
+        if (this.showNotifications) {
+          await this.loadNotifications();
+        }
+      },
+
+      async loadNotifications() {
+        try {
+          this.loading = true;
+          const response = await fetch('/admin/notifications/recent');
+          const data = await response.json();
+          
+          this.notifications = data.notifications || [];
+          this.unreadCount = data.count || 0;
+        } catch (error) {
+          console.error('Error loading notifications:', error);
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      async handleNotificationClick(notification) {
+        if (!notification.read) {
+          await this.markAsRead(notification.id);
+          notification.read = true;
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+        }
+
+        if (notification.link) {
+          window.location.href = notification.link;
+        }
+      },
+
+      async markAsRead(notificationId) {
+        try {
+          await fetch(`/admin/notifications/${notificationId}/read`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': window.csrfToken
+            }
+          });
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
+      },
+
+      async markAllAsRead() {
+        try {
+          await fetch('/admin/notifications/mark-all-read', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': window.csrfToken
+            }
+          });
+
+          this.notifications.forEach(n => n.read = true);
+          this.unreadCount = 0;
+        } catch (error) {
+          console.error('Error marking all as read:', error);
+        }
+      },
+
+      getNotificationIcon(type) {
+        const icons = {
+          'user_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+          'animal_registration': '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>',
+          'activity_schedule': '<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+          'stock_alert': '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+          'community_post': '<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>',
+          'bite_case': '<svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1-1.964-1-2.732 0L4.082 16c-.77 1.333.192 3 1.732 3z"></path></svg>'
+        };
+        return icons[type] || icons['activity_schedule'];
+      },
+
+      getNotificationIconBg(type) {
+        const backgrounds = {
+          'user_registration': 'bg-green-100 dark:bg-green-900/30',
+          'animal_registration': 'bg-green-100 dark:bg-green-900/30',
+          'activity_schedule': 'bg-blue-100 dark:bg-blue-900/30',
+          'stock_alert': 'bg-red-100 dark:bg-red-900/30',
+          'community_post': 'bg-purple-100 dark:bg-purple-900/30',
+          'bite_case': 'bg-orange-100 dark:bg-orange-900/30'
+        };
+        return backgrounds[type] || 'bg-gray-100 dark:bg-gray-700';
+      },
+
+      formatTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+        if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
+        
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
     }
   }
-}
-  </script>
+</script>
 </body>
 </html>

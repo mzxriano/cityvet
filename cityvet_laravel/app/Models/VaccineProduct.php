@@ -33,7 +33,7 @@ class VaccineProduct extends Model
         'withdrawal_days',
         'unit_of_measure',
         'protect_against',
-        'affected',
+        'affected_id',
         'image_url',
         'image_public_id',
     ];
@@ -56,7 +56,11 @@ class VaccineProduct extends Model
      */
     public function lots(): HasMany
     {
-        // Links this product to all entries in the 'vaccine_lots' table
         return $this->hasMany(VaccineLot::class);
+    }
+
+    public function affectedAnimal()
+    {
+        return $this->belongsTo(AnimalType::class, 'affected_id');
     }
 }

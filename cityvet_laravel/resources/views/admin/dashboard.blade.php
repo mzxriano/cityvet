@@ -141,7 +141,23 @@
     // Dynamic bite case data from backend
     const biteCaseData = {!! json_encode($biteCases) !!};
     
+    const ANIMAL_COLORS = {
+      'dog': { bg: '#F59E0B', border: '#D97706', name: 'Dog' },
+      'cat': { bg: '#8B5CF6', border: '#7C3AED', name: 'Cat' },
+      'chicken': { bg: '#3B82F6', border: '#2563EB', name: 'Chicken' },
+      'goat': { bg: '#10B981', border: '#059669', name: 'Goat' },
+      'pig': { bg: '#EF4444', border: '#DC2626', name: 'Pig' },
+      'cattle': { bg: '#14B8A6', border: '#0D9488', name: 'Cattle' },
+      'carabao': { bg: '#F97316', border: '#EA580C', name: 'Carabao' },
+      'horse': { bg: '#EC4899', border: '#DB2777', name: 'Horse' },
+      'default': { bg: '#6B7280', border: '#4B5563', name: 'Other' }
+    };
 
+    // Helper function to get color for an animal type
+    function getAnimalColor(type) {
+      const normalizedType = type.toLowerCase();
+      return ANIMAL_COLORS[normalizedType] || ANIMAL_COLORS['default'];
+    }
 
     // Helper to get filtered data
     function getFilteredData(period, barangay) {
@@ -170,8 +186,6 @@
     let selectedPeriod = 'daily';
     let selectedBarangay = 'all';
     let selectedData = getFilteredData(selectedPeriod, selectedBarangay);
-    
-
 
     // Animal per Category Pie chart data
     const animalCategories = {
@@ -211,41 +225,50 @@
     }
     
     // Helper function to get vaccination data based on year filter
-    function getVaccinationData(year) {
-      if (year && year !== 'all') {
-        const yearData = vaccinationDataByYear[year];
-        if (yearData) {
-          return {
-            labels: yearData.labels,
-            data: yearData.data
-          };
-        }
-        return { labels: [], data: [] };
-      } else {
-        // Calculate total for all years
-        const allYears = Object.keys(vaccinationDataByYear);
-        if (allYears.length === 0) {
-          return {
-            labels: vaccinatedBarangayData.labels,
-            data: vaccinatedBarangayData.data
-          };
-        }
-        
-        const barangayNames = vaccinationDataByYear[allYears[0]].labels;
-        const totals = new Array(barangayNames.length).fill(0);
-        
-        allYears.forEach(y => {
-          vaccinationDataByYear[y].data.forEach((count, index) => {
-            totals[index] += parseInt(count) || 0;
-          });
-        });
-        
+  function getVaccinationData(year) {
+    if (year && year !== 'all') {
+      const yearData = vaccinationDataByYear[year];
+      if (yearData) {
         return {
-          labels: barangayNames,
-          data: totals
+          labels: yearData.labels,
+          datasets: yearData.datasets // Return datasets object instead of data array
         };
       }
+      return { labels: [], datasets: {} };
+    } else {
+      // Calculate total for all years for each animal type
+      const allYears = Object.keys(vaccinationDataByYear);
+      if (allYears.length === 0) {
+        return {
+          labels: vaccinatedBarangayData.labels,
+          datasets: {} // Return empty datasets object
+        };
+      }
+      
+      const barangayNames = vaccinationDataByYear[allYears[0]].labels;
+      const animalTypes = Object.keys(vaccinationDataByYear[allYears[0]].datasets);
+      const totals = {};
+      
+      // Initialize totals for each animal type
+      animalTypes.forEach(type => {
+        totals[type] = new Array(barangayNames.length).fill(0);
+      });
+      
+      // Sum up counts for all years
+      allYears.forEach(y => {
+        animalTypes.forEach(type => {
+          vaccinationDataByYear[y].datasets[type].forEach((count, index) => {
+            totals[type][index] += parseInt(count) || 0;
+          });
+        });
+      });
+      
+      return {
+        labels: barangayNames,
+        datasets: totals // Return datasets object with totals
+      };
     }
+  }
     
 
 
@@ -370,14 +393,23 @@
     
     try {
       if (currentCategoryData && currentCategoryData.labels && currentCategoryData.data) {
+
+        const pieColors = currentCategoryData.labels.map(label => {
+          return getAnimalColor(label).bg;
+        });
+
         animalPieChart = new Chart(pieCtx, {
           type: 'pie',
           data: {
-            labels: currentCategoryData.labels,
+            labels: currentCategoryData.labels.map(label => {
+              return getAnimalColor(label).name;
+            }),
             datasets: [{
               label: 'Animal Categories',
               data: currentCategoryData.data,
-              backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'],
+              backgroundColor: pieColors,
+              borderColor: currentCategoryData.labels.map(label => getAnimalColor(label).border),
+              borderWidth: 2
             }]
           },
           options: getPieChartOptions()
@@ -455,7 +487,7 @@
             },
             callbacks: {
               title: function(context) {
-                return context[0].label; // Show full barangay name in tooltip
+                return context[0].label;
               },
               label: function(context) {
                 return `Vaccinated Animals: ${context.parsed.x}`;
@@ -465,32 +497,99 @@
         },
         elements: {
           bar: {
-            barThickness: Math.max(12, Math.min(25, 400 / barangayCount)) // Dynamic bar thickness
+            barThickness: Math.max(12, Math.min(25, 400 / barangayCount))
           }
         }
       };
     };
 
-    // Create the horizontal bar chart for Vaccinated Animals per Barangay
     let vaccinatedBarangayChart = null;
     let selectedVaccinationYear = document.getElementById('vaccination-year') ? document.getElementById('vaccination-year').value : 'all';
     let currentVaccinationData = getVaccinationData(selectedVaccinationYear);
-    
+
     try {
-      if (currentVaccinationData && currentVaccinationData.labels && currentVaccinationData.data) {
+      if (currentVaccinationData && currentVaccinationData.labels && currentVaccinationData.datasets) {
+        
+        // Prepare datasets for Chart.js with stacked bars
+        const chartDatasets = Object.keys(currentVaccinationData.datasets).map(type => {
+          const color = getAnimalColor(type);
+          return {
+            label: color.name,
+            data: currentVaccinationData.datasets[type],
+            backgroundColor: color.bg,
+            borderColor: color.border,
+            borderWidth: 1
+          };
+        });
+        
         vaccinatedBarangayChart = new Chart(barCtx, {
           type: 'bar',
           data: {
             labels: currentVaccinationData.labels,
-            datasets: [{
-              label: 'Vaccinated Animals',
-              data: currentVaccinationData.data,
-              backgroundColor: '#8B5CF6',
-              borderColor: '#7C3AED',
-              borderWidth: 1
-            }]
+            datasets: chartDatasets
           },
-          options: getHorizontalBarOptions()
+          options: {
+            ...getHorizontalBarOptions(),
+            indexAxis: 'y',
+            scales: {
+              x: {
+                stacked: true, // Enable stacking
+                beginAtZero: true,
+                ticks: {
+                  font: { size: window.innerWidth < 640 ? 14 : 16 },
+                  stepSize: 1,
+                  callback: function(value) {
+                    if (Number.isInteger(value)) return value;
+                  }
+                }
+              },
+              y: {
+                stacked: true, // Enable stacking
+                ticks: {
+                  font: { size: window.innerWidth < 640 ? 12 : 14 },
+                  maxRotation: 0,
+                  callback: function(value, index) {
+                    const label = this.getLabelForValue(value);
+                    return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                  font: { size: window.innerWidth < 640 ? 12 : 14 },
+                  padding: 10,
+                  usePointStyle: true
+                }
+              },
+              tooltip: {
+                titleFont: { size: window.innerWidth < 640 ? 14 : 16 },
+                bodyFont: { size: window.innerWidth < 640 ? 12 : 14 },
+                callbacks: {
+                  title: function(context) {
+                    return context[0].label; // Barangay name
+                  },
+                  label: function(context) {
+                    const animalType = context.dataset.label;
+                    const count = context.parsed.x;
+                    return `${animalType}: ${count}`;
+                  },
+                  afterLabel: function(context) {
+                    // Calculate total for this barangay
+                    const dataIndex = context.dataIndex;
+                    let total = 0;
+                    context.chart.data.datasets.forEach(dataset => {
+                      total += dataset.data[dataIndex] || 0;
+                    });
+                    return `Total: ${total}`;
+                  }
+                }
+              }
+            }
+          }
         });
       } else {
         console.error('Invalid vaccinated barangay data:', currentVaccinationData);
@@ -552,8 +651,16 @@
       currentCategoryData = getAnimalCategoryData(selectedCategoryBarangay);
       
       if (animalPieChart && currentCategoryData) {
-        animalPieChart.data.labels = currentCategoryData.labels;
+        animalPieChart.data.labels = currentCategoryData.labels.map(label => {
+          return getAnimalColor(label).name;
+        });
         animalPieChart.data.datasets[0].data = currentCategoryData.data;
+        animalPieChart.data.datasets[0].backgroundColor = currentCategoryData.labels.map(label => {
+          return getAnimalColor(label).bg;
+        });
+        animalPieChart.data.datasets[0].borderColor = currentCategoryData.labels.map(label => {
+          return getAnimalColor(label).border;
+        });
         animalPieChart.update();
       }
     });
@@ -565,7 +672,18 @@
       
       if (vaccinatedBarangayChart && currentVaccinationData) {
         vaccinatedBarangayChart.data.labels = currentVaccinationData.labels;
-        vaccinatedBarangayChart.data.datasets[0].data = currentVaccinationData.data;
+        
+        vaccinatedBarangayChart.data.datasets = Object.keys(currentVaccinationData.datasets).map(type => {
+          const color = getAnimalColor(type);
+          return {
+            label: color.name,
+            data: currentVaccinationData.datasets[type],
+            backgroundColor: color.bg,
+            borderColor: color.border,
+            borderWidth: 1
+          };
+        });
+        
         vaccinatedBarangayChart.update();
       }
     });

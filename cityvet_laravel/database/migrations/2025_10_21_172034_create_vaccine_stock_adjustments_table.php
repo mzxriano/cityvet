@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('vaccine_stock_adjustments', function (Blueprint $table) {
             $table->id();
             
-            // Link back to the Lot that was adjusted
             $table->foreignId('vaccine_lot_id')->constrained('vaccine_lots')->onDelete('cascade'); 
             
             $table->string('adjustment_type')->comment('e.g., Wastage, Spoilage, Inventory Error');

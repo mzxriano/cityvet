@@ -107,14 +107,12 @@ class ActivityService
             throw new \Exception('This activity is no longer pending approval.');
         }
 
-        // 1. Update Activity Status (Database Write)
         $activity->update([
             'status' => 'up_coming',
             'approved_at' => now(),
             'approved_by' => $adminId
         ]);
 
-        // 2. Notify the Activity Creator (AEW)
         if ($activity->creator) {
             $activity->creator->notify(new PushNotification(
                 'Activity Request Approved',
@@ -123,23 +121,19 @@ class ActivityService
             ));
         }
 
-        // 3. Notify Affected Users in the BARANGAYS
         if ($notifyUsers) {
-            // Get the IDs of all barangays associated with this activity (Many-to-Many)
             $barangayIds = $activity->barangays->pluck('id')->toArray();
             
-            // Get the names for the notification message
             $barangayNames = $activity->barangays->pluck('name')->implode(', ');
 
-            // Query Users who belong to ANY of the associated barangays (Assuming User model has a 'barangay_id' foreign key)
             $usersToNotify = User::where('status', '!=', 'rejected')
-                ->whereIn('barangay_id', $barangayIds) // <-- FIX: Use the array of IDs
+                ->whereIn('barangay_id', $barangayIds) 
                 ->get();
 
             foreach ($usersToNotify as $user) {
                 $user->notify(new PushNotification(
                     'New Activity Scheduled',
-                    "A new {$activity->category} activity has been scheduled in {$barangayNames} on " . $activity->date->format('M d, Y') . " at " . $activity->time->format('h:i A'),
+                    "A new {$activity->category} activity has been scheduled for {$barangayNames} on " . $activity->date->format('M d, Y') . " at " . $activity->time->format('h:i A'),
                     ['activity_id' => $activity->id, 'type' => 'new_activity']
                 ));
             }

@@ -48,6 +48,14 @@ class AnimalType extends Model
     }
 
     /**
+     * Get animals of this type
+     */
+    public function affectedProduct()
+    {
+        return $this->hasMany(VaccineProduct::class, 'affected_id');
+    }
+
+    /**
      * Scope to get only active types
      */
     public function scopeActive($query)
